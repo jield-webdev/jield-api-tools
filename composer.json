@@ -1,0 +1,71 @@
+{
+  "name": "jield-webdev/jield-search",
+  "description": "Own implementation of API endpoints. This repository is based on the Laminas API tools but includes shared functionality to easily create API endpoints",
+  "type": "library",
+  "keywords": [
+    "api",
+    "module",
+    "laminas"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/jield-webdev/jield-api-tools",
+  "authors": [
+    {
+      "name": "Johan van der Heide",
+      "email": "info@jield.nl",
+      "homepage": "https://jield.nl"
+    }
+  ],
+  "require": {
+    "php": "~8.3.0 || ~8.4.0",
+    "laminas/laminas-mvc": "^3.7"
+  },
+  "require-dev": {
+    "iteaoffice/testing": "^4.1-dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "Jield\\ApiTools\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Jield\\ApiToolsTest\\": "test"
+    }
+  },
+  "config": {
+    "vendor-dir": "vendor",
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "composer/package-versions-deprecated": true
+    }
+  },
+  "extra": {
+    "laminas": {
+      "module": "Jield\\ApiTools\\Module"
+    },
+    "branch-alias": {
+      "dev-main": "1.0-dev",
+      "dev-develop": "1.1-dev"
+    }
+  },
+  "scripts": {
+    "check": [
+      "@php-lint",
+      "@phpstan",
+      "@cs",
+      "@test"
+    ],
+    "fix": [
+      "@cbf",
+      "@cs-fix"
+    ],
+    "php-lint": "./vendor/bin/parallel-lint src",
+    "phpstan": "./vendor/bin/phpstan analyse src/ --level=1 --memory-limit=2G",
+    "cs": "./vendor/bin/phpcs -n -p --standard=PSR2 --extensions=php src",
+    "cbf": "./vendor/bin/phpcbf src --standard=PSR2",
+    "cs-fix": "./vendor/bin/php-cs-fixer fix -v src",
+    "test": "./vendor/bin/phpunit"
+  }
+}
