@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Jield\test;
+namespace Jield\ApiToolsTest;
 
 use Jield\ApiTools\Module;
 use Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory;

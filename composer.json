@@ -19,7 +19,13 @@
   ],
   "require": {
     "php": "~8.3.0 || ~8.4.0",
-    "laminas/laminas-mvc": "^3.7"
+    "bshaffer/oauth2-server-php": "^1.14.1",
+    "laminas/laminas-mvc": "^3.7",
+    "laminas/laminas-filter": "^2.37",
+    "laminas/laminas-validator": "^2.64",
+    "laminas/laminas-config-aggregator": "^1.15",
+    "laminas/laminas-authentication": "^2.17",
+    "webmozart/assert": "^1.11"
   },
   "require-dev": {
     "iteaoffice/testing": "^4.1-dev"
