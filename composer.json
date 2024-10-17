@@ -30,6 +30,7 @@
     "laminas/laminas-authentication": "^2.17",
     "laminas/laminas-permissions-rbac": "^3.6.0",
     "webmozart/assert": "^1.11",
+    "lm-commons/lmc-cors": "^v1.3",
     "zircote/swagger-php": "^4.11.0"
   },
   "require-dev": {
