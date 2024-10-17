@@ -59,13 +59,13 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
 
         /** @var ServiceManager $serviceManager */
         $serviceManager = $app->getServiceManager();
-        /** @var EventManager $events */
-        $events = $app->getEventManager();
+        /** @var EventManager $eventManager */
+        $eventManager = $app->getEventManager();
 
         //ApiProblem
-        $serviceManager->get(ApiProblemListener::class)->attach($serviceManager);
-        $events->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderApiProblem'], priority: 100);
-        $events->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderHal'], priority: 100);
+        $serviceManager->get(ApiProblemListener::class)->attach($eventManager);
+        $eventManager->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderApiProblem'], priority: 100);
+        $eventManager->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderHal'], priority: 100);
 
         $sendResponseListener = $serviceManager->get('SendResponseListener');
         $sendResponseListener->getEventManager()->attach(
@@ -74,17 +74,17 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
             -500
         );
 
-        $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $serviceManager->get(ContentTypeListener::class), priority: -625);
+        $eventManager->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $serviceManager->get(ContentTypeListener::class), priority: -625);
 
-        $serviceManager->get(AcceptFilterListener::class)->attach($events);
-        $serviceManager->get(ContentTypeFilterListener::class)->attach($events);
+        $serviceManager->get(AcceptFilterListener::class)->attach($eventManager);
+        $serviceManager->get(ContentTypeFilterListener::class)->attach($eventManager);
 
         $contentNegotiationOptions = $serviceManager->get(ContentNegotiationOptions::class);
         if ($contentNegotiationOptions->getXHttpMethodOverrideEnabled()) {
-            $serviceManager->get(HttpMethodOverrideListener::class)->attach($events);
+            $serviceManager->get(HttpMethodOverrideListener::class)->attach($eventManager);
         }
 
-        $sharedEventManager = $events->getSharedManager();
+        $sharedEventManager = $eventManager->getSharedManager();
         $sharedEventManager->attach(
             DispatchableInterface::class,
             MvcEvent::EVENT_DISPATCH,
@@ -92,19 +92,19 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
             priority: -10
         );
 
-        $events->attach(
+        $eventManager->attach(
             eventName: MvcAuthEvent::EVENT_AUTHENTICATION_POST,
             listener: $serviceManager->get(name: MvcAuth\UnauthenticatedListener::class),
             priority: 100
         );
-        $events->attach(
+        $eventManager->attach(
             eventName: MvcAuthEvent::EVENT_AUTHORIZATION_POST,
             listener: $serviceManager->get(name: MvcAuth\UnauthorizedListener::class),
             priority: 100
         );
-        $events->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderMain'], priority: 400);
+        $eventManager->attach(eventName: MvcEvent::EVENT_RENDER, listener: [$this, 'onRenderMain'], priority: 400);
 
-        $serviceManager->get(ContentValidationListener::class)->attach($events);
+        $serviceManager->get(ContentValidationListener::class)->attach($eventManager);
 
         if ($e->getRequest() instanceof HttpRequest) {
             $authentication = $serviceManager->get('authentication');
@@ -114,38 +114,38 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
                 $serviceManager->get('authorization')
             );
 
-            new MvcRouteListener($mvcAuthEvent, $events, $authentication);
+            new MvcRouteListener($mvcAuthEvent, $eventManager, $authentication);
 
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHENTICATION,
                 $serviceManager->get(DefaultAuthenticationListener::class)
             );
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHENTICATION_POST,
                 $serviceManager->get(DefaultAuthenticationPostListener::class)
             );
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHORIZATION,
                 $serviceManager->get(DefaultResourceResolverListener::class),
                 1000
             );
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHORIZATION,
                 $serviceManager->get(DefaultAuthorizationListener::class)
             );
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHORIZATION_POST,
                 $serviceManager->get(DefaultAuthorizationPostListener::class)
             );
 
-            $events->attach(
+            $eventManager->attach(
                 MvcAuthEvent::EVENT_AUTHENTICATION_POST,
                 [$this, 'onAuthenticationPost'],
                 -1
             );
         }
 
-        $serviceManager->get('Jield\ApiTools\Rest\OptionsListener')->attach($events);
+        $serviceManager->get('Jield\ApiTools\Rest\OptionsListener')->attach($eventManager);
         $serviceManager->get('Jield\ApiTools\Rest\RestParametersListener')->attachShared($sharedEventManager);
 
         // Attach OptionsListener
@@ -157,7 +157,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         $view     = $serviceManager->get('ViewManager')->getView();
         $strategy->attach($view->getEventManager(), 100);
 
-        $events->attach(
+        $eventManager->attach(
             eventName: MvcEvent::EVENT_ROUTE,
             listener: function ($event) use ($serviceManager): void {
                 $identity = $event->getParam('Jield\ApiTools\MvcAuth\Identity');
