@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\View\HalJsonRenderer;
 use Jield\ApiTools\Hal\View\HalJsonStrategy;
-
-use function assert;
+use Psr\Container\ContainerInterface;
+use Webmozart\Assert\Assert;
 
 class HalJsonStrategyFactory
 {
@@ -18,8 +17,8 @@ class HalJsonStrategyFactory
      */
     public function __invoke(ContainerInterface $container)
     {
-        $renderer = $container->get('Jield\ApiTools\Hal\JsonRenderer');
-        assert($renderer instanceof HalJsonRenderer);
+        $renderer = $container->get(HalJsonRenderer::class);
+        Assert::isInstanceOf($renderer, HalJsonRenderer::class);
 
         return new HalJsonStrategy($renderer);
     }

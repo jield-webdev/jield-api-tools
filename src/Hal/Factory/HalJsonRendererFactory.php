@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Psr\Container\ContainerInterface;
 use Jield\ApiTools\ApiProblem\View\ApiProblemRenderer;
 use Jield\ApiTools\Hal\View\HalJsonRenderer;
 use Laminas\View\HelperPluginManager;
-
-use function assert;
+use Psr\Container\ContainerInterface;
+use Webmozart\Assert\Assert;
 
 class HalJsonRendererFactory
 {
@@ -20,9 +19,9 @@ class HalJsonRendererFactory
     public function __invoke(ContainerInterface $container)
     {
         $helpers = $container->get('ViewHelperManager');
-        assert($helpers instanceof HelperPluginManager);
+        Assert::isInstanceOf($helpers, HelperPluginManager::class);
         $apiProblemRenderer = $container->get(ApiProblemRenderer::class);
-        assert($apiProblemRenderer instanceof ApiProblemRenderer);
+        Assert::isInstanceOf($apiProblemRenderer, ApiProblemRenderer::class);
 
         $renderer = new HalJsonRenderer($apiProblemRenderer);
         $renderer->setHelperPluginManager($helpers);

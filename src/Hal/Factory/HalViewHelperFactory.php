@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Exception;
 use Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor;
 use Jield\ApiTools\Hal\Link;
@@ -17,14 +16,14 @@ use Laminas\Hydrator\HydratorInterface;
 use Laminas\Hydrator\HydratorPluginManager;
 use Laminas\ServiceManager\AbstractPluginManager;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-
-use function assert;
+use Psr\Container\ContainerInterface;
+use Webmozart\Assert\Assert;
 use function sprintf;
 
 class HalViewHelperFactory
 {
     /**
-     * @param  ContainerInterface|ServiceLocatorInterface $container
+     * @param ContainerInterface|ServiceLocatorInterface $container
      * @return Plugin\Hal
      */
     public function __invoke(ContainerInterface $container)
@@ -34,33 +33,33 @@ class HalViewHelperFactory
             : $container;
 
         $rendererOptions = $container->get(RendererOptions::class);
-        assert($rendererOptions instanceof RendererOptions);
-        $metadataMap = $container->get('Jield\ApiTools\Hal\MetadataMap');
-        assert($metadataMap instanceof MetadataMap);
+        Assert::isInstanceOf($rendererOptions, RendererOptions::class);
+        $metadataMap = $container->get(MetadataMap::class);
+        Assert::isInstanceOf($metadataMap, MetadataMap::class);
 
         $hydrators = $metadataMap->getHydratorManager();
-        assert($hydrators instanceof HydratorPluginManager);
+        Assert::isInstanceOf($hydrators, HydratorPluginManager::class);
 
         $helper = new Plugin\Hal($hydrators);
 
         if ($container->has('EventManager')) {
             $eventManager = $container->get('EventManager');
-            assert($eventManager instanceof EventManagerInterface);
+            Assert::isInstanceOf($eventManager, EventManagerInterface::class);
             $helper->setEventManager($eventManager);
         }
 
         $helper->setMetadataMap($metadataMap);
         $linkUrlBuilder = $container->get(Link\LinkUrlBuilder::class);
-        assert($linkUrlBuilder instanceof Link\LinkUrlBuilder);
+        Assert::isInstanceOf($linkUrlBuilder, Link\LinkUrlBuilder::class);
         $helper->setLinkUrlBuilder($linkUrlBuilder);
 
         $linkCollectionExtractor = $container->get(LinkCollectionExtractor::class);
-        assert($linkCollectionExtractor instanceof LinkCollectionExtractor);
+        Assert::isInstanceOf($linkCollectionExtractor, LinkCollectionExtractor::class);
         $helper->setLinkCollectionExtractor($linkCollectionExtractor);
 
         $defaultHydrator = $rendererOptions->getDefaultHydrator();
         if ($defaultHydrator) {
-            if (! $hydrators->has($defaultHydrator)) {
+            if (!$hydrators->has($defaultHydrator)) {
                 throw new Exception\DomainException(sprintf(
                     'Cannot locate default hydrator by name "%s" via the HydratorManager',
                     $defaultHydrator
@@ -68,7 +67,7 @@ class HalViewHelperFactory
             }
 
             $hydrator = $hydrators->get($defaultHydrator);
-            assert($hydrator instanceof HydratorInterface);
+            Assert::isInstanceOf($hydrator, HydratorInterface::class);
             $helper->setDefaultHydrator($hydrator);
         }
 
@@ -81,18 +80,5 @@ class HalViewHelperFactory
         }
 
         return $helper;
-    }
-
-    /**
-     * Proxies to __invoke() to provide backwards compatibility.
-     *
-     * @deprecated since 1.4.0; use __invoke instead.
-     *
-     * @param  ServiceLocatorInterface $container
-     * @return Plugin\Hal
-     */
-    public function createService($container)
-    {
-        return $this($container);
     }
 }

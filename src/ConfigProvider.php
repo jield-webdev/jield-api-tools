@@ -129,7 +129,7 @@ final class ConfigProvider
 
                 \Jield\ApiTools\Hal\Extractor\LinkExtractor::class           => \Jield\ApiTools\Hal\Factory\LinkExtractorFactory::class,
                 \Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor::class => \Jield\ApiTools\Hal\Factory\LinkCollectionExtractorFactory::class,
-                '\Jield\ApiTools\Hal\HalConfig'                              => \Jield\ApiTools\Hal\Factory\HalConfigFactory::class,
+                'Jield\ApiTools\Hal\HalConfig'                               => \Jield\ApiTools\Hal\Factory\HalConfigFactory::class,
                 HalJsonRenderer::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonRendererFactory::class,
                 HalJsonStrategy::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonStrategyFactory::class,
                 \Jield\ApiTools\Hal\Link\LinkUrlBuilder::class               => \Jield\ApiTools\Hal\Factory\LinkUrlBuilderFactory::class,
