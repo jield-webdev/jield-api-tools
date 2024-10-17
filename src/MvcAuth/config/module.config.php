@@ -8,24 +8,6 @@ use Laminas\Authentication\Storage\NonPersistent;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
 return [
-    'service_manager'    => [
-        'aliases'    => [
-            'authentication'                            => 'Jield\ApiTools\MvcAuth\Authentication',
-            'authorization'                             => Authorization\AuthorizationInterface::class,
-            Authorization\AuthorizationInterface::class => Authorization\AclAuthorization::class,
-        ],
-        'delegators' => [
-            Authentication\DefaultAuthenticationListener::class => [
-                Factory\AuthenticationAdapterDelegatorFactory::class,
-            ],
-        ],
-        // @codingStandardsIgnoreStart
-        'factories'  => [
-
-
-        ],
-        // @codingStandardsIgnoreEnd
-    ],
     'api-tools-mvc-auth' => [
         'authentication' => [
             /* First, we define authentication configuration types. These have

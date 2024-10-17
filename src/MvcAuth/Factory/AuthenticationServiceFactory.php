@@ -7,7 +7,6 @@ namespace Jield\ApiTools\MvcAuth\Factory;
 use Laminas\Authentication\AuthenticationService;
 use Laminas\Authentication\Storage\NonPersistent;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;
 
 class AuthenticationServiceFactory implements FactoryInterface

@@ -9,7 +9,6 @@ use Exception;
 use Laminas\Mvc\Controller\AbstractActionController as BaseAbstractActionController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Model\JsonModel;
-
 use function call_user_func_array;
 use function is_array;
 use function is_callable;
@@ -60,7 +59,7 @@ class RpcController extends BaseAbstractActionController
             $callable = null === $this->wrappedCallable && static::class !== self::class
                 ? $this
                 : $this->wrappedCallable;
-            if (! method_exists($callable, $method)) {
+            if (!method_exists($callable, $method)) {
                 $method = 'notFoundAction';
             }
             $callable = [$callable, $method];
@@ -78,7 +77,7 @@ class RpcController extends BaseAbstractActionController
     /**
      * Transform an "action" token into a method name
      *
-     * @param  string $action
+     * @param string $action
      * @return string
      */
     public static function getMethodFromAction($action)

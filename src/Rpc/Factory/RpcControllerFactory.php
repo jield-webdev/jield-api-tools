@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Rpc\Factory;
 
-use Exception;
 use Jield\ApiTools\Rpc\RpcController;
-use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Psr\Container\ContainerInterface;
-
 use function class_exists;
 use function explode;
 use function is_callable;
@@ -43,37 +40,22 @@ class RpcControllerFactory implements AbstractFactoryInterface
             return false;
         }
 
-        if (! $container->has('config')) {
+        if (!$container->has('config')) {
             return false;
         }
 
         $config = $container->get('config');
-        if (! isset($config['api-tools-rpc'][$requestedName])) {
+        if (!isset($config['api-tools-rpc'][$requestedName])) {
             return false;
         }
 
         $config = $config['api-tools-rpc'][$requestedName];
 
-        if (! isset($config['callable'])) {
+        if (!isset($config['callable'])) {
             return false;
         }
 
         return true;
-    }
-
-    /**
-     * Determine if we can create a service with name (v2).
-     *
-     * Provided for backwards compatibility; proxies to canCreate().
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return bool
-     */
-    public function canCreateServiceWithName(ServiceLocatorInterface $controllerManager, $name, $requestedName)
-    {
-        $container = $controllerManager->getServiceLocator() ?: $controllerManager;
-        return $this->canCreate($container, $requestedName);
     }
 
     /**
@@ -90,7 +72,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
         $config   = $container->get('config');
         $callable = $config['api-tools-rpc'][$requestedName]['callable'];
 
-        if (! is_string($callable) && ! is_callable($callable)) {
+        if (!is_string($callable) && !is_callable($callable)) {
             throw new ServiceNotCreatedException(
                 'Unable to create a controller from the configured api-tools-rpc callable'
             );
@@ -109,22 +91,6 @@ class RpcControllerFactory implements AbstractFactoryInterface
     }
 
     /**
-     * Create and return an RpcController instance (v2).
-     *
-     * Provided for backwards compatibility; proxies to __invoke().
-     *
-     * @param string $name
-     * @param string $requestedName
-     * @return RpcController
-     * @throws Exception
-     */
-    public function createServiceWithName(ServiceLocatorInterface $controllerManager, $name, $requestedName)
-    {
-        $container = $controllerManager->getServiceLocator() ?: $controllerManager;
-        return $this($container, $requestedName);
-    }
-
-    /**
      * Marshal an instance method callback from a given string.
      *
      * @param mixed $string String of the form class::method
@@ -132,7 +98,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
      */
     private function marshalCallable($string, ContainerInterface $container)
     {
-        $callable         = false;
+        $callable = false;
         [$class, $method] = explode('::', $string, 2);
 
         if (
@@ -149,7 +115,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
 
         $this->lastRequestedControllerService = null;
 
-        if (! $callable) {
+        if (!$callable) {
             $callable = $this->marshalCallableFromContainer($class, $method, $container);
         }
 
@@ -157,7 +123,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
             return $callable;
         }
 
-        if (! class_exists($class)) {
+        if (!class_exists($class)) {
             throw new ServiceNotCreatedException(sprintf(
                 'Cannot create callback %s as class %s does not exist',
                 $string,
@@ -177,7 +143,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
      */
     private function marshalCallableFromContainer($class, $method, ContainerInterface $container)
     {
-        if (! $container->has($class)) {
+        if (!$container->has($class)) {
             return false;
         }
 
