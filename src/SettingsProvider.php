@@ -12,15 +12,26 @@ final class SettingsProvider
     public function __invoke(): array
     {
         return [
+            'router'                        => [
+                'routes' => [
+                    'oauth' => [
+                        'options' => [
+                            'spec'  => '%oauth%',
+                            'regex' => '(?P<oauth>(/oauth))',
+                        ],
+                        'type'    => 'regex',
+                    ],
+                ],
+            ],
             'api-tools-oauth2'              => [
-                'storage'         => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class,
+                'storage'                    => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class,
 
                 /**
                  * These special OAuth2Server options are parsed outside the options array
                  */
-                'allow_implicit'  => false, // default (set to true when you need to support browser-based or mobile apps)
-                'access_lifetime' => 3600, // default (set a value in seconds for access tokens lifetime)
-                'enforce_state'   => true,  // default
+                'allow_implicit'             => true, // default (set to true when you need to support browser-based or mobile apps)
+                'access_lifetime'            => 3600, // default (set a value in seconds for access tokens lifetime)
+                'enforce_state'              => true,  // default
 
                 /*
                  * Config can include:
@@ -34,22 +45,23 @@ final class SettingsProvider
                  *       // see https://github.com/bshaffer/oauth2-server-php/blob/develop/src/OAuth2/Storage/Pdo.php#L57-L66
                  *   ]
                  */
-                'grant_types'     => [
+                'grant_types'                => [
                     'client_credentials' => true,
                     'authorization_code' => true,
                     'password'           => true,
                     'refresh_token'      => true,
                     'jwt'                => true,
                 ],
-
                 'api_problem_error_response' => true,
                 /**
                  * These are all OAuth2Server options with their default values
                  */
                 'options'                    => [
-                    'use_jwt_access_tokens'             => false,
+                    'use_jwt_access_tokens'             => true,
                     'store_encrypted_token_string'      => true,
-                    'use_openid_connect'                => false,
+                    'use_openid_connect'                => true,
+                    'jwt_extra_payload_callable'        => null,
+                    'auth_code_lifetime'                => 3600,
                     'id_lifetime'                       => 3600,
                     'www_realm'                         => 'Service',
                     'token_param_name'                  => 'access_token',
@@ -57,7 +69,7 @@ final class SettingsProvider
                     'require_exact_redirect_uri'        => true,
                     'allow_credentials_in_request_body' => true,
                     'allow_public_clients'              => true,
-                    'always_issue_new_refresh_token'    => false,
+                    'always_issue_new_refresh_token'    => true,
                     'unset_refresh_token_after_use'     => true,
                 ],
             ],
