@@ -31,7 +31,8 @@
     "webmozart/assert": "^1.11"
   },
   "require-dev": {
-    "iteaoffice/testing": "^4.1-dev"
+    "iteaoffice/testing": "^4.1-dev",
+    "zircote/swagger-php": "^4.11.0"
   },
   "autoload": {
     "psr-4": {
