@@ -137,12 +137,6 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
                 MvcAuthEvent::EVENT_AUTHORIZATION_POST,
                 $serviceManager->get(DefaultAuthorizationPostListener::class)
             );
-
-            $eventManager->attach(
-                MvcAuthEvent::EVENT_AUTHENTICATION_POST,
-                [$this, 'onAuthenticationPost'],
-                -1
-            );
         }
 
         $serviceManager->get('Jield\ApiTools\Rest\OptionsListener')->attach($eventManager);
@@ -172,7 +166,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         ); //This has to be called __before__ Jield/Authorize loads in the dynamic permissions, but after the moment the identity is set
     }
 
-    private function onRenderMain(MvcEvent $e): void
+    public function onRenderMain(MvcEvent $e): void
     {
         $result = $e->getResult();
         if (!$result instanceof JsonModel) {
@@ -185,7 +179,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         $services->get(RenderErrorListener::class)->attach($events);
     }
 
-    private function onRenderApiProblem(MvcEvent $e): void
+    public function onRenderApiProblem(MvcEvent $e): void
     {
         $app      = $e->getApplication();
         $services = $app->getServiceManager();
@@ -200,7 +194,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         }
     }
 
-    private function onRenderHal(MvcEvent $e): void
+    public function onRenderHal(MvcEvent $e): void
     {
         $result = $e->getResult();
         if (!$result instanceof HalJsonModel) {
@@ -219,14 +213,5 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         /** @var HalJsonStrategy $halStrategy */
         $halStrategy = $services->get(HalJsonStrategy::class);
         $halStrategy->attach(events: $events, priority: 200);
-    }
-
-    private function onAuthenticationPost(MvcAuthEvent $e): void
-    {
-        if ($this->container->has('api-identity')) {
-            return;
-        }
-
-        $this->container->setService('api-identity', $e->getIdentity());
     }
 }
