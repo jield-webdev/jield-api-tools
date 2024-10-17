@@ -8,7 +8,6 @@ use Exception;
 use Jield\ApiTools\ApiProblem\Exception\InvalidArgumentException;
 use Jield\ApiTools\ApiProblem\Exception\ProblemExceptionInterface;
 use Throwable;
-
 use function array_key_exists;
 use function array_keys;
 use function array_merge;
@@ -42,7 +41,7 @@ class ApiProblem
      *
      * @var string
      */
-    protected $type = 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html';
+    protected $type = 'https://datatracker.ietf.org/doc/html/rfc7231#section-6';
 
     /**
      * Description of the specific problem.
@@ -71,59 +70,61 @@ class ApiProblem
      *
      * @var array
      */
-    protected $normalizedProperties = [
-        'type'   => 'type',
-        'status' => 'status',
-        'title'  => 'title',
-        'detail' => 'detail',
-    ];
+    protected $normalizedProperties
+        = [
+            'type'   => 'type',
+            'status' => 'status',
+            'title'  => 'title',
+            'detail' => 'detail',
+        ];
 
     /**
      * Status titles for common problems.
      *
      * @var array
      */
-    protected $problemStatusTitles = [
-        // CLIENT ERROR
-        400 => 'Bad Request',
-        401 => 'Unauthorized',
-        402 => 'Payment Required',
-        403 => 'Forbidden',
-        404 => 'Not Found',
-        405 => 'Method Not Allowed',
-        406 => 'Not Acceptable',
-        407 => 'Proxy Authentication Required',
-        408 => 'Request Time-out',
-        409 => 'Conflict',
-        410 => 'Gone',
-        411 => 'Length Required',
-        412 => 'Precondition Failed',
-        413 => 'Request Entity Too Large',
-        414 => 'Request-URI Too Large',
-        415 => 'Unsupported Media Type',
-        416 => 'Requested range not satisfiable',
-        417 => 'Expectation Failed',
-        418 => 'I\'m a teapot',
-        422 => 'Unprocessable Entity',
-        423 => 'Locked',
-        424 => 'Failed Dependency',
-        425 => 'Unordered Collection',
-        426 => 'Upgrade Required',
-        428 => 'Precondition Required',
-        429 => 'Too Many Requests',
-        431 => 'Request Header Fields Too Large',
-        // SERVER ERROR
-        500 => 'Internal Server Error',
-        501 => 'Not Implemented',
-        502 => 'Bad Gateway',
-        503 => 'Service Unavailable',
-        504 => 'Gateway Time-out',
-        505 => 'HTTP Version not supported',
-        506 => 'Variant Also Negotiates',
-        507 => 'Insufficient Storage',
-        508 => 'Loop Detected',
-        511 => 'Network Authentication Required',
-    ];
+    protected $problemStatusTitles
+        = [
+            // CLIENT ERROR
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            402 => 'Payment Required',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            406 => 'Not Acceptable',
+            407 => 'Proxy Authentication Required',
+            408 => 'Request Time-out',
+            409 => 'Conflict',
+            410 => 'Gone',
+            411 => 'Length Required',
+            412 => 'Precondition Failed',
+            413 => 'Request Entity Too Large',
+            414 => 'Request-URI Too Large',
+            415 => 'Unsupported Media Type',
+            416 => 'Requested range not satisfiable',
+            417 => 'Expectation Failed',
+            418 => 'I\'m a teapot',
+            422 => 'Unprocessable Entity',
+            423 => 'Locked',
+            424 => 'Failed Dependency',
+            425 => 'Unordered Collection',
+            426 => 'Upgrade Required',
+            428 => 'Precondition Required',
+            429 => 'Too Many Requests',
+            431 => 'Request Header Fields Too Large',
+            // SERVER ERROR
+            500 => 'Internal Server Error',
+            501 => 'Not Implemented',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable',
+            504 => 'Gateway Time-out',
+            505 => 'HTTP Version not supported',
+            506 => 'Variant Also Negotiates',
+            507 => 'Insufficient Storage',
+            508 => 'Loop Detected',
+            511 => 'Network Authentication Required',
+        ];
 
     /**
      * Title of the error.
@@ -142,7 +143,7 @@ class ApiProblem
      * @param string|Exception|Throwable $detail
      * @param string $type
      * @param string $title
-     * @param array  $additional
+     * @param array $additional
      */
     public function __construct($status, $detail, $type = null, $title = null, array $additional = [])
     {
@@ -160,14 +161,14 @@ class ApiProblem
 
         // Ensure a valid HTTP status
         if (
-            ! is_numeric($status)
+            !is_numeric($status)
             || ($status < 100)
             || ($status > 599)
         ) {
             $status = 500;
         }
 
-        $this->status = (int) $status;
+        $this->status = (int)$status;
         $this->detail = $detail;
         $this->title  = $title;
 
@@ -234,7 +235,7 @@ class ApiProblem
      */
     public function setDetailIncludesStackTrace($flag)
     {
-        $this->detailIncludesStackTrace = (bool) $flag;
+        $this->detailIncludesStackTrace = (bool)$flag;
 
         return $this;
     }
@@ -265,7 +266,7 @@ class ApiProblem
     protected function getStatus(): int
     {
         if ($this->detail instanceof Throwable || $this->detail instanceof Exception) {
-            $this->status = (int) $this->createStatusFromException();
+            $this->status = (int)$this->createStatusFromException();
         }
 
         return $this->status;
@@ -292,7 +293,7 @@ class ApiProblem
 
         if (
             null === $this->title
-            && $this->type === 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html'
+            && $this->type === 'https://datatracker.ietf.org/doc/html/rfc7231#section-6'
             && array_key_exists($this->getStatus(), $this->problemStatusTitles)
         ) {
             return $this->problemStatusTitles[$this->status];
@@ -319,7 +320,7 @@ class ApiProblem
         /** @var Exception|Throwable $e */
         $e = $this->detail;
 
-        if (! $this->detailIncludesStackTrace) {
+        if (!$this->detailIncludesStackTrace) {
             return $e->getMessage();
         }
 
@@ -330,7 +331,7 @@ class ApiProblem
         $e        = $e->getPrevious();
         while ($e) {
             $previous[] = [
-                'code'    => (int) $e->getCode(),
+                'code'    => (int)$e->getCode(),
                 'message' => trim($e->getMessage()),
                 'trace'   => $e->getTrace(),
             ];

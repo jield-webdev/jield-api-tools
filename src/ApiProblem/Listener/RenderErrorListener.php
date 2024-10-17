@@ -11,7 +11,6 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Exception\ExceptionInterface as ViewExceptionInterface;
 use Throwable;
-
 use function json_encode;
 
 /**
@@ -38,7 +37,7 @@ class RenderErrorListener extends AbstractListenerAggregate
      */
     public function setDisplayExceptions($flag)
     {
-        $this->displayExceptions = (bool) $flag;
+        $this->displayExceptions = (bool)$flag;
 
         return $this;
     }
@@ -58,14 +57,14 @@ class RenderErrorListener extends AbstractListenerAggregate
         $response    = $e->getResponse();
         $status      = 406;
         $title       = 'Not Acceptable';
-        $describedBy = 'http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html';
+        $describedBy = 'https://datatracker.ietf.org/doc/html/rfc7231#section-6';
         $detail      = 'Your request could not be resolved to an acceptable representation.';
         $details     = false;
 
         $exception = $e->getParam('exception');
         if (
             ($exception instanceof Throwable || $exception instanceof Exception)
-            && ! $exception instanceof ViewExceptionInterface
+            && !$exception instanceof ViewExceptionInterface
         ) {
             $code = $exception->getCode();
             if ($code >= 100 && $code <= 600) {
