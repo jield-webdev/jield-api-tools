@@ -154,7 +154,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         $eventManager->attach(
             eventName: MvcEvent::EVENT_ROUTE,
             listener: function ($event) use ($serviceManager): void {
-                $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity);
+                $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class);
                 if ($identity instanceof AuthenticatedIdentity && $identity->getAuthenticationIdentity()['expires'] > time()) {
                     $userId                = $identity->getAuthenticationIdentity()['user_id'];
                     $authenticationService = $serviceManager->get(name: AuthenticationService::class);

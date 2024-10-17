@@ -18,11 +18,10 @@ use Laminas\Http\Request;
 use Laminas\Http\Response;
 use Laminas\Mvc\Controller\AbstractRestfulController;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Router\RouteMatch;
+use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\RequestInterface;
 use Throwable;
 use Traversable;
-
 use function array_keys;
 use function is_array;
 use function is_int;
@@ -59,10 +58,11 @@ class RestController extends AbstractRestfulController
      *
      * @var array
      */
-    protected $collectionHttpMethods = [
-        'GET',
-        'POST',
-    ];
+    protected $collectionHttpMethods
+        = [
+            'GET',
+            'POST',
+        ];
 
     /**
      * Name of the collections entry in a Collection
@@ -117,12 +117,13 @@ class RestController extends AbstractRestfulController
      *
      * @var array
      */
-    protected $entityHttpMethods = [
-        'DELETE',
-        'GET',
-        'PATCH',
-        'PUT',
-    ];
+    protected $entityHttpMethods
+        = [
+            'DELETE',
+            'GET',
+            'PATCH',
+            'PUT',
+        ];
 
     /**
      * Route name that resolves to this resource; used to generate links.
@@ -137,7 +138,7 @@ class RestController extends AbstractRestfulController
      * Allows you to set the event identifier, which can be useful to allow multiple
      * instances of this controller to react to different sets of shared events.
      *
-     * @param  null|string $eventIdentifier
+     * @param null|string $eventIdentifier
      */
     public function __construct($eventIdentifier = null)
     {
@@ -149,7 +150,7 @@ class RestController extends AbstractRestfulController
     /**
      * Set the allowed HTTP methods for collections
      *
-     * @param  array $methods
+     * @param array $methods
      */
     public function setCollectionHttpMethods(array $methods)
     {
@@ -159,11 +160,11 @@ class RestController extends AbstractRestfulController
     /**
      * Set the name to which to assign a collection in a Collection
      *
-     * @param  string $name
+     * @param string $name
      */
     public function setCollectionName($name)
     {
-        $this->collectionName = (string) $name;
+        $this->collectionName = (string)$name;
     }
 
     /**
@@ -173,7 +174,7 @@ class RestController extends AbstractRestfulController
      */
     public function setMinPageSize($count)
     {
-        $this->minPageSize = (int) $count;
+        $this->minPageSize = (int)$count;
     }
 
     /**
@@ -193,7 +194,7 @@ class RestController extends AbstractRestfulController
      */
     public function setPageSize($count)
     {
-        $this->pageSize = (int) $count;
+        $this->pageSize = (int)$count;
     }
 
     /**
@@ -213,7 +214,7 @@ class RestController extends AbstractRestfulController
      */
     public function setMaxPageSize($count)
     {
-        $this->maxPageSize = (int) $count;
+        $this->maxPageSize = (int)$count;
     }
 
     /**
@@ -233,7 +234,7 @@ class RestController extends AbstractRestfulController
      */
     public function setPageSizeParam($param)
     {
-        $this->pageSizeParam = (string) $param;
+        $this->pageSizeParam = (string)$param;
     }
 
     /**
@@ -259,8 +260,8 @@ class RestController extends AbstractRestfulController
     /**
      * Returns the resource
      *
-     * @throws DomainException If no resource has been set.
      * @return ResourceInterface
+     * @throws DomainException If no resource has been set.
      */
     public function getResource()
     {
@@ -277,7 +278,7 @@ class RestController extends AbstractRestfulController
     /**
      * Set the allowed HTTP OPTIONS for a resource
      *
-     * @param  array $methods
+     * @param array $methods
      */
     public function setEntityHttpMethods(array $methods)
     {
@@ -287,7 +288,7 @@ class RestController extends AbstractRestfulController
     /**
      * Inject the route name for this resource.
      *
-     * @param  string $route
+     * @param string $route
      */
     public function setRoute($route)
     {
@@ -312,7 +313,7 @@ class RestController extends AbstractRestfulController
      */
     public function onDispatch(MvcEvent $e)
     {
-        if (! $this->getResource()) {
+        if (!$this->getResource()) {
             throw new DomainException(sprintf(
                 '%s requires that a %s\ResourceInterface object is composed; none provided',
                 self::class,
@@ -320,7 +321,7 @@ class RestController extends AbstractRestfulController
             ));
         }
 
-        if (! $this->route) {
+        if (!$this->route) {
             throw new DomainException(sprintf(
                 '%s requires that a route name for the resource is composed; none provided',
                 self::class
@@ -331,14 +332,14 @@ class RestController extends AbstractRestfulController
         $return = $e->getParam('api-problem', false);
 
         // If no return value dispatch the parent event
-        if (! $return) {
+        if (!$return) {
             $return = parent::onDispatch($e);
         }
 
         if (
-            ! $return instanceof ApiProblem
-            && ! $return instanceof HalEntity
-            && ! $return instanceof HalCollection
+            !$return instanceof ApiProblem
+            && !$return instanceof HalEntity
+            && !$return instanceof HalCollection
         ) {
             return $return;
         }
@@ -360,9 +361,9 @@ class RestController extends AbstractRestfulController
     /**
      * Create a new entity
      *
-     * @todo   Remove 'resource' from the create.post event parameters for 1.0.0
-     * @param  array $data
+     * @param array $data
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
+     * @todo   Remove 'resource' from the create.post event parameters for 1.0.0
      */
     public function create($data)
     {
@@ -418,7 +419,7 @@ class RestController extends AbstractRestfulController
     /**
      * Delete an existing entity
      *
-     * @param  int|string $id
+     * @param int|string $id
      * @return Response|ApiProblem|ApiProblemResponse
      */
     public function delete($id)
@@ -480,9 +481,9 @@ class RestController extends AbstractRestfulController
     /**
      * Return single entity
      *
-     * @todo   Remove 'resource' from get.post event for 1.0.0
-     * @param  int|string $id
+     * @param int|string $id
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
+     * @todo   Remove 'resource' from get.post event for 1.0.0
      */
     public function get($id)
     {
@@ -533,9 +534,9 @@ class RestController extends AbstractRestfulController
         }
 
         if (
-            ! is_array($collection)
-            && ! $collection instanceof Traversable
-            && ! $collection instanceof HalCollection
+            !is_array($collection)
+            && !$collection instanceof Traversable
+            && !$collection instanceof HalCollection
             && is_object($collection)
         ) {
             $halEntity = $this->createHalEntity($collection);
@@ -579,7 +580,7 @@ class RestController extends AbstractRestfulController
     /**
      * Retrieve HEAD metadata for the entity and/or collection
      *
-     * @param  null|mixed $id
+     * @param null|mixed $id
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity|HalCollection
      */
     public function head($id = null)
@@ -624,10 +625,10 @@ class RestController extends AbstractRestfulController
     /**
      * Respond to the PATCH method (partial update of existing entity)
      *
-     * @todo   Remove 'resource' from patch.post event for 1.0.0
-     * @param  int|string $id
-     * @param  array $data
+     * @param int|string $id
+     * @param array $data
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
+     * @todo   Remove 'resource' from patch.post event for 1.0.0
      */
     public function patch($id, $data)
     {
@@ -659,10 +660,10 @@ class RestController extends AbstractRestfulController
     /**
      * Update an existing entity
      *
-     * @todo   Remove 'resource' from update.post event for 1.0.0
-     * @param  int|string $id
-     * @param  array $data
+     * @param int|string $id
+     * @param array $data
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
+     * @todo   Remove 'resource' from update.post event for 1.0.0
      */
     public function update($id, $data)
     {
@@ -736,7 +737,7 @@ class RestController extends AbstractRestfulController
 
         try {
             $collection = $this->getResource()->replaceList($data);
-        } catch (Exception\InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException $e) {
             return new ApiProblem(400, $e->getMessage());
         } catch (Throwable $e) {
             return $this->createApiProblemFromException($e);
@@ -780,7 +781,7 @@ class RestController extends AbstractRestfulController
     /**
      * Creates an ALLOW header with the provided HTTP methods
      *
-     * @param  array $methods
+     * @param array $methods
      * @return Allow
      */
     protected function createAllowHeaderWithAllowedMethods(array $methods)
@@ -814,7 +815,7 @@ class RestController extends AbstractRestfulController
     {
         $code = $e->getCode();
         if (
-            ! is_int($code)
+            !is_int($code)
             || $code < 100
             || $code >= 600
         ) {
@@ -833,12 +834,12 @@ class RestController extends AbstractRestfulController
         }
 
         $event = $this->getEvent();
-        if (! $event) {
+        if (!$event) {
             return;
         }
 
-        $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity);
-        if (! $identity) {
+        $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class);
+        if (!$identity) {
             return;
         }
 
@@ -855,12 +856,12 @@ class RestController extends AbstractRestfulController
         }
 
         $event = $this->getEvent();
-        if (! $event) {
+        if (!$event) {
             return;
         }
 
         $inputFilter = $event->getParam('Jield\ApiTools\ContentValidation\InputFilter');
-        if (! $inputFilter) {
+        if (!$inputFilter) {
             return;
         }
 
@@ -870,13 +871,13 @@ class RestController extends AbstractRestfulController
     protected function injectRequestIntoResourceEventParams()
     {
         $request = $this->getRequest();
-        if (! $request) {
+        if (!$request) {
             return;
         }
 
         $params = $this->resource->getEventParams();
 
-        if (! is_array($params) && ! $params instanceof ArrayAccess) {
+        if (!is_array($params) && !$params instanceof ArrayAccess) {
             // If not array-like, no clear path for setting event parameters
             return;
         }
@@ -907,7 +908,7 @@ class RestController extends AbstractRestfulController
     }
 
     /**
-     * @param  mixed $object
+     * @param mixed $object
      * @return bool
      */
     protected function isPreparedResponse($object)
@@ -924,12 +925,12 @@ class RestController extends AbstractRestfulController
     }
 
     /**
-     * @param  mixed $collection
+     * @param mixed $collection
      * @return HalCollection
      */
     protected function createHalCollection($collection)
     {
-        if (! $collection instanceof HalCollection) {
+        if (!$collection instanceof HalCollection) {
             $halPlugin  = $this->plugin('Hal');
             $collection = $halPlugin->createCollection($collection, $this->route);
         }
@@ -944,7 +945,7 @@ class RestController extends AbstractRestfulController
      */
     protected function prepareHalCollection(HalCollection $collection)
     {
-        if (! $collection->getLinks()->has('self')) {
+        if (!$collection->getLinks()->has('self')) {
             $plugin = $this->plugin('Hal');
             $plugin->injectSelfLink($collection, $this->route);
         }
@@ -965,14 +966,14 @@ class RestController extends AbstractRestfulController
     }
 
     /**
-     * @param  mixed $entity
+     * @param mixed $entity
      * @return HalEntity
      */
     protected function createHalEntity($entity)
     {
         if (
             $entity instanceof HalEntity
-            && ($entity->getLinks()->has('self') || ! $entity->getId())
+            && ($entity->getLinks()->has('self') || !$entity->getId())
         ) {
             return $entity;
         }
