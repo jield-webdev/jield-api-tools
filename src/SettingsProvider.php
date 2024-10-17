@@ -4,6 +4,7 @@ namespace Jield\ApiTools;
 
 use Jield\ApiTools\ContentNegotiation\JsonModel;
 use Jield\ApiTools\Hal\View\HalJsonModel;
+use Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter;
 use Laminas\View\Model\ViewModel;
 
 final class SettingsProvider
@@ -12,12 +13,7 @@ final class SettingsProvider
     {
         return [
             'api-tools-oauth2'              => [
-                'db'              => [
-                    'dsn'      => 'insert here the DSN for DB connection', // for example "mysql:dbname=oauth2_db;host=localhost"
-                    'username' => 'insert here the DB username',
-                    'password' => 'insert here the DB password',
-                ],
-                'storage'         => 'Laminas\ApiTools\OAuth2\Adapter\PdoAdapter', // service name for the OAuth2 storage adapter
+                'storage'         => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class,
 
                 /**
                  * These special OAuth2Server options are parsed outside the options array
@@ -67,127 +63,17 @@ final class SettingsProvider
             ],
             'api-tools-mvc-auth'            => [
                 'authentication' => [
-                    /**
-                     *
-                     * Starting in 1.1, we have an "adapters" key, which is a key/value
-                     * pair of adapter name -> adapter configuration information. Each
-                     * adapter should name the Jield\ApiTools\MvcAuth\Authentication\AdapterInterface
-                     * type in the 'adapter' key.
-                     *
-                     * For HttpAdapter cases, specify an 'options' key with the options
-                     * to use to create the Laminas\Authentication\Adapter\Http instance.
-                     *
-                     * Starting in 1.2, you can specify a resolver implementing the
-                     * Laminas\Authentication\Adapter\Http\ResolverInterface that is passed
-                     * into the Laminas\Authentication\Adapter\Http as either basic or digest
-                     * resolver. This allows you to implement your own method of authentication
-                     * instead of having to rely on the two default methods (ApacheResolver
-                     * for basic authentication and FileResolver for digest authentication,
-                     * both based on files).
-                     *
-                     * When you want to use this feature, use the "basic_resolver_factory"
-                     * key to get your custom resolver instance from the Laminas service manager.
-                     * If this key is set and pointing to a valid entry in the service manager,
-                     * the entry "htpasswd" is ignored (unless you use it in your custom
-                     * factory to build the resolver).
-                     *
-                     * Using the "digest_resolver_factory" ignores the "htdigest" key in
-                     * the same way.
-                     *
-                     * For OAuth2Adapter instances, specify a 'storage' key, with options
-                     * to use for matching the adapter and creating an OAuth2 storage
-                     * instance. The array MUST contain a `route' key, with the route
-                     * at which the specific adapter will match authentication requests.
-                     * To specify the storage instance, you may use one of two approaches:
-                     *
-                     * - Specify a "storage" subkey pointing to a named service or an array
-                     *   of named services to use.
-                     * - Specify an "adapter" subkey with the value "pdo" or "mongo", and
-                     *   include additional subkeys for configuring a Jield\ApiTools\OAuth2\Adapter\PdoAdapter
-                     *   or Jield\ApiTools\OAuth2\Adapter\MongoAdapter, accordingly. See the api-tools-oauth2
-                     *   documentation for details.
-                     *
-                     * This looks like the following for the HTTP basic/digest and OAuth2
-                     * adapters:
-                     * 'adapters' => [
-                     * // HTTP adapter
-                     * 'api' => [
-                     * 'adapter' => 'Jield\ApiTools\MvcAuth\Authentication\HttpAdapter',
-                     * 'options' => [
-                     * 'accept_schemes' => ['basic', 'digest'],
-                     * 'realm' => 'api',
-                     * 'digest_domains' => 'https://example.com',
-                     * 'nonce_timeout' => 3600,
-                     * 'htpasswd' => 'data/htpasswd',
-                     * 'htdigest' => 'data/htdigest',
-                     * // If this is set, the htpasswd key is ignored:
-                     * 'basic_resolver_factory' => 'ServiceManagerKeyToAsk',
-                     * // If this is set, the htdigest key is ignored:
-                     * 'digest_resolver_factory' => 'ServiceManagerKeyToAsk',
-                     * ],
-                     * ],
-                     * // OAuth2 adapter, using an "adapter" type of "pdo"
-                     * 'user' => [
-                     * 'adapter' => 'Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter',
-                     * 'storage' => [
-                     * 'adapter' => 'pdo',
-                     * 'route' => '/user',
-                     * 'dsn' => 'mysql:host=localhost;dbname=oauth2',
-                     * 'username' => 'username',
-                     * 'password' => 'password',
-                     * 'options' => [
-                     * 1002 => 'SET NAMES utf8', // PDO::MYSQL_ATTR_INIT_COMMAND
-                     * ],
-                     * ],
-                     * ],
-                     * // OAuth2 adapter, using an "adapter" type of "mongo"
-                     * 'client' => [
-                     * 'adapter' => 'Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter',
-                     * 'storage' => [
-                     * 'adapter' => 'mongo',
-                     * 'route' => '/client',
-                     * 'locator_name' => 'SomeServiceName', // If provided, pulls the given service
-                     * 'dsn' => 'mongodb://localhost',
-                     * 'database' => 'oauth2',
-                     * 'options' => [
-                     * 'username' => 'username',
-                     * 'password' => 'password',
-                     * 'connectTimeoutMS' => 500,
-                     * ],
-                     * ],
-                     * ],
-                     * // OAuth2 adapter, using a named "storage" service
-                     * 'named-storage' => [
-                     * 'adapter' => 'Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter',
-                     * 'storage' => [
-                     * 'storage' => 'Name\Of\An\OAuth2\Storage\Service',
-                     * 'route' => '/named-storage',
-                     * ],
-                     * ],
-                     * ],
-                     *
-                     * Next, we also have a "map", which maps an API module (with
-                     * optional version) to a given authentication type (one of basic,
-                     * digest, or oauth2):
-                     * 'map' => [
-                     * 'ApiModuleName' => 'oauth2',
-                     * 'OtherApi\V2' => 'basic',
-                     * 'AnotherApi\V1' => 'digest',
-                     * ],
-                     *
-                     * We also allow you to specify custom authentication types that you
-                     * support via listeners; by adding them to the configuration, you
-                     * ensure that they will be available for mapping modules to
-                     * authentication types in the Admin.
-                     * 'types' => [
-                     * 'token',
-                     * 'key',
-                     * 'etc',
-                     * ]
-                     */
-                ],
-                'authorization'  => [
-                    'deny_by_default' => false,
+                    'map'      => [
+                        'Api\\V1' => 'jield_oauth2_pdo_adapter',
+                    ],
+                    'adapters' => [
+                        'jield_oauth2_pdo_adapter' => [
+                            'adapter' => OAuth2Adapter::class,
+                            'storage' => [
+                                'storage' => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class
+                            ]
+                        ],
+                    ],
                 ],
             ],
             'api-tools-content-negotiation' => [
