@@ -5,53 +5,44 @@ declare(strict_types=1);
 namespace Jield\ApiTools\OAuth2\Factory;
 
 use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
-use Jield\ApiTools\OAuth2\Controller\Exception;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerInterface;
 use function is_array;
+use function sprintf;
 
-class PdoAdapterFactory
+final class PdoAdapterFactory implements FactoryInterface
 {
-    /**
-     * @return PdoAdapter
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): PdoAdapter
     {
         $config = $container->get('config');
 
-        if (empty($config['api-tools-oauth2']['db'])) {
-            throw new Exception\RuntimeException(
-                'The database configuration [\'api-tools-oauth2\'][\'db\'] for OAuth2 is missing'
-            );
-        }
-
         $oauthConfig = $config['api-tools-oauth2'];
 
-        $username = $oauthConfig['db']['username'] ?? null;
-        $password = $oauthConfig['db']['password'] ?? null;
-        $options  = $oauthConfig['db']['options'] ?? [];
+        //Grab the params directly from the Doctrine Params
+        $username = $config['doctrine']['connection']['orm_default']['params']['user'] ?? null;
+        $password = $config['doctrine']['connection']['orm_default']['params']['password'] ?? null;
+        $options  = $config['doctrine']['connection']['orm_default']['params']['driverOptions'] ?? [];
+
+        $dsn = sprintf(
+            'mysql:dbname=%s;host=%s',
+            $config['doctrine']['connection']['orm_default']['params']['dbname'],
+            $config['doctrine']['connection']['orm_default']['params']['host']
+        );
 
         $oauth2ServerConfig = [];
         if (isset($oauthConfig['storage_settings']) && is_array($oauthConfig['storage_settings'])) {
             $oauth2ServerConfig = $oauthConfig['storage_settings'];
         }
 
+        //Add 2 own options
+        $oauth2ServerConfig['bcrypt_cost'] = 14;
+        $oauth2ServerConfig['user_table']  = 'admin_user';
+
         return new PdoAdapter([
-            'dsn'      => $oauthConfig['db']['dsn'],
+            'dsn'      => $dsn,
             'username' => $username,
             'password' => $password,
             'options'  => $options,
         ], $oauth2ServerConfig);
-    }
-
-    /**
-     * Provided for backwards compatibility; proxies to __invoke().
-     *
-     * @param ServiceLocatorInterface $container
-     * @return PdoAdapter
-     */
-    public function createService($container)
-    {
-        return $this($container);
     }
 }
