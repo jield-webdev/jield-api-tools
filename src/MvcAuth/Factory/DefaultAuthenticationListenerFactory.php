@@ -9,10 +9,8 @@ use Jield\ApiTools\MvcAuth\Authentication\HttpAdapter;
 use Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter;
 use Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory as LaminasOAuth2ServerFactory;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
-
 use function is_array;
 use function is_string;
 use function strpos;
@@ -25,8 +23,8 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
     /**
      * Create and return a DefaultAuthenticationListener.
      *
-     * @param string             $requestedName
-     * @param null|array         $options
+     * @param string $requestedName
+     * @param null|array $options
      * @return DefaultAuthenticationListener
      */
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
@@ -62,7 +60,7 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
         // Allow applications to provide their own AuthHttpAdapter service; if none provided,
         // or no HTTP adapter configuration provided to api-tools-mvc-auth, we can stop early.
 
-        $httpAdapter = $container->get('Jield\ApiTools\MvcAuth\Authentication\AuthHttpAdapter');
+        $httpAdapter = $container->get(\Laminas\Authentication\Adapter\Http::class);
 
         if ($httpAdapter === false) {
             return false;
@@ -70,8 +68,8 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
 
         // We must abort if no resolver was provided
         if (
-            ! $httpAdapter->getBasicResolver()
-            && ! $httpAdapter->getDigestResolver()
+            !$httpAdapter->getBasicResolver()
+            && !$httpAdapter->getDigestResolver()
         ) {
             return false;
         }
@@ -88,16 +86,16 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
      */
     protected function createOAuth2Server(ContainerInterface $container)
     {
-        if (! $container->has('config')) {
+        if (!$container->has('config')) {
             // If we don't have configuration, we cannot create an OAuth2 server.
             return false;
         }
 
         $config = $container->get('config');
         if (
-            ! isset($config['api-tools-oauth2']['storage'])
-            || ! is_string($config['api-tools-oauth2']['storage'])
-            || ! $container->has($config['api-tools-oauth2']['storage'])
+            !isset($config['api-tools-oauth2']['storage'])
+            || !is_string($config['api-tools-oauth2']['storage'])
+            || !$container->has($config['api-tools-oauth2']['storage'])
         ) {
             return false;
         }
@@ -139,14 +137,14 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
      */
     protected function getAuthenticationTypes(ContainerInterface $container)
     {
-        if (! $container->has('config')) {
+        if (!$container->has('config')) {
             return false;
         }
 
         $config = $container->get('config');
         if (
-            ! isset($config['api-tools-mvc-auth']['authentication']['types'])
-            || ! is_array($config['api-tools-mvc-auth']['authentication']['types'])
+            !isset($config['api-tools-mvc-auth']['authentication']['types'])
+            || !is_array($config['api-tools-mvc-auth']['authentication']['types'])
         ) {
             return false;
         }
@@ -159,14 +157,14 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
      */
     protected function getAuthenticationMap(ContainerInterface $container)
     {
-        if (! $container->has('config')) {
+        if (!$container->has('config')) {
             return [];
         }
 
         $config = $container->get('config');
         if (
-            ! isset($config['api-tools-mvc-auth']['authentication']['map'])
-            || ! is_array($config['api-tools-mvc-auth']['authentication']['map'])
+            !isset($config['api-tools-mvc-auth']['authentication']['map'])
+            || !is_array($config['api-tools-mvc-auth']['authentication']['map'])
         ) {
             return [];
         }

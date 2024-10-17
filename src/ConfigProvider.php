@@ -91,6 +91,8 @@ final class ConfigProvider
                 'authentication'                                                    => 'Jield\ApiTools\MvcAuth\Authentication',
                 'authorization'                                                     => \Jield\ApiTools\MvcAuth\Authorization\AuthorizationInterface::class,
                 \Jield\ApiTools\MvcAuth\Authorization\AuthorizationInterface::class => \Jield\ApiTools\MvcAuth\Authorization\AclAuthorization::class,
+                'Jield\ApiTools\OAuth2\Provider\UserId'                             => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationService::class,
+
             ],
             'delegators' => [
                 \Jield\ApiTools\MvcAuth\Authentication\DefaultAuthenticationListener::class => [
@@ -102,6 +104,10 @@ final class ConfigProvider
             ],
             'factories'  => [
                 'Jield\ApiTools\Rest\OptionsListener' => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
+
+                \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class                    => \Jield\ApiTools\OAuth2\Factory\PdoAdapterFactory::class,
+                \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationService::class => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationServiceFactory::class,
+                'Jield\ApiTools\OAuth2\Service\OAuth2Server'                        => \Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory::class,
 
                 MvcAuth\UnauthenticatedListener::class => InvokableFactory::class,
                 MvcAuth\UnauthorizedListener::class    => InvokableFactory::class,
@@ -166,6 +172,9 @@ final class ConfigProvider
     {
         return [
             'controllers' => [
+                'factories'          => [
+                    'Jield\ApiTools\OAuth2\Controller\Auth' => \Jield\ApiTools\OAuth2\Factory\AuthControllerFactory::class,
+                ],
                 'abstract_factories' => [
                     \Jield\ApiTools\Rest\Factory\RestControllerFactory::class,
                     \Jield\ApiTools\Rpc\Factory\RpcControllerFactory::class,

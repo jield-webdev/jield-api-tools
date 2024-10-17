@@ -33,18 +33,6 @@ class AuthControllerFactory implements FactoryInterface
     }
 
     /**
-     * @param null|string $name
-     * @param null|string $requestedName
-     * @return AuthController
-     */
-    public function createService(ServiceLocatorInterface $controllers, $name = null, $requestedName = null)
-    {
-        $requestedName = $requestedName ?: AuthController::class;
-
-        return $this($controllers, $requestedName);
-    }
-
-    /**
      * Retrieve the OAuth2\Server factory.
      *
      * For BC purposes, if the OAuth2Server service returns an actual

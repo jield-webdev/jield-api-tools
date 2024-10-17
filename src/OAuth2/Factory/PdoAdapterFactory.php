@@ -8,7 +8,6 @@ use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
 use Jield\ApiTools\OAuth2\Controller\Exception;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;
-
 use function is_array;
 
 class PdoAdapterFactory
