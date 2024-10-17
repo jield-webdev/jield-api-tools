@@ -104,7 +104,7 @@ final class ConfigProvider
             ],
             'factories'  => [
                 \Jield\ApiTools\Rest\Listener\OptionsListener::class => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
-                \Jield\ApiTools\Rpc\OptionsListener::class  => \Jield\ApiTools\Rpc\Factory\OptionsListenerFactory::class,
+                \Jield\ApiTools\Rpc\OptionsListener::class           => \Jield\ApiTools\Rpc\Factory\OptionsListenerFactory::class,
 
                 \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class                    => \Jield\ApiTools\OAuth2\Factory\PdoAdapterFactory::class,
                 \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationService::class => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationServiceFactory::class,
@@ -176,14 +176,12 @@ final class ConfigProvider
     private function getControllerPlugin(): array
     {
         return [
-            'controllers' => [
-                'factories'          => [
-                    'Jield\ApiTools\OAuth2\Controller\Auth' => \Jield\ApiTools\OAuth2\Factory\AuthControllerFactory::class,
-                ],
-                'abstract_factories' => [
-                    \Jield\ApiTools\Rest\Factory\RestControllerFactory::class,
-                    \Jield\ApiTools\Rpc\Factory\RpcControllerFactory::class,
-                ],
+            'factories'          => [
+                'Jield\ApiTools\OAuth2\Controller\Auth' => \Jield\ApiTools\OAuth2\Factory\AuthControllerFactory::class,
+            ],
+            'abstract_factories' => [
+                \Jield\ApiTools\Rest\Factory\RestControllerFactory::class,
+                \Jield\ApiTools\Rpc\Factory\RpcControllerFactory::class,
             ],
         ];
     }
