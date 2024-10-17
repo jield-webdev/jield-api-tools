@@ -28,11 +28,11 @@
     "laminas/laminas-hydrator": "^4.12.0",
     "laminas/laminas-config-aggregator": "^1.15",
     "laminas/laminas-authentication": "^2.17",
-    "webmozart/assert": "^1.11"
+    "webmozart/assert": "^1.11",
+    "zircote/swagger-php": "^4.11.0"
   },
   "require-dev": {
-    "iteaoffice/testing": "^4.1-dev",
-    "zircote/swagger-php": "^4.11.0"
+    "iteaoffice/testing": "^4.1-dev"
   },
   "autoload": {
     "psr-4": {
