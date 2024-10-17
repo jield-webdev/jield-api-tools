@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Exception;
 use Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor;
 use Jield\ApiTools\Hal\Link;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ContentNegotiation\Factory;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\ContentNegotiation\ContentNegotiationOptions;
 use Jield\ApiTools\ContentNegotiation\ContentTypeFilterListener;
 

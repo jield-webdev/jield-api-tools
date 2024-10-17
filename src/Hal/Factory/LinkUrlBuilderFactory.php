@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Link\LinkUrlBuilder;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\View\Helper\ServerUrl;

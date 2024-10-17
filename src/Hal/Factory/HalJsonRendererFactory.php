@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\ApiProblem\View\ApiProblemRenderer;
 use Jield\ApiTools\Hal\View\HalJsonRenderer;
 use Laminas\View\HelperPluginManager;

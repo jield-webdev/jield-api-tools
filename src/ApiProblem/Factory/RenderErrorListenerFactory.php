@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ApiProblem\Factory;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\ApiProblem\Listener\RenderErrorListener;
 
 class RenderErrorListenerFactory

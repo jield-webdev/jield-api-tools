@@ -9,7 +9,6 @@ use Jield\ApiTools\Hal\RendererOptions;
 use Jield\ApiTools\Hal\View\HalJsonRenderer;
 use Jield\ApiTools\Hal\View\HalJsonStrategy;
 use Laminas\Authentication\Storage\NonPersistent;
-use Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
 final class ConfigProvider
@@ -17,14 +16,13 @@ final class ConfigProvider
     public function __invoke(): array
     {
         return [
-            ConfigAbstractFactory::class => $this->getConfigAbstractFactory(),
-            'service_manager'            => $this->getServiceMangerConfig(),
-            'controller_plugins'         => $this->getControllerPluginConfig(),
-            'controllers'                => $this->getControllerConfig(),
-            'filters'                    => $this->getFiltersConfig(),
-            'validators'                 => $this->getValidatorsConfig(),
-            'input_filters'              => $this->getInputFiltersConfig(),
-            'view_helpers'               => $this->getViewHelpersConfig(),
+            'service_manager'    => $this->getServiceMangerConfig(),
+            'controller_plugins' => $this->getControllerPluginConfig(),
+            'controllers'        => $this->getControllerConfig(),
+            'filters'            => $this->getFiltersConfig(),
+            'validators'         => $this->getValidatorsConfig(),
+            'input_filters'      => $this->getInputFiltersConfig(),
+            'view_helpers'       => $this->getViewHelpersConfig(),
         ];
     }
 
@@ -131,6 +129,7 @@ final class ConfigProvider
 
                 \Jield\ApiTools\Hal\Extractor\LinkExtractor::class           => \Jield\ApiTools\Hal\Factory\LinkExtractorFactory::class,
                 \Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor::class => \Jield\ApiTools\Hal\Factory\LinkCollectionExtractorFactory::class,
+                '\Jield\ApiTools\Hal\HalConfig'                              => \Jield\ApiTools\Hal\Factory\HalConfigFactory::class,
                 HalJsonRenderer::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonRendererFactory::class,
                 HalJsonStrategy::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonStrategyFactory::class,
                 \Jield\ApiTools\Hal\Link\LinkUrlBuilder::class               => \Jield\ApiTools\Hal\Factory\LinkUrlBuilderFactory::class,
@@ -154,14 +153,6 @@ final class ConfigProvider
                 \Jield\ApiTools\Versioning\ContentTypeListener::class => \Jield\ApiTools\Versioning\Factory\ContentTypeListenerFactory::class,
                 \Jield\ApiTools\Versioning\VersionListener::class     => InvokableFactory::class,
             ],
-        ];
-    }
-
-
-    public function getConfigAbstractFactory(): array
-    {
-        return [
-
         ];
     }
 

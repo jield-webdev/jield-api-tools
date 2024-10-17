@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Factory;
 
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Metadata;
 use Laminas\Hydrator\HydratorPluginManager;
 use Psr\Container\ContainerExceptionInterface;
