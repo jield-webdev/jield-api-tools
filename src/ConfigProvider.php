@@ -148,6 +148,10 @@ final class ConfigProvider
                 NonPersistent::class                                                            => InvokableFactory::class,
                 \Jield\ApiTools\MvcAuth\Authentication\DefaultAuthenticationPostListener::class => InvokableFactory::class,
                 \Jield\ApiTools\MvcAuth\Authorization\DefaultAuthorizationPostListener::class   => InvokableFactory::class,
+
+                \Jield\ApiTools\Versioning\AcceptListener::class      => \Jield\ApiTools\Versioning\Factory\AcceptListenerFactory::class,
+                \Jield\ApiTools\Versioning\ContentTypeListener::class => \Jield\ApiTools\Versioning\Factory\ContentTypeListenerFactory::class,
+                \Jield\ApiTools\Versioning\VersionListener::class     => InvokableFactory::class,
             ],
         ];
     }

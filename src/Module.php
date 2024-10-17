@@ -27,6 +27,7 @@ use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Jield\ApiTools\MvcAuth\MvcRouteListener;
 use Jield\ApiTools\Rpc\OptionsListener;
+use Jield\ApiTools\Versioning\PrototypeRouteListener;
 use Laminas\Authentication\AuthenticationService;
 use Laminas\ConfigAggregator\ConfigAggregator;
 use Laminas\EventManager\EventInterface;
@@ -44,6 +45,8 @@ use Laminas\View\View;
 
 final class Module implements ConfigProviderInterface, BootstrapListenerInterface
 {
+    private ?PrototypeRouteListener $prototypeRouteListener = null;
+
     public function getConfig(): array
     {
         return (new ConfigAggregator(providers: [
@@ -51,6 +54,11 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
             ListenerConfigProvider::class,
             SettingsProvider::class,
         ]))->getMergedConfig();
+    }
+
+    public function init($moduleManager)
+    {
+        $this->getPrototypeRouteListener()->attach($moduleManager->getEventManager());
     }
 
     public function onBootstrap(EventInterface|MvcEvent $e): void
@@ -61,6 +69,10 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         $serviceManager = $app->getServiceManager();
         /** @var EventManager $eventManager */
         $eventManager = $app->getEventManager();
+
+        $serviceManager->get(\Jield\ApiTools\Versioning\AcceptListener::class)->attach($eventManager);
+        $serviceManager->get(\Jield\ApiTools\Versioning\ContentTypeListener::class)->attach($eventManager);
+        $serviceManager->get(\Jield\ApiTools\Versioning\VersionListener::class)->attach($eventManager);
 
         //ApiProblem
         $serviceManager->get(ApiProblemListener::class)->attach($eventManager);
@@ -213,5 +225,15 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         /** @var HalJsonStrategy $halStrategy */
         $halStrategy = $services->get(HalJsonStrategy::class);
         $halStrategy->attach(events: $events, priority: 200);
+    }
+
+    public function getPrototypeRouteListener(): PrototypeRouteListener
+    {
+        if (null !== $this->prototypeRouteListener) {
+            return $this->prototypeRouteListener;
+        }
+
+        $this->prototypeRouteListener = new \Jield\ApiTools\Versioning\PrototypeRouteListener();
+        return $this->prototypeRouteListener;
     }
 }
