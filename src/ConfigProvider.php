@@ -107,7 +107,7 @@ final class ConfigProvider
 
                 \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class                    => \Jield\ApiTools\OAuth2\Factory\PdoAdapterFactory::class,
                 \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationService::class => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationServiceFactory::class,
-                'Jield\ApiTools\OAuth2\Service\OAuth2Server'                        => \Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory::class,
+                //                'Jield\ApiTools\OAuth2\Service\OAuth2Server'                        => \Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory::class,
 
                 MvcAuth\UnauthenticatedListener::class => InvokableFactory::class,
                 MvcAuth\UnauthorizedListener::class    => InvokableFactory::class,

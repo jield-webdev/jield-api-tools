@@ -26,7 +26,6 @@ use Jield\ApiTools\MvcAuth\Authorization\DefaultResourceResolverListener;
 use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Jield\ApiTools\MvcAuth\MvcRouteListener;
-use Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory;
 use Jield\ApiTools\Rpc\OptionsListener;
 use Laminas\Authentication\AuthenticationService;
 use Laminas\ConfigAggregator\ConfigAggregator;
@@ -35,8 +34,6 @@ use Laminas\EventManager\EventManager;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\ModuleManager\Feature\BootstrapListenerInterface;
 use Laminas\ModuleManager\Feature\ConfigProviderInterface;
-use Laminas\ModuleManager\ModuleEvent;
-use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\ApplicationInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Mvc\ResponseSender\SendResponseEvent;
@@ -52,33 +49,9 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         return (new ConfigAggregator(providers: [
             ConfigProvider::class,
             ListenerConfigProvider::class,
+            SettingsProvider::class,
         ]))->getMergedConfig();
     }
-
-    public function init(ModuleManager $moduleManager): void
-    {
-        $events = $moduleManager->getEventManager();
-        $events->attach(ModuleEvent::EVENT_MERGE_CONFIG, [$this, 'onMergeConfig']);
-    }
-
-    public function onMergeConfig(ModuleEvent $e)
-    {
-        $configListener = $e->getConfigListener();
-        $config         = $configListener->getMergedConfig(false);
-        $service        = 'Jield\ApiTools\OAuth2\Service\OAuth2Server';
-        $default        = OAuth2ServerFactory::class;
-
-        if (
-            !isset($config['service_manager']['factories'][$service])
-            || $config['service_manager']['factories'][$service] !== $default
-        ) {
-            return;
-        }
-
-        $config['service_manager']['factories'][$service] = __NAMESPACE__ . '\Factory\NamedOAuth2ServerFactory';
-        $configListener->setMergedConfig($config);
-    }
-
 
     public function onBootstrap(EventInterface|MvcEvent $e): void
     {
