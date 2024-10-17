@@ -8,9 +8,7 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
-
 use function preg_match;
 use function preg_quote;
 use function preg_replace;
@@ -30,29 +28,29 @@ class VersionListener implements ListenerAggregateInterface
     /**
      * Determine if versioning is in the route matches, and update the controller accordingly
      *
-     * @return RouteMatch|V2RouteMatch|null
+     * @return RouteMatch|null
      */
     public function onRoute(MvcEvent $e)
     {
         $routeMatches = $e->getRouteMatch();
-        if (! ($routeMatches instanceof RouteMatch || $routeMatches instanceof V2RouteMatch)) {
+        if (!($routeMatches instanceof RouteMatch)) {
             return;
         }
 
         $version = $this->getVersionFromRouteMatch($routeMatches);
-        if (! $version) {
+        if (!$version) {
             // No version found in matches; done
             return;
         }
 
         $controller = $routeMatches->getParam('controller', false);
-        if (! $controller) {
+        if (!$controller) {
             // no controller; we have bigger problems!
             return;
         }
 
         $pattern = '#' . preg_quote('\V') . '(\d+)' . preg_quote('\\') . '#';
-        if (! preg_match($pattern, $controller, $matches)) {
+        if (!preg_match($pattern, $controller, $matches)) {
             // controller does not have a version subnamespace
             return;
         }
@@ -72,7 +70,7 @@ class VersionListener implements ListenerAggregateInterface
      * "laminas_ver_version"; check both to obtain the version, giving priority to the
      * route prototype result.
      *
-     * @param  RouteMatch|V2RouteMatch $routeMatches
+     * @param RouteMatch $routeMatches
      * @return int|false
      */
     protected function getVersionFromRouteMatch($routeMatches)

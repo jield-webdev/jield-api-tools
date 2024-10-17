@@ -9,9 +9,7 @@ use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\Http\Request;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
-
 use function array_reverse;
 use function array_shift;
 use function explode;
@@ -40,9 +38,10 @@ class ContentTypeListener implements ListenerAggregateInterface
     /**
      * @var array
      */
-    protected $regexes = [
-        '#^application/vnd\.(?P<laminas_ver_vendor>[^.]+)\.v(?P<laminas_ver_version>\d+)(?:\.(?P<laminas_ver_resource>[a-zA-Z0-9_-]+))?(?:\+[a-z]+)?$#',
-    ];
+    protected $regexes
+        = [
+            '#^application/vnd\.(?P<laminas_ver_vendor>[^.]+)\.v(?P<laminas_ver_version>\d+)(?:\.(?P<laminas_ver_resource>[a-zA-Z0-9_-]+))?(?:\+[a-z]+)?$#',
+        ];
     // @codingStandardsIgnoreEnd
 
     /**
@@ -56,12 +55,12 @@ class ContentTypeListener implements ListenerAggregateInterface
     /**
      * Add a regular expression to the stack
      *
-     * @param  string $regex
+     * @param string $regex
      * @return self
      */
     public function addRegexp($regex)
     {
-        if (! is_string($regex)) {
+        if (!is_string($regex)) {
             throw new Exception\InvalidArgumentException(sprintf(
                 '%s expects a string regular expression as an argument; received %s',
                 __METHOD__,
@@ -80,17 +79,17 @@ class ContentTypeListener implements ListenerAggregateInterface
     public function onRoute(MvcEvent $e)
     {
         $routeMatches = $e->getRouteMatch();
-        if (! ($routeMatches instanceof RouteMatch || $routeMatches instanceof V2RouteMatch)) {
+        if (!($routeMatches instanceof RouteMatch)) {
             return;
         }
 
         $request = $e->getRequest();
-        if (! $request instanceof Request) {
+        if (!$request instanceof Request) {
             return;
         }
 
         $headers = $request->getHeaders();
-        if (! $headers->has($this->headerName)) {
+        if (!$headers->has($this->headerName)) {
             return;
         }
 
@@ -105,7 +104,7 @@ class ContentTypeListener implements ListenerAggregateInterface
     /**
      * Parse the header for matches against registered regexes
      *
-     * @param  string $value
+     * @param string $value
      * @return false|array
      */
     protected function parseHeaderForMatches($value)
@@ -115,7 +114,7 @@ class ContentTypeListener implements ListenerAggregateInterface
         $contentType = trim($contentType);
 
         foreach (array_reverse($this->regexes) as $regex) {
-            if (! preg_match($regex, $contentType, $matches)) {
+            if (!preg_match($regex, $contentType, $matches)) {
                 continue;
             }
 
@@ -128,7 +127,7 @@ class ContentTypeListener implements ListenerAggregateInterface
     /**
      * Inject regex matches into the route matches
      *
-     * @param RouteMatch|V2RouteMatch $routeMatches
+     * @param RouteMatch $routeMatches
      * @param array $matches
      */
     protected function injectRouteMatches($routeMatches, array $matches): void
