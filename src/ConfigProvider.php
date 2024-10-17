@@ -2,6 +2,13 @@
 
 namespace Jield\ApiTools;
 
+use Jield\ApiTools\ContentValidation\ContentValidationListener;
+use Jield\ApiTools\ContentValidation\ContentValidationListenerFactory;
+use Jield\ApiTools\Hal\Metadata\MetadataMap;
+use Jield\ApiTools\Hal\RendererOptions;
+use Jield\ApiTools\Hal\View\HalJsonRenderer;
+use Jield\ApiTools\Hal\View\HalJsonStrategy;
+use Laminas\Authentication\Storage\NonPersistent;
 use Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
@@ -15,6 +22,8 @@ final class ConfigProvider
             'controller_plugins'         => $this->getControllerPluginConfig(),
             'filters'                    => $this->getFiltersConfig(),
             'validators'                 => $this->getValidatorsConfig(),
+            'input_filters'              => $this->getInputFiltersConfig(),
+            'view_helpers'               => $this->getViewHelpersConfig(),
         ];
     }
 
@@ -22,12 +31,15 @@ final class ConfigProvider
     {
         return [
             'aliases'   => [
-                'routeParam'  => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParam::class,
-                'queryParam'  => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParam::class,
-                'bodyParam'   => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParam::class,
-                'routeParams' => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParams::class,
-                'queryParams' => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParams::class,
-                'bodyParams'  => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams::class,
+                'routeParam'     => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParam::class,
+                'queryParam'     => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParam::class,
+                'bodyParam'      => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParam::class,
+                'routeParams'    => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParams::class,
+                'queryParams'    => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParams::class,
+                'bodyParams'     => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams::class,
+                'getInputFilter' => \Jield\ApiTools\ContentValidation\InputFilter\InputFilterPlugin::class,
+                'Hal'            => \Jield\ApiTools\Hal\Factory\HalControllerPluginFactory::class,
+                'getIdentity'    => \Jield\ApiTools\MvcAuth\Identity\IdentityPlugin::class,
             ],
             'factories' => [
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParam::class  => InvokableFactory::class,
@@ -36,6 +48,8 @@ final class ConfigProvider
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\RouteParams::class => InvokableFactory::class,
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParams::class => InvokableFactory::class,
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams::class  => InvokableFactory::class,
+                \Jield\ApiTools\ContentValidation\InputFilter\InputFilterPlugin::class => InvokableFactory::class,
+                \Jield\ApiTools\MvcAuth\Identity\IdentityPlugin::class                 => InvokableFactory::class,
             ],
         ];
     }
@@ -46,6 +60,15 @@ final class ConfigProvider
             'factories' => [
                 // Overwrite RenameUpload filter's factory
                 \Laminas\Filter\File\RenameUpload::class => \Jield\ApiTools\ContentNegotiation\Factory\RenameUploadFilterFactory::class,
+            ],
+        ];
+    }
+
+    public function getInputFiltersConfig(): array
+    {
+        return [
+            'abstract_factories' => [
+                \Laminas\InputFilter\InputFilterAbstractServiceFactory::class,
             ],
         ];
     }
@@ -80,6 +103,29 @@ final class ConfigProvider
                     \Jield\ApiTools\ContentNegotiation\ContentTypeFilterListener::class  => \Jield\ApiTools\ContentNegotiation\Factory\ContentTypeFilterListenerFactory::class,
                     \Jield\ApiTools\ContentNegotiation\ContentNegotiationOptions::class  => \Jield\ApiTools\ContentNegotiation\Factory\ContentNegotiationOptionsFactory::class,
                     \Jield\ApiTools\ContentNegotiation\HttpMethodOverrideListener::class => \Jield\ApiTools\ContentNegotiation\Factory\HttpMethodOverrideListenerFactory::class,
+
+                    ContentValidationListener::class => ContentValidationListenerFactory::class,
+
+                    \Jield\ApiTools\Hal\Extractor\LinkExtractor::class           => \Jield\ApiTools\Hal\Factory\LinkExtractorFactory::class,
+                    \Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor::class => \Jield\ApiTools\Hal\Factory\LinkCollectionExtractorFactory::class,
+                    HalJsonRenderer::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonRendererFactory::class,
+                    HalJsonStrategy::class                                       => \Jield\ApiTools\Hal\Factory\HalJsonStrategyFactory::class,
+                    \Jield\ApiTools\Hal\Link\LinkUrlBuilder::class               => \Jield\ApiTools\Hal\Factory\LinkUrlBuilderFactory::class,
+                    MetadataMap::class                                           => \Jield\ApiTools\Hal\Factory\MetadataMapFactory::class,
+                    RendererOptions::class                                       => \Jield\ApiTools\Hal\Factory\RendererOptionsFactory::class,
+
+                    'Jield\ApiTools\MvcAuth\Authentication'                                         => \Jield\ApiTools\MvcAuth\Factory\AuthenticationServiceFactory::class,
+                    'Jield\ApiTools\MvcAuth\ApacheResolver'                                         => \Jield\ApiTools\MvcAuth\Factory\ApacheResolverFactory::class,
+                    'Jield\ApiTools\MvcAuth\FileResolver'                                           => \Jield\ApiTools\MvcAuth\Factory\FileResolverFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authentication\DefaultAuthenticationListener::class     => \Jield\ApiTools\MvcAuth\Factory\DefaultAuthenticationListenerFactory::class,
+                    \Laminas\Authentication\Adapter\Http::class                                     => \Jield\ApiTools\MvcAuth\Factory\DefaultAuthHttpAdapterFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authorization\AclAuthorization::class                   => \Jield\ApiTools\MvcAuth\Factory\AclAuthorizationFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authorization\DefaultAuthorizationListener::class       => \Jield\ApiTools\MvcAuth\Factory\DefaultAuthorizationListenerFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authorization\DefaultResourceResolverListener::class    => \Jield\ApiTools\MvcAuth\Factory\DefaultResourceResolverListenerFactory::class,
+                    'Jield\ApiTools\OAuth2\Service\OAuth2Server'                                    => \Jield\ApiTools\MvcAuth\Factory\NamedOAuth2ServerFactory::class,
+                    NonPersistent::class                                                            => InvokableFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authentication\DefaultAuthenticationPostListener::class => InvokableFactory::class,
+                    \Jield\ApiTools\MvcAuth\Authorization\DefaultAuthorizationPostListener::class   => InvokableFactory::class,
                 ],
             ],
         ];
@@ -90,6 +136,15 @@ final class ConfigProvider
     {
         return [
 
+        ];
+    }
+
+    private function getViewHelpersConfig()
+    {
+        return [
+            'factories' => [
+                'Hal' => \Jield\ApiTools\Hal\Factory\HalViewHelperFactory::class,
+            ],
         ];
     }
 }

@@ -14,14 +14,14 @@ class InputFilterPlugin extends AbstractPlugin
     public function __invoke()
     {
         $controller = $this->getController();
-        if (! $controller instanceof InjectApplicationEventInterface) {
+        if (!$controller instanceof InjectApplicationEventInterface) {
             return null;
         }
 
         $event       = $controller->getEvent();
         $inputFilter = $event->getParam(__NAMESPACE__);
 
-        if (! $inputFilter instanceof InputFilterInterface) {
+        if (!$inputFilter instanceof InputFilterInterface) {
             return null;
         }
 

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\OAuth2\Adapter;
 
-use Laminas\Crypt\Password\Bcrypt;
-
 /**
  * Trait BcryptTrait
  */
@@ -36,7 +34,7 @@ trait BcryptTrait
      */
     public function setBcryptCost($value)
     {
-        $this->bcryptCost = (int) $value;
+        $this->bcryptCost = (int)$value;
         return $this;
     }
 

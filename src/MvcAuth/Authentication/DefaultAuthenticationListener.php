@@ -4,23 +4,16 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\MvcAuth\Authentication;
 
-use InvalidArgumentException;
 use Jield\ApiTools\MvcAuth\Identity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
-use Laminas\Authentication\Adapter\Http as HttpAuth;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\Http\Response as HttpResponse;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use OAuth2\Server as OAuth2Server;
-
 use function array_merge;
 use function array_unique;
 use function count;
-use function gettype;
-use function is_object;
 use function rtrim;
-use function sprintf;
 use function strlen;
 use function strpos;
 
@@ -46,18 +39,6 @@ class DefaultAuthenticationListener
      * @var array
      */
     private $authMap = [];
-
-    /**
-     * Legacy reasons only: HttpAuth instance
-     *
-     * On invocation, this will be munged to an HttpAdapter instance, and this
-     * property nullified.
-     *
-     * @deprecated
-     *
-     * @var null|HttpAuth
-     */
-    protected $httpAdapter;
 
     /**
      * Attach an authentication adapter
@@ -100,33 +81,7 @@ class DefaultAuthenticationListener
      */
     public function getAuthenticationTypes()
     {
-        if ($this->httpAdapter instanceof HttpAuth) {
-            // Legacy purposes only. We cannot merge the actual HttpAdapter instance
-            // until we have the MvcAuthEvent (and thus the AuthenticationService),
-            // so if an HttpAuth instance was directly attached, and this method is
-            // queried before invocation, we report both basic and digest as being
-            // available.
-            return array_unique(array_merge(
-                $this->authenticationTypes,
-                ['basic', 'digest']
-            ));
-        }
         return $this->authenticationTypes;
-    }
-
-    /**
-     * Set the HTTP authentication adapter
-     *
-     * This method is deprecated; create and attach an HttpAdapter instead.
-     *
-     * @deprecated
-     *
-     * @return self
-     */
-    public function setHttpAdapter(HttpAuth $httpAdapter)
-    {
-        $this->httpAdapter = $httpAdapter;
-        return $this;
     }
 
     /**
@@ -134,9 +89,9 @@ class DefaultAuthenticationListener
      *
      * This method is deprecated; create and attach an OAuth2Adapter instead.
      *
+     * @return self
      * @deprecated
      *
-     * @return self
      */
     public function setOauth2Server(OAuth2Server $oauth2Server)
     {
@@ -155,21 +110,14 @@ class DefaultAuthenticationListener
         $this->authMap = $map;
     }
 
-    /**
-     * Listen to the authentication event
-     *
-     * @return null|Identity\IdentityInterface
-     */
     public function __invoke(MvcAuthEvent $mvcAuthEvent)
     {
-        $this->attachHttpAdapter($mvcAuthEvent);
-
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
         $request  = $mvcEvent->getRequest();
         $response = $mvcEvent->getResponse();
 
         if (
-            ! $request instanceof HttpRequest
+            !$request instanceof HttpRequest
             || $request->isOptions()
         ) {
             return;
@@ -203,7 +151,7 @@ class DefaultAuthenticationListener
         }
 
         // If no identity returned, create a guest identity
-        if (! $identity instanceof Identity\IdentityInterface) {
+        if (!$identity instanceof Identity\IdentityInterface) {
             $identity = new Identity\GuestIdentity();
         }
 
@@ -215,23 +163,13 @@ class DefaultAuthenticationListener
      * Match the controller to an authentication type, based on the API to
      * which the controller belongs.
      *
-     * @param null|V2RouteMatch|RouteMatch $routeMatch
+     * @param null|RouteMatch $routeMatch
      * @return string|false
      */
     private function getTypeFromMap($routeMatch = null)
     {
         if (null === $routeMatch) {
             return false;
-        }
-
-        if (! ($routeMatch instanceof RouteMatch || $routeMatch instanceof V2RouteMatch)) {
-            throw new InvalidArgumentException(sprintf(
-                '%s expected either a %s or %s; received %s',
-                __METHOD__,
-                RouteMatch::class,
-                V2RouteMatch::class,
-                is_object($routeMatch) ? $routeMatch::class : gettype($routeMatch)
-            ));
         }
 
         $controller = $routeMatch->getParam('controller', false);
@@ -291,7 +229,7 @@ class DefaultAuthenticationListener
     private function authenticate($type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent)
     {
         foreach ($this->adapters as $adapter) {
-            if (! $adapter->matches($type)) {
+            if (!$adapter->matches($type)) {
                 continue;
             }
 
@@ -299,23 +237,5 @@ class DefaultAuthenticationListener
         }
 
         return false;
-    }
-
-    /**
-     * Attach the $httpAdapter as a proper adapter
-     *
-     * This is to allow using the setHttpAdapter() method along with the
-     * AdapterInterface system, and will be removed in a future version.
-     *
-     * @deprecated
-     */
-    private function attachHttpAdapter(MvcAuthEvent $mvcAuthEvent): void
-    {
-        if (! $this->httpAdapter instanceof HttpAuth) {
-            return;
-        }
-
-        $this->attach(new HttpAdapter($this->httpAdapter, $mvcAuthEvent->getAuthenticationService()));
-        $this->httpAdapter = null;
     }
 }

@@ -23,7 +23,6 @@ use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\Stdlib\ArrayUtils;
-
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -35,7 +34,6 @@ use function is_array;
 use function is_bool;
 use function preg_match;
 use function sprintf;
-
 use const ARRAY_FILTER_USE_BOTH;
 
 class ContentValidationListener implements ListenerAggregateInterface, EventManagerAwareInterface
@@ -61,11 +59,12 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     protected $inputFilters = [];
 
     /** @var array */
-    protected $methodsWithoutBodies = [
-        'GET',
-        'HEAD',
-        'OPTIONS',
-    ];
+    protected $methodsWithoutBodies
+        = [
+            'GET',
+            'HEAD',
+            'OPTIONS',
+        ];
 
     /**
      * Map of REST controllers => route identifier names
@@ -81,10 +80,11 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param array $restControllers
      */
     public function __construct(
-        array $config = [],
+        array                    $config = [],
         ?ServiceLocatorInterface $inputFilterManager = null,
-        array $restControllers = []
-    ) {
+        array                    $restControllers = []
+    )
+    {
         $this->config             = $config;
         $this->inputFilterManager = $inputFilterManager;
         $this->restControllers    = $restControllers;
@@ -132,9 +132,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     }
 
     /**
+     * @param int $priority
      * @see   ListenerAggregateInterface
      *
-     * @param int $priority
      */
     public function attach(EventManagerInterface $events, $priority = 1)
     {
@@ -162,23 +162,23 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     public function onRoute(MvcEvent $e)
     {
         $request = $e->getRequest();
-        if (! $request instanceof HttpRequest) {
+        if (!$request instanceof HttpRequest) {
             return;
         }
 
         $routeMatches = $e->getRouteMatch();
-        if (! ($routeMatches instanceof RouteMatch || $routeMatches instanceof V2RouteMatch)) {
+        if (!($routeMatches instanceof RouteMatch || $routeMatches instanceof V2RouteMatch)) {
             return;
         }
 
         $controllerService = $routeMatches->getParam('controller', false);
-        if (! $controllerService) {
+        if (!$controllerService) {
             return;
         }
 
         $method        = $request->getMethod();
         $dataContainer = $e->getParam('LaminasContentNegotiationParameterData', false);
-        if (! $dataContainer instanceof ParameterDataContainer) {
+        if (!$dataContainer instanceof ParameterDataContainer) {
             return new ApiProblemResponse(
                 new ApiProblem(
                     500,
@@ -199,11 +199,11 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
 
         $inputFilterService = $this->getInputFilterService($controllerService, $method, $isCollection);
 
-        if (! $inputFilterService) {
+        if (!$inputFilterService) {
             return;
         }
 
-        if (! $this->hasInputFilter($inputFilterService)) {
+        if (!$this->hasInputFilter($inputFilterService)) {
             return new ApiProblemResponse(
                 new ApiProblem(
                     500,
@@ -213,7 +213,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         }
 
         $files = $request->getFiles();
-        if (! $isCollection && 0 < count($files)) {
+        if (!$isCollection && 0 < count($files)) {
             // File uploads are not validated for collections; impossible to
             // match file fields to discrete sets
             $data = ArrayUtils::merge($data, $files->toArray(), true);
@@ -222,8 +222,8 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         $inputFilter = $this->getInputFilter($inputFilterService);
 
         if (
-            $isCollection && ! in_array($method, $this->methodsWithoutBodies)
-            && ! $inputFilter instanceof CollectionInputFilter
+            $isCollection && !in_array($method, $this->methodsWithoutBodies)
+            && !$inputFilter instanceof CollectionInputFilter
         ) {
             $collectionInputFilter = new CollectionInputFilter();
             $collectionInputFilter->setInputFilter($inputFilter);
@@ -280,7 +280,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         // - If the flag is present AND is boolean true, that is also
         //   an indicator that the raw data should be present.
         $useRawData = $this->useRawData($controllerService);
-        if (! $useRawData) {
+        if (!$useRawData) {
             $data = $inputFilter->getValues();
         }
 
@@ -298,8 +298,8 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         // unknown data is in the input filter, at this point we can just
         // set the current data into the data container.
         if (
-            ! $inputFilter instanceof UnknownInputsCapableInterface
-            || ! $inputFilter->hasUnknown()
+            !$inputFilter instanceof UnknownInputsCapableInterface
+            || !$inputFilter->hasUnknown()
         ) {
             $dataContainer->setBodyParams($data);
             return;
@@ -366,7 +366,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     protected function useRawData($controllerService)
     {
         if (
-            ! isset($this->config[$controllerService]['use_raw_data'])
+            !isset($this->config[$controllerService]['use_raw_data'])
             || (isset($this->config[$controllerService]['use_raw_data'])
                 && $this->config[$controllerService]['use_raw_data'] === true)
         ) {
@@ -426,13 +426,13 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
 
         foreach ($data as $key => $value) {
             if (
-                ! is_array($value)
-                && (! empty($value) || is_bool($value) && ! in_array($key, $compareTo))
+                !is_array($value)
+                && (!empty($value) || is_bool($value) && !in_array($key, $compareTo))
             ) {
                 continue;
             }
 
-            if (! is_array($value)) {
+            if (!is_array($value)) {
                 unset($data[$key]);
                 continue;
             }
@@ -466,9 +466,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *
      * If neither are present, return boolean false.
      *
-     * @param  string $controllerService
-     * @param  string $method
-     * @param  bool $isCollection
+     * @param string $controllerService
+     * @param string $method
+     * @param bool $isCollection
      * @return string|false
      */
     protected function getInputFilterService($controllerService, $method, $isCollection)
@@ -506,13 +506,13 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
 
         if (
             null === $this->inputFilterManager
-            || ! $this->inputFilterManager->has($inputFilterService)
+            || !$this->inputFilterManager->has($inputFilterService)
         ) {
             return false;
         }
 
         $inputFilter = $this->inputFilterManager->get($inputFilterService);
-        if (! $inputFilter instanceof InputFilterInterface) {
+        if (!$inputFilter instanceof InputFilterInterface) {
             return false;
         }
 
@@ -541,7 +541,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      */
     protected function isCollection($serviceName, $data, $matches, HttpRequest $request)
     {
-        if (! array_key_exists($serviceName, $this->restControllers)) {
+        if (!array_key_exists($serviceName, $this->restControllers)) {
             return false;
         }
 

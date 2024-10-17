@@ -6,7 +6,7 @@ namespace Jield\ApiTools\Rpc\Factory;
 
 use Exception;
 use Jield\ApiTools\Rpc\RpcController;
-use Laminas\ServiceManager\AbstractFactoryInterface;
+use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;

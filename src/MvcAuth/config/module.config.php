@@ -6,21 +6,8 @@ namespace Jield\ApiTools\MvcAuth;
 
 use Laminas\Authentication\Storage\NonPersistent;
 use Laminas\ServiceManager\Factory\InvokableFactory;
-use ZF\MvcAuth\Identity\IdentityPlugin;
 
 return [
-    'controller_plugins' => [
-        'aliases'   => [
-            'getidentity' => Identity\IdentityPlugin::class,
-            'getIdentity' => Identity\IdentityPlugin::class,
-
-            // Legacy Zend Framework aliases
-            IdentityPlugin::class => Identity\IdentityPlugin::class,
-        ],
-        'factories' => [
-            Identity\IdentityPlugin::class => InvokableFactory::class,
-        ],
-    ],
     'service_manager'    => [
         'aliases'    => [
             'authentication'                            => 'Jield\ApiTools\MvcAuth\Authentication',
@@ -34,18 +21,7 @@ return [
         ],
         // @codingStandardsIgnoreStart
         'factories'  => [
-            'Jield\ApiTools\MvcAuth\Authentication'                             => Factory\AuthenticationServiceFactory::class,
-            'Jield\ApiTools\MvcAuth\ApacheResolver'                             => Factory\ApacheResolverFactory::class,
-            'Jield\ApiTools\MvcAuth\FileResolver'                               => Factory\FileResolverFactory::class,
-            Authentication\DefaultAuthenticationListener::class     => Factory\DefaultAuthenticationListenerFactory::class,
-            Authentication\AuthHttpAdapter::class                   => Factory\DefaultAuthHttpAdapterFactory::class,
-            Authorization\AclAuthorization::class                   => Factory\AclAuthorizationFactory::class,
-            Authorization\DefaultAuthorizationListener::class       => Factory\DefaultAuthorizationListenerFactory::class,
-            Authorization\DefaultResourceResolverListener::class    => Factory\DefaultResourceResolverListenerFactory::class,
-            'Jield\ApiTools\OAuth2\Service\OAuth2Server'                        => Factory\NamedOAuth2ServerFactory::class,
-            NonPersistent::class                                    => InvokableFactory::class,
-            Authentication\DefaultAuthenticationPostListener::class => InvokableFactory::class,
-            Authorization\DefaultAuthorizationPostListener::class   => InvokableFactory::class,
+
 
         ],
         // @codingStandardsIgnoreEnd

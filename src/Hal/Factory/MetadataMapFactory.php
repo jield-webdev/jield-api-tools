@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Hal\Factory;
 
-// phpcs:ignore WebimpressCodingStandard.PHP.CorrectClassNameCase.Invalid
+
 use Interop\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Metadata;
 use Laminas\Hydrator\HydratorPluginManager;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-
 use function is_array;
 
 class MetadataMapFactory

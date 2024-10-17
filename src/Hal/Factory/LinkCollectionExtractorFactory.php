@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Hal\Factory;
 
-// phpcs:ignore WebimpressCodingStandard.PHP.CorrectClassNameCase.Invalid
+
 use Interop\Container\ContainerInterface;
 use Jield\ApiTools\Hal\Extractor\LinkCollectionExtractor;
 use Jield\ApiTools\Hal\Extractor\LinkExtractor;
