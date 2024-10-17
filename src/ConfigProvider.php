@@ -20,7 +20,7 @@ final class ConfigProvider
             ConfigAbstractFactory::class => $this->getConfigAbstractFactory(),
             'service_manager'            => $this->getServiceMangerConfig(),
             'controller_plugins'         => $this->getControllerPluginConfig(),
-            'controllers'                => $this->getControllerPlugin(),
+            'controllers'                => $this->getControllerConfig(),
             'filters'                    => $this->getFiltersConfig(),
             'validators'                 => $this->getValidatorsConfig(),
             'input_filters'              => $this->getInputFiltersConfig(),
@@ -39,7 +39,7 @@ final class ConfigProvider
                 'queryParams'    => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParams::class,
                 'bodyParams'     => \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams::class,
                 'getInputFilter' => \Jield\ApiTools\ContentValidation\InputFilter\InputFilterPlugin::class,
-                'Hal'            => \Jield\ApiTools\Hal\Factory\HalControllerPluginFactory::class,
+                'Hal'            => \Jield\ApiTools\Hal\Plugin\Hal::class,
                 'getIdentity'    => \Jield\ApiTools\MvcAuth\Identity\IdentityPlugin::class,
             ],
             'factories' => [
@@ -50,6 +50,7 @@ final class ConfigProvider
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\QueryParams::class => InvokableFactory::class,
                 \Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams::class  => InvokableFactory::class,
                 \Jield\ApiTools\ContentValidation\InputFilter\InputFilterPlugin::class => InvokableFactory::class,
+                \Jield\ApiTools\Hal\Plugin\Hal::class                                  => \Jield\ApiTools\Hal\Factory\HalControllerPluginFactory::class,
                 \Jield\ApiTools\MvcAuth\Identity\IdentityPlugin::class                 => InvokableFactory::class,
             ],
         ];
@@ -173,7 +174,7 @@ final class ConfigProvider
         ];
     }
 
-    private function getControllerPlugin(): array
+    private function getControllerConfig(): array
     {
         return [
             'factories'          => [
