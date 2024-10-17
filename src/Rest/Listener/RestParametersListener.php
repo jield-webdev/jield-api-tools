@@ -10,7 +10,6 @@ use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Stdlib\CallbackHandler;
 
 use function method_exists;
 
@@ -18,7 +17,6 @@ class RestParametersListener implements ListenerAggregateInterface
 {
     use ListenerAggregateTrait;
 
-    /** @var CallbackHandler[] */
     protected $sharedListeners = [];
 
     /** @param int $priority */

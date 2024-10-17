@@ -100,10 +100,11 @@ final class ConfigProvider
                 ],
             ],
             'invokables' => [
-                'Jield\ApiTools\Rest\RestParametersListener' => \Jield\ApiTools\Rest\Listener\RestParametersListener::class,
+                \Jield\ApiTools\Rest\Listener\RestParametersListener::class => \Jield\ApiTools\Rest\Listener\RestParametersListener::class,
             ],
             'factories'  => [
-                'Jield\ApiTools\Rest\OptionsListener' => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
+                \Jield\ApiTools\Rest\Listener\OptionsListener::class => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
+                \Jield\ApiTools\Rpc\OptionsListener::class  => \Jield\ApiTools\Rpc\Factory\OptionsListenerFactory::class,
 
                 \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class                    => \Jield\ApiTools\OAuth2\Factory\PdoAdapterFactory::class,
                 \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationService::class => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationServiceFactory::class,

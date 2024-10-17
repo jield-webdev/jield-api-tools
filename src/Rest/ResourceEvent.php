@@ -10,11 +10,9 @@ use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\Exception\InvalidArgumentException as EventManagerInvalidArgumentException;
 use Laminas\InputFilter\InputFilterInterface;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\Parameters;
 use Laminas\Stdlib\RequestInterface;
-
 use function gettype;
 use function is_array;
 use function is_object;
@@ -45,7 +43,7 @@ class ResourceEvent extends Event
      */
     public function setParams($params)
     {
-        if (! is_array($params) && ! is_object($params)) {
+        if (!is_array($params) && !is_object($params)) {
             throw new EventManagerInvalidArgumentException(sprintf(
                 'Event parameters must be an array or object; received "%s"',
                 gettype($params)
@@ -156,7 +154,7 @@ class ResourceEvent extends Event
      */
     public function setRouteMatch($matches = null)
     {
-        if (null !== $matches && ! ($matches instanceof RouteMatch || $matches instanceof V2RouteMatch)) {
+        if (null !== $matches && !($matches instanceof RouteMatch || $matches instanceof V2RouteMatch)) {
             throw new InvalidArgumentException(sprintf(
                 '%s expects a null or %s or %s instances; received %s',
                 __METHOD__,

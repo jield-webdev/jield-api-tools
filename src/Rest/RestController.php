@@ -837,7 +837,7 @@ class RestController extends AbstractRestfulController
             return;
         }
 
-        $identity = $event->getParam('Jield\ApiTools\MvcAuth\Identity');
+        $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity);
         if (! $identity) {
             return;
         }

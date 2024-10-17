@@ -139,8 +139,8 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
             );
         }
 
-        $serviceManager->get('Jield\ApiTools\Rest\OptionsListener')->attach($eventManager);
-        $serviceManager->get('Jield\ApiTools\Rest\RestParametersListener')->attachShared($sharedEventManager);
+        $serviceManager->get(\Jield\ApiTools\Rest\Listener\OptionsListener::class)->attach($eventManager);
+        $serviceManager->get(\Jield\ApiTools\Rest\Listener\RestParametersListener::class)->attachShared($sharedEventManager);
 
         // Attach OptionsListener
         $optionsListener = $serviceManager->get(OptionsListener::class);
@@ -154,7 +154,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
         $eventManager->attach(
             eventName: MvcEvent::EVENT_ROUTE,
             listener: function ($event) use ($serviceManager): void {
-                $identity = $event->getParam('Jield\ApiTools\MvcAuth\Identity');
+                $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity);
                 if ($identity instanceof AuthenticatedIdentity && $identity->getAuthenticationIdentity()['expires'] > time()) {
                     $userId                = $identity->getAuthenticationIdentity()['user_id'];
                     $authenticationService = $serviceManager->get(name: AuthenticationService::class);

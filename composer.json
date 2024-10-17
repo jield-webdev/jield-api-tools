@@ -28,6 +28,7 @@
     "laminas/laminas-hydrator": "^4.12.0",
     "laminas/laminas-config-aggregator": "^1.15",
     "laminas/laminas-authentication": "^2.17",
+    "laminas/laminas-permissions-rbac": "^3.6.0",
     "webmozart/assert": "^1.11",
     "zircote/swagger-php": "^4.11.0"
   },

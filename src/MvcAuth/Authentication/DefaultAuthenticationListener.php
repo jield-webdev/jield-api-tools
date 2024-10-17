@@ -128,7 +128,7 @@ class DefaultAuthenticationListener
             // Ambiguous situation; no matching type in map, but multiple
             // authentication adapters; return a guest identity.
             $identity = new Identity\GuestIdentity();
-            $mvcEvent->setParam('Jield\ApiTools\MvcAuth\Identity', $identity);
+            $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity, $identity);
             return $identity;
         }
 
@@ -138,7 +138,7 @@ class DefaultAuthenticationListener
             // and return a guest identity.
             $this->triggerAdapterPreAuth($request, $response);
             $identity = new Identity\GuestIdentity();
-            $mvcEvent->setParam('Jield\ApiTools\MvcAuth\Identity', $identity);
+            $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity, $identity);
             return $identity;
         }
 
@@ -155,7 +155,7 @@ class DefaultAuthenticationListener
             $identity = new Identity\GuestIdentity();
         }
 
-        $mvcEvent->setParam('Jield\ApiTools\MvcAuth\Identity', $identity);
+        $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity, $identity);
         return $identity;
     }
 
