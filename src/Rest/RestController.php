@@ -596,11 +596,6 @@ class RestController extends AbstractRestfulController
 
     /**
      * Respond to the PATCH method (partial update of existing entity)
-     *
-     * @param int|string $id
-     * @param array $data
-     * @return Response|ApiProblem|ApiProblemResponse|HalEntity
-     * @todo   Remove 'resource' from patch.post event for 1.0.0
      */
     #[Override]
     public function patch($id, $data): HalEntity|Response|ApiProblem|ApiProblemResponse
@@ -609,7 +604,7 @@ class RestController extends AbstractRestfulController
         $events->trigger(eventName: 'patch.pre', target: $this, argv: ['id' => $id, 'data' => $data]);
 
         try {
-            $entity = $this->getResource()->patch(id: $id, data: $data);
+            $entity = $this->getResource()->patch(id: (int)$id, data: $data ?? []);
         } catch (Throwable $throwable) {
             return $this->createApiProblemFromException(e: $throwable);
         }
