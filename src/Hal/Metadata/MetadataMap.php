@@ -34,7 +34,7 @@ class MetadataMap
      */
     public function __construct(?array $map = null, HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
     {
-        if (null !== $hydrators) {
+        if ($hydrators instanceof \Laminas\Hydrator\HydratorPluginManagerInterface) {
             $this->setHydratorManager(hydrators: $hydrators);
         }
 

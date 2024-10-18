@@ -113,7 +113,7 @@ class ResourceEvent extends Event
     public function getQueryParam(string $name, mixed $default = null): mixed
     {
         $params = $this->getQueryParams();
-        if (null === $params) {
+        if (!$params instanceof \Laminas\Stdlib\Parameters) {
             return $default;
         }
 

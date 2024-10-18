@@ -212,7 +212,7 @@ class RestControllerFactory implements AbstractFactoryInterface
                         $params = new Parameters(values: []);
 
                         // If a query Input Filter exists, merge its keys with the query whitelist
-                        if ($resource->getInputFilter()) {
+                        if ($resource->getInputFilter() instanceof \Laminas\InputFilter\InputFilterInterface) {
                             $whitelist = array_unique(array: array_merge(
                                 $whitelist,
                                 array_keys(array: $resource->getInputFilter()->getInputs())

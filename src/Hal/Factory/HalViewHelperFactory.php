@@ -58,7 +58,7 @@ class HalViewHelperFactory
         $helper->setLinkCollectionExtractor(extractor: $linkCollectionExtractor);
 
         $defaultHydrator = $rendererOptions->getDefaultHydrator();
-        if ($defaultHydrator) {
+        if ($defaultHydrator !== '' && $defaultHydrator !== '0') {
             if (!$hydrators->has($defaultHydrator)) {
                 throw new Exception\DomainException(message: sprintf(
                     'Cannot locate default hydrator by name "%s" via the HydratorManager',

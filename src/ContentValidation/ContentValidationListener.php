@@ -185,6 +185,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
                 )
             );
         }
+
         $data = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
             ? $dataContainer->getQueryParams()
             : $dataContainer->getBodyParams();
@@ -532,7 +533,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
             return false;
         }
 
-        if ($request->isPost() && (empty($data) || ArrayUtils::isHashTable(value: $data))) {
+        if ($request->isPost() && ($data === [] || ArrayUtils::isHashTable(value: $data))) {
             return false;
         }
 

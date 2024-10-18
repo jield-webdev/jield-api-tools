@@ -49,11 +49,7 @@ class ParameterDataContainer
      */
     public function getRouteParam(string $name, mixed $default = null): mixed
     {
-        if (isset($this->routeParams[$name])) {
-            return $this->routeParams[$name];
-        }
-
-        return $default;
+        return $this->routeParams[$name] ?? $default;
     }
 
     /**
@@ -99,11 +95,7 @@ class ParameterDataContainer
      */
     public function getQueryParam(string $name, mixed $default = null): mixed
     {
-        if (isset($this->queryParams[$name])) {
-            return $this->queryParams[$name];
-        }
-
-        return $default;
+        return $this->queryParams[$name] ?? $default;
     }
 
     /**
@@ -149,11 +141,7 @@ class ParameterDataContainer
      */
     public function getBodyParam(string $name, mixed $default = null): mixed
     {
-        if (isset($this->bodyParams[$name])) {
-            return $this->bodyParams[$name];
-        }
-
-        return $default;
+        return $this->bodyParams[$name] ?? $default;
     }
 
     /**

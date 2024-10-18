@@ -245,7 +245,7 @@ class MultipartContentParser
                 $file['type'] = $mimeType;
 
                 $tmpDir = static::getUploadTempDir();
-                if (empty($tmpDir)) {
+                if ($tmpDir === '' || $tmpDir === '0') {
                     // Cannot ascertain temporary directory; this is an error
                     $file['error'] = UPLOAD_ERR_NO_TMP_DIR;
                     continue;

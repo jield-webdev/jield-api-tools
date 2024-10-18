@@ -49,7 +49,7 @@ class ApiProblemListener extends AbstractListenerAggregate
      */
     public function __construct(array|string $filters = null)
     {
-        if (! empty($filters)) {
+        if ($filters !== '' && $filters !== '0' && $filters !== []) {
             if (is_string(value: $filters)) {
                 $this->acceptFilters = [$filters];
             }

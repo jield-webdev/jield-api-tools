@@ -160,7 +160,7 @@ class Metadata
 
         $this->class = $class;
 
-        if (null !== $hydrators) {
+        if ($hydrators instanceof \Laminas\Hydrator\HydratorPluginManagerInterface) {
             $this->setHydrators(hydrators: $hydrators);
         }
 

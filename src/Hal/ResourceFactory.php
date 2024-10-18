@@ -61,7 +61,7 @@ class ResourceFactory
         }
 
         /** @var string|null $id */
-        $id = $entityIdentifierName ? $data[$entityIdentifierName] : null;
+        $id = $entityIdentifierName !== '' && $entityIdentifierName !== '0' ? $data[$entityIdentifierName] : null;
 
         if (! $renderEmbeddedEntities) {
             $object = [];

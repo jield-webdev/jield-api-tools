@@ -117,7 +117,7 @@ class Hal extends AbstractHelper implements
      */
     public function __construct(HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
     {
-        if (null === $hydrators) {
+        if (!$hydrators instanceof \Laminas\Hydrator\HydratorPluginManagerInterface) {
             $this->hydrators = new HydratorPluginManager(configInstanceOrParentLocator: new ServiceManager());
         } else {
             /** @psalm-var HydratorPluginManager $hydrators */

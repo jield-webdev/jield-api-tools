@@ -124,6 +124,7 @@ class MvcRouteListener extends AbstractListenerAggregate
             $mvcAuthEvent->setIdentity(identity: new Identity\AuthenticatedIdentity(identity: $identity));
             return null;
         }
+
         return null;
     }
 
@@ -177,6 +178,7 @@ class MvcRouteListener extends AbstractListenerAggregate
         if ($result instanceof Response) {
             return $result;
         }
+
         return null;
     }
 

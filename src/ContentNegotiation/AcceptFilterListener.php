@@ -57,6 +57,7 @@ class AcceptFilterListener extends ContentTypeFilterListener
                 apiProblem: new ApiProblem(status: 406, detail: 'Cannot honor Accept type specified')
             );
         }
+
         return null;
     }
 

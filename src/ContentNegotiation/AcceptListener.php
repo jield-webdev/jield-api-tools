@@ -200,6 +200,7 @@ class AcceptListener
                 return $criteria;
             }
         }
+
         return null;
     }
 }

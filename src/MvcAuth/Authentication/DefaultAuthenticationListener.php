@@ -167,7 +167,7 @@ class DefaultAuthenticationListener
      */
     private function getTypeFromMap(RouteMatch $routeMatch = null): false|string
     {
-        if (null === $routeMatch) {
+        if (!$routeMatch instanceof \Laminas\Router\RouteMatch) {
             return false;
         }
 

@@ -89,6 +89,7 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
                 apiProblem: new ApiProblem(status: 415, detail: 'Invalid content-type specified')
             );
         }
+
         return null;
     }
 }
