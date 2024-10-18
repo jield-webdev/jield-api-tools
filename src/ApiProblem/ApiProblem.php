@@ -130,7 +130,7 @@ class ApiProblem
      * from $problemStatusTitles as a result.
      */
     public function __construct(
-        int                        $status,
+        int|string                 $status,
         Throwable|Exception|string $detail,
         ?string                    $type = null,
         ?string                    $title = null,

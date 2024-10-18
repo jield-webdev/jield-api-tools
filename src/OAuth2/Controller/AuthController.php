@@ -7,6 +7,7 @@ namespace Jield\ApiTools\OAuth2\Controller;
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Jield\ApiTools\ApiProblem\Exception\ProblemExceptionInterface;
+use Jield\ApiTools\ContentNegotiation\ControllerPlugin\BodyParams;
 use Jield\ApiTools\ContentNegotiation\ViewModel;
 use Jield\ApiTools\OAuth2\Provider\UserId\UserIdProviderInterface;
 use Laminas\Http\PhpEnvironment\Request as PhpEnvironmentRequest;
@@ -22,6 +23,9 @@ use Webmozart\Assert\Assert;
 use function json_encode;
 use function sprintf;
 
+/**
+ * @method BodyParams bodyParams()
+ */
 class AuthController extends AbstractActionController
 {
     protected bool $apiProblemErrorResponse = true;
@@ -290,7 +294,7 @@ class AuthController extends AbstractActionController
         }
 
         // Ensure the bodyParams are passed as an array
-        $bodyParams = [];
+        $bodyParams = $this->bodyParams() ?: [];
 
         return new OAuth2Request(
             query: $laminasRequest->getQuery()->toArray(),

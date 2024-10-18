@@ -16,10 +16,6 @@ class PdoAdapter extends OAuth2Pdo
 {
     protected int $bcryptCost = 12;
 
-    /**
-     * @param array $connection
-     * @param array $config
-     */
     public function __construct($connection, $config = [])
     {
         parent::__construct(connection: $connection, config: $config);
@@ -28,13 +24,6 @@ class PdoAdapter extends OAuth2Pdo
         }
     }
 
-    /**
-     * Check client credentials
-     *
-     * @param string $clientId
-     * @param string $clientSecret
-     * @return bool
-     */
     #[Override]
     public function checkClientCredentials($clientId, $clientSecret = null): bool
     {
@@ -55,17 +44,6 @@ class PdoAdapter extends OAuth2Pdo
         return password_verify(password: (string)$clientSecret, hash: (string)$result['client_secret']);
     }
 
-    /**
-     * Set client details
-     *
-     * @param string $clientId
-     * @param string $clientSecret
-     * @param string $redirectUri
-     * @param string $grantTypes
-     * @param string $scopeOrUserId If 5 arguments, userId; if 6, scope.
-     * @param string $userId
-     * @return bool
-     */
     #[Override]
     public function setClientDetails(
         $clientId,
@@ -88,5 +66,18 @@ class PdoAdapter extends OAuth2Pdo
         }
 
         return parent::setClientDetails(client_id: $clientId, client_secret: $clientSecret, redirect_uri: $redirectUri, grant_types: $grantTypes, scope: $scope, user_id: $userId);
+    }
+
+    protected function checkPassword($user, $password): bool
+    {
+        return password_verify($password, $user['password']);
+    }
+
+    public function getUser($username): array|bool
+    {
+        $userInfo = parent::getUser($username);
+
+        // Bshaffer expects the user_id to be set in the array,we want the it self
+        return array_merge(['user_id' => $userInfo['id']], $userInfo);
     }
 }
