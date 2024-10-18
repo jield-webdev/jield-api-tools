@@ -26,20 +26,17 @@ class AuthController extends AbstractActionController
 {
     protected bool $apiProblemErrorResponse = true;
 
-    protected OAuth2Server $server;
+    protected ?OAuth2Server $server = null;
 
     /** @var callable Factory for generating an OAuth2Server instance. */
     protected $serverFactory;
 
-    protected UserIdProviderInterface $userIdProvider;
-
     /**
      * Constructor
      */
-    public function __construct(callable $serverFactory, UserIdProviderInterface $userIdProvider)
+    public function __construct(callable $serverFactory, protected UserIdProviderInterface $userIdProvider)
     {
-        $this->serverFactory  = $serverFactory;
-        $this->userIdProvider = $userIdProvider;
+        $this->serverFactory = $serverFactory;
     }
 
     /**
