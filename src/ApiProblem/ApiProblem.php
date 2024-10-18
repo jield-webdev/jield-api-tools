@@ -120,10 +120,8 @@ class ApiProblem
 
     /**
      * Title of the error.
-     *
-     * @var string
      */
-    protected ?string $title;
+    protected ?string $title = null;
 
     /**
      * Create an instance using the provided information. If nothing is

@@ -26,18 +26,12 @@ use Override;
  */
 class HalJsonRenderer extends JsonRenderer
 {
-    /** @var ApiProblemRenderer */
-    protected ApiProblemRenderer $apiProblemRenderer;
+    protected ?HelperPluginManager $helpers = null;
 
-    /** @var HelperPluginManager|null */
-    protected ?HelperPluginManager $helpers;
+    protected ?ViewEvent $viewEvent = null;
 
-    /** @var ViewEvent|null */
-    protected ?ViewEvent $viewEvent;
-
-    public function __construct(ApiProblemRenderer $apiProblemRenderer)
+    public function __construct(protected ApiProblemRenderer $apiProblemRenderer)
     {
-        $this->apiProblemRenderer = $apiProblemRenderer;
     }
 
     /**
@@ -59,12 +53,10 @@ class HalJsonRenderer extends JsonRenderer
 
     /**
      * Lazy-loads a helper plugin manager if none available.
-     *
-     * @return HelperPluginManager
      */
     public function getHelperPluginManager(): ?HelperPluginManager
     {
-        if (! $this->helpers instanceof HelperPluginManager) {
+        if (!$this->helpers instanceof HelperPluginManager) {
             $this->setHelperPluginManager(helpers: $helpers = new HelperPluginManager());
             return $helpers;
         }
@@ -89,14 +81,14 @@ class HalJsonRenderer extends JsonRenderer
      *
      * If not, it passes control to the parent to render.
      *
-     * @param  mixed $nameOrModel
-     * @param  null|array|ArrayAccess $values
+     * @param mixed $nameOrModel
+     * @param null|array|ArrayAccess $values
      * @return string
      */
     #[Override]
     public function render($nameOrModel, $values = null): string
     {
-        if (! $nameOrModel instanceof HalJsonModel) {
+        if (!$nameOrModel instanceof HalJsonModel) {
             /** @psalm-var ModelInterface|string $nameOrModel */
             return parent::render(nameOrModel: $nameOrModel, values: $values);
         }

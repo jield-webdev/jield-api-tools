@@ -14,8 +14,7 @@ use function method_exists;
 //@phpstan-ignore-next-line
 class UploadFile extends BaseValidator
 {
-    /** @var null|RequestInterface */
-    protected ?RequestInterface $request;
+    protected ?RequestInterface $request = null;
 
     public function setRequest(RequestInterface $request): void
     {

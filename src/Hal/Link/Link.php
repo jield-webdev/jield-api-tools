@@ -29,8 +29,7 @@ class Link implements LinkInterface
     /** @var string[] */
     protected string|array $rels;
 
-    /** @var string */
-    protected string $route;
+    protected string $route = '';
 
     /** @var array */
     protected array $routeOptions = [];
@@ -38,8 +37,7 @@ class Link implements LinkInterface
     /** @var array<string,mixed> */
     protected array $routeParams = [];
 
-    /** @var string|null */
-    protected ?string $href;
+    protected ?string $href = null;
 
     /**
      * Create a link relation

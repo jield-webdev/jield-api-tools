@@ -42,23 +42,17 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
 
     public const string EVENT_BEFORE_VALIDATE = 'contentvalidation.beforevalidate';
 
-    /** @var array */
     protected array $config = [];
 
-    /** @var null|EventManagerInterface */
-    protected ?EventManagerInterface $events;
+    protected ?EventManagerInterface $events = null;
 
-    /** @var null|ServiceLocatorInterface */
-    protected ?ServiceLocatorInterface $inputFilterManager;
+    protected ?ServiceLocatorInterface $inputFilterManager = null;
 
     /**
      * Cache of input filter service names/instances
-     *
-     * @var array
      */
     protected array $inputFilters = [];
 
-    /** @var array */
     protected array $methodsWithoutBodies
         = [
             'GET',
@@ -70,8 +64,6 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * Map of REST controllers => route identifier names
      *
      * Used to determine if we have a collection or an entity, for purposes of validation.
-     *
-     * @var array
      */
     protected array $restControllers;
 
