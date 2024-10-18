@@ -88,6 +88,7 @@ final class ListenerConfigProvider
                         configAbstractFactories: $this->getConstructorArguments(className: $className),
                         entityCollectionWhiteList: $staticClass::getEntityCollectionWhiteList(),
                         pageSize: $staticClass::getPageSize(),
+                        maxPageSize: $staticClass::getMaxPageSize(),
                         inputFilterSpecification: $staticClass::getInputFilterSpecification(),
                         routeAssertionClass: $staticClass::getRouteAssertionClass(),
                         privilege: $staticClass::getPrivilege()

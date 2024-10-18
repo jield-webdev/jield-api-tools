@@ -10,21 +10,25 @@ use Jield\ApiTools\Enum\RouteTypeEnum;
 use Laminas\Router\Http\Literal;
 use Laminas\Router\Http\Segment;
 use Laminas\ServiceManager\AbstractFactory\ConfigAbstractFactory;
+use Webmozart\Assert\Assert;
 
 final readonly class ListenerValueObject
 {
     public function __construct(
-        private string $listener,
-        private string $route,
-        private RouteTypeEnum $routeType = RouteTypeEnum::COLLECTION,
+        private string          $listener,
+        private string          $route,
+        private RouteTypeEnum   $routeType = RouteTypeEnum::COLLECTION,
         private RouteMethodEnum $routeMethod = RouteMethodEnum::GET,
-        private array $configAbstractFactories = [],
-        private array $entityCollectionWhiteList = [],
-        private int $pageSize = 25,
-        private array $inputFilterSpecification = [],
-        private ?string $routeAssertionClass = null,
-        private ?string $privilege = null,
-    ) {
+        private array           $configAbstractFactories = [],
+        private array           $entityCollectionWhiteList = [],
+        private int             $pageSize = 30,
+        private int             $maxPageSize = 9999,
+        private array           $inputFilterSpecification = [],
+        private ?string         $routeAssertionClass = null,
+        private ?string         $privilege = null,
+    )
+    {
+        Assert::false($this->pageSize > $this->maxPageSize, 'Page size cannot be greater than max page size');
     }
 
     public function toArray(): array
@@ -73,13 +77,14 @@ final readonly class ListenerValueObject
     {
         //Depending on the route type, we will have different configurations
         $config = match ($this->routeType) {
-            RouteTypeEnum::ENTITY => [
+            RouteTypeEnum::ENTITY     => [
                 'entity_http_methods' => [$this->routeMethod->value],
             ],
             RouteTypeEnum::COLLECTION => [
                 'collection_http_methods'    => [$this->routeMethod->value],
                 'page_size'                  => $this->pageSize,
                 'page_size_param'            => 'page_size',
+                'max_page_size'              => $this->maxPageSize,
                 'collection_query_whitelist' => array_merge([
                     'filter',
                     'query',

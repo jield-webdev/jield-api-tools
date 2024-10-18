@@ -68,5 +68,5 @@ interface ResourceInterface extends EventManagerAwareInterface
     /**
      * Fetch a collection of records
      */
-    public function fetchAll(): Paginator;
+    public function fetchAll(): array|Paginator;
 }

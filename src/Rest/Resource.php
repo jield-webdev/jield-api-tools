@@ -30,7 +30,7 @@ use function sprintf;
 /**
  * Base resource class
  *
- * Essentially, simply marshalls arguments and triggers events; it is useless
+ * Essentially, simply marshals arguments and triggers events; it is useless
  * without listeners to do the actual work.
  */
 class Resource implements ResourceInterface

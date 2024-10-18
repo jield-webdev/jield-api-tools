@@ -12,7 +12,8 @@ abstract class AbstractRoutedListener extends AbstractResourceListener
 
     protected static ?string $privilege = null;
 
-    protected static int $pageSize = 25;
+    protected static int $pageSize    = 30;
+    protected static int $maxPageSize = 1000;
 
     protected static array $entityCollectionWhitelist = [];
 
@@ -30,6 +31,12 @@ abstract class AbstractRoutedListener extends AbstractResourceListener
     {
         return static::$pageSize;
     }
+
+    public static function getMaxPageSize(): int
+    {
+        return static::$maxPageSize;
+    }
+
 
     public static function getInputFilterSpecification(): array
     {
