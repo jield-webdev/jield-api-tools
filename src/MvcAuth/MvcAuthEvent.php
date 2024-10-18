@@ -11,41 +11,32 @@ use Laminas\Mvc\MvcEvent;
 
 class MvcAuthEvent extends Event
 {
-    public const string EVENT_AUTHENTICATION      = 'authentication';
+    public const string EVENT_AUTHENTICATION = 'authentication';
 
     public const string EVENT_AUTHENTICATION_POST = 'authentication.post';
 
-    public const string EVENT_AUTHORIZATION       = 'authorization';
+    public const string EVENT_AUTHORIZATION = 'authorization';
 
-    public const string EVENT_AUTHORIZATION_POST  = 'authorization.post';
+    public const string EVENT_AUTHORIZATION_POST = 'authorization.post';
 
-    /** @var MvcEvent */
-    protected MvcEvent $mvcEvent;
-
-    /** @var Result */
-    protected Result $authenticationResult;
+    protected ?Result $authenticationResult = null;
 
     /**
      * Whether or not authorization has completed/succeeded
-     *
-     * @var bool
      */
     protected bool $authorized = false;
 
     /**
      * The resource used for authorization queries
-     *
-     * @var mixed
      */
     protected mixed $resource;
 
     /**
-     * @param mixed    $authentication
-     * @param mixed    $authorization
+     * @param mixed $authentication
+     * @param mixed $authorization
      */
-    public function __construct(MvcEvent $mvcEvent, protected $authentication, protected $authorization)
+    public function __construct(protected MvcEvent $mvcEvent, protected $authentication, protected $authorization)
     {
-        $this->mvcEvent       = $mvcEvent;
     }
 
     /**
@@ -139,7 +130,7 @@ class MvcAuthEvent extends Event
      */
     public function setIsAuthorized(bool $flag): static
     {
-        $this->authorized = (bool) $flag;
+        $this->authorized = (bool)$flag;
         return $this;
     }
 }

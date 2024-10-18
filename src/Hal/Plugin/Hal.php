@@ -693,7 +693,7 @@ class Hal extends AbstractHelper implements
             );
         }
 
-        if (is_array($collection)) {
+        if (!$collection instanceof Collection) {
             $collection = new Collection(collection: $collection);
         }
 
@@ -730,10 +730,6 @@ class Hal extends AbstractHelper implements
      *
      * Removes the key from the parent representation, and creates a
      * representation for the key in the _embedded object.
-     *
-     * @param string $key
-     * @param int $depth depth of the current rendering recursion
-     * @param int|null $maxDepth maximum rendering depth for the current metadata
      */
     protected function extractEmbeddedEntity(array &$parent, string $key, Entity $entity, int $depth = 0, ?int $maxDepth = null): void
     {

@@ -26,7 +26,7 @@ class Collection implements Link\LinkCollectionAwareInterface
     protected Paginator|iterable $collection;
 
     /**
-     * Name of collection (used to identify it in the "_embedded" object)
+     * Name of a collection (used to identify it in the "_embedded" object)
      */
     protected string $collectionName = 'items';
 

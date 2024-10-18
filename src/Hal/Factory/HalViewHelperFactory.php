@@ -14,24 +14,15 @@ use Jield\ApiTools\Hal\RendererOptions;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Hydrator\HydratorInterface;
 use Laminas\Hydrator\HydratorPluginManager;
-use Laminas\ServiceManager\AbstractPluginManager;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use Psr\Container\ContainerInterface;
 use Webmozart\Assert\Assert;
 use function sprintf;
 
 class HalViewHelperFactory
 {
-    /**
-     * @param ContainerInterface|ServiceLocatorInterface $container
-     * @return Plugin\Hal
-     */
     public function __invoke(ContainerInterface $container): Plugin\Hal
     {
-        $container = $container instanceof AbstractPluginManager
-            ? $container->getServiceLocator()
-            : $container;
-
+        /** @var RendererOptions $rendererOptions */
         $rendererOptions = $container->get(RendererOptions::class);
         Assert::isInstanceOf(value: $rendererOptions, class: RendererOptions::class);
         $metadataMap = $container->get(MetadataMap::class);
@@ -58,7 +49,7 @@ class HalViewHelperFactory
         $helper->setLinkCollectionExtractor(extractor: $linkCollectionExtractor);
 
         $defaultHydrator = $rendererOptions->getDefaultHydrator();
-        if ($defaultHydrator !== '' && $defaultHydrator !== '0') {
+        if (null !== $defaultHydrator) {
             if (!$hydrators->has($defaultHydrator)) {
                 throw new Exception\DomainException(message: sprintf(
                     'Cannot locate default hydrator by name "%s" via the HydratorManager',

@@ -107,12 +107,8 @@ class AcceptListener
      *
      * Try and determine the view model selection criteria based on the configuration
      * for the current controller service name, using a fallback if it exists.
-     *
-     * @param array|null $fallbackConfig
-     * @param string $controllerName
-     * @return null|array
      */
-    protected function getSelectorCriteria(?array $fallbackConfig, string $controllerName): ?array
+    protected function getSelectorCriteria(string $fallbackConfig, string $controllerName): ?array
     {
         if ($this->controllerConfig === []) {
             return $this->getCriteria(criteria: $fallbackConfig);

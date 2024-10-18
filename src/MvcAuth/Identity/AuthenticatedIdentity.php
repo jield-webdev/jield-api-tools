@@ -9,29 +9,23 @@ use Override;
 
 class AuthenticatedIdentity extends Role implements IdentityInterface
 {
-    /** @param mixed $identity */
-    public function __construct(protected $identity)
+    public function __construct(protected array $identity)
     {
+        parent::__construct((string)$identity['id']);
     }
 
-    /** @return null|string */
-    public function getRoleId(): ?string
+    public function getRoleId(): null|int|string
     {
         return $this->name;
     }
 
-    /** @return mixed */
     #[Override]
     public function getAuthenticationIdentity(): mixed
     {
         return $this->identity;
     }
 
-    /**
-     * @param string $name
-     * @return void
-     */
-    public function setName(string $name): void
+    public function setName(string|int $name): void
     {
         $this->name = $name;
     }

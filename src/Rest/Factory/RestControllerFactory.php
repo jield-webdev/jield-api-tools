@@ -20,10 +20,8 @@ use function array_keys;
 use function array_merge;
 use function array_unique;
 use function class_exists;
-use function gettype;
 use function in_array;
 use function is_array;
-use function is_object;
 use function is_string;
 use function method_exists;
 use function sprintf;
@@ -133,7 +131,7 @@ class RestControllerFactory implements AbstractFactoryInterface
         $listener->attach(events: $events);
 
         $resource = new Resource();
-        $resource->setEventManager(eventManager: $events);
+        $resource->setEventManager($events);
 
         $identifier = $requestedName;
         if (isset($config['identifier'])) {
@@ -150,7 +148,7 @@ class RestControllerFactory implements AbstractFactoryInterface
             ));
         }
 
-        $controller->setEventManager(eventManager: $container->get('EventManager'));
+        $controller->setEventManager(events: $container->get('EventManager'));
         $controller->setResource(resource: $resource);
         $this->setControllerOptions(config: $config, controller: $controller);
 
