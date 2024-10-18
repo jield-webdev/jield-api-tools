@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal\Metadata;
 
 use Jield\ApiTools\Hal\Exception;
-use Laminas\Filter\Exception\ExceptionInterface;
 use Laminas\Filter\FilterChain;
 use Laminas\Hydrator\ExtractionInterface;
 use Laminas\Hydrator\HydratorPluginManager;
@@ -132,14 +131,8 @@ class Metadata
      * underscores.
      *
      * If the class does not exist, raises an exception.
-     *
-     * @param string $class
-     * @param array<string,string> $options
-     * @param HydratorPluginManager|HydratorPluginManagerInterface|null $hydrators
-     * @throws Exception\InvalidArgumentException
-     * @throws ExceptionInterface
      */
-    public function __construct(string $class, array $options = [], HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
+    public function __construct(string $class, array $options = [], ?HydratorPluginManagerInterface $hydrators = null)
     {
         $filter = new FilterChain();
         $filter->attachByName(name: 'WordUnderscoreToCamelCase')

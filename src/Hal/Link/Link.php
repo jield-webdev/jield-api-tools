@@ -161,14 +161,8 @@ class Link implements LinkInterface
      * Set the route to use when generating the relation URI
      *
      * If any params or options are passed, those will be passed to route assembly.
-     *
-     * @param string $route
-     * @param Traversable|array|null $params
-     * @param Traversable|array|null $options
-     * @return self
-     * @throws DomainException
      */
-    public function setRoute(string $route, Traversable|array $params = null, Traversable|array $options = null): static
+    public function setRoute(string $route, ?iterable $params = null, ?iterable $options = null): static
     {
         if ($this->hasUrl()) {
             throw new DomainException(message: sprintf(

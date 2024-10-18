@@ -11,20 +11,16 @@ use Laminas\Paginator\Paginator;
 use Laminas\Stdlib\ArrayUtils;
 use Override;
 use Traversable;
-
 use function count;
 use function is_array;
 
 class PaginationInjector implements PaginationInjectorInterface
 {
-    /**
-     * @inheritDoc
-     */
     #[Override]
     public function injectPaginationLinks(Collection $halCollection): bool|ApiProblem
     {
         $collection = $halCollection->getCollection();
-        if (! $collection instanceof Paginator) {
+        if (!$collection instanceof Paginator) {
             return false;
         }
 
@@ -113,7 +109,7 @@ class PaginationInjector implements PaginationInjectorInterface
      * @param string $relation
      * @param int|null $page
      */
-    private function createPaginationLink(string $relation, Collection $halCollection, int $page = null): Link
+    private function createPaginationLink(string $relation, Collection $halCollection, int $page = 1): Link
     {
         $options = ArrayUtils::merge(
             a: $halCollection->getCollectionRouteOptions(),

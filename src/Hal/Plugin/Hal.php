@@ -572,7 +572,7 @@ class Hal extends AbstractHelper implements
      * @param int|null $maxDepth maximum rendering depth for the current metadata
      * @throws Exception\CircularReferenceException
      */
-    public function renderEntity(Entity $halEntity, bool $renderEntity = true, int $depth = 0, int $maxDepth = null): array
+    public function renderEntity(Entity $halEntity, bool $renderEntity = true, int $depth = 0, ?int $maxDepth = null): array
     {
         $this->getEventManager()->trigger(eventName: __FUNCTION__, target: $this, argv: ['entity' => $halEntity]);
         $entity      = $halEntity->getEntity();
@@ -664,64 +664,7 @@ class Hal extends AbstractHelper implements
     }
 
     /**
-     * Create a fully qualified URI for a link
-     *
-     * Triggers the "createLink" event with the route, id, entity, and a set of
-     * params that will be passed to the route; listeners can alter any of the
-     * arguments, which will then be used by the method to generate the url.
-     *
-     * @param string $route
-     * @param false|int|string|null $id
-     * @param mixed|null $entity
-     * @return string
-     * @todo   Remove 'resource' from the event parameters prior to 1.0.0.
-     */
-    public function createLink(string $route, false|int|string $id = null, mixed $entity = null): string
-    {
-        $params             = new ArrayObject();
-        $reUseMatchedParams = true;
-
-        if (false === $id) {
-            $reUseMatchedParams = false;
-        } elseif (null !== $id) {
-            $params['id'] = $id;
-        }
-
-        $events = $this->getEventManager();
-        /** @var ArrayObject<string, mixed> $eventParams */
-        $eventParams = $events->prepareArgs(args: [
-            'route'    => $route,
-            'id'       => $id,
-            'entity'   => $entity,
-            'resource' => $entity,
-            'params'   => $params,
-        ]);
-        $events->trigger(eventName: __FUNCTION__, target: $this, argv: $eventParams);
-
-        return $this->linkUrlBuilder->buildLinkUrl(
-            route: $route,
-            params: $params->getArrayCopy(),
-            options: [],
-            reUseMatchedParams: $reUseMatchedParams
-        );
-    }
-
-    /**
-     * Create a URL from a Link
-     *
-     */
-    public function fromLink(Link $linkDefinition): array
-    {
-        $this->getEventManager()->trigger(eventName: __FUNCTION__ . '.pre', target: $this, argv: ['linkDefinition' => $linkDefinition]);
-
-        $linkExtractor = $this->linkCollectionExtractor->getLinkExtractor();
-
-        return $linkExtractor->extract(link: $linkDefinition);
-    }
-
-    /**
      * Generate HAL links from a LinkCollection
-     *
      */
     public function fromLinkCollection(LinkCollection $collection): array
     {
@@ -730,7 +673,6 @@ class Hal extends AbstractHelper implements
 
     /**
      * Create HAL links "object" from an entity or collection
-     *
      */
     public function fromResource(LinkCollectionAwareInterface $resource): array
     {
@@ -767,9 +709,6 @@ class Hal extends AbstractHelper implements
 
     /**
      * Inject a "self" relational link based on the route and identifier
-     *
-     * @param string $route
-     * @param string $routeIdentifier
      */
     public function injectSelfLink(LinkCollectionAwareInterface $resource, string $route, string $routeIdentifier = 'id'): void
     {
