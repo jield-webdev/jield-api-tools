@@ -11,6 +11,7 @@ use Laminas\Authentication\AuthenticationServiceInterface;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
 
+use Override;
 use function array_shift;
 use function in_array;
 use function is_array;
@@ -18,18 +19,12 @@ use function is_string;
 
 class HttpAdapter extends AbstractAdapter
 {
-    /** @var AuthenticationServiceInterface */
-    private $authenticationService;
-
     /**
      * Authorization header token types this adapter can fulfill.
      *
      * @var array
      */
     protected $authorizationTokenTypes = ['basic', 'digest'];
-
-    /** @var HttpAuth */
-    private $httpAuth;
 
     /**
      * Base to use when prefixing "provides" strings
@@ -39,17 +34,14 @@ class HttpAdapter extends AbstractAdapter
     private $providesBase;
 
     /**
-     * @param null|string $providesBase
+     * @param string|null $providesBase
      */
     public function __construct(
-        HttpAuth $httpAuth,
-        AuthenticationServiceInterface $authenticationService,
-        $providesBase = null
+        private readonly HttpAuth $httpAuth,
+        private readonly AuthenticationServiceInterface $authenticationService,
+        string $providesBase = null
     ) {
-        $this->httpAuth              = $httpAuth;
-        $this->authenticationService = $authenticationService;
-
-        if (is_string($providesBase) && ! empty($providesBase)) {
+        if (is_string(value: $providesBase) && ($providesBase !== '' && $providesBase !== '0')) {
             $this->providesBase = $providesBase;
         }
     }
@@ -64,7 +56,8 @@ class HttpAdapter extends AbstractAdapter
      *
      * @return array Array of types this adapter can handle.
      */
-    public function provides()
+    #[Override]
+    public function provides(): array
     {
         $providesBase = $this->providesBase ? $this->providesBase . '-' : '';
         $provides     = [];
@@ -86,9 +79,10 @@ class HttpAdapter extends AbstractAdapter
      * @param string $type
      * @return bool
      */
-    public function matches($type)
+    #[Override]
+    public function matches(string $type): bool
     {
-        return $this->providesBase === $type || in_array($type, $this->provides(), true);
+        return $this->providesBase === $type || in_array(needle: $type, haystack: $this->provides(), strict: true);
     }
 
     /**
@@ -96,12 +90,12 @@ class HttpAdapter extends AbstractAdapter
      *
      * If invoked, issues a client challenge.
      *
-     * @return void
      */
-    public function preAuth(Request $request, Response $response)
+    #[Override]
+    public function preAuth(Request $request, Response $response): void
     {
-        $this->httpAuth->setRequest($request);
-        $this->httpAuth->setResponse($response);
+        $this->httpAuth->setRequest(request: $request);
+        $this->httpAuth->setResponse(response: $response);
         $this->httpAuth->challengeClient();
     }
 
@@ -111,18 +105,19 @@ class HttpAdapter extends AbstractAdapter
      * @return false|Identity\IdentityInterface False on failure, IdentityInterface
      *     otherwise
      */
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent)
+    #[Override]
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\GuestIdentity|false|Identity\IdentityInterface|Identity\AuthenticatedIdentity
     {
-        if (! $request->getHeader('Authorization', false)) {
+        if (! $request->getHeader(name: 'Authorization', default: false)) {
             // No credentials were present at all, so we just return a guest identity.
             return new Identity\GuestIdentity();
         }
 
-        $this->httpAuth->setRequest($request);
-        $this->httpAuth->setResponse($response);
+        $this->httpAuth->setRequest(request: $request);
+        $this->httpAuth->setResponse(response: $response);
 
         $result = $this->authenticationService->authenticate($this->httpAuth);
-        $mvcAuthEvent->setAuthenticationResult($result);
+        $mvcAuthEvent->setAuthenticationResult(result: $result);
 
         if (! $result->isValid()) {
             return false;
@@ -131,14 +126,15 @@ class HttpAdapter extends AbstractAdapter
         $resultIdentity = $result->getIdentity();
 
         // Pass fully discovered identity to AuthenticatedIdentity instance
-        $identity = new Identity\AuthenticatedIdentity($resultIdentity);
+        $identity = new Identity\AuthenticatedIdentity(identity: $resultIdentity);
 
         // But determine the name separately
         $name = $resultIdentity;
-        if (is_array($resultIdentity)) {
-            $name = $resultIdentity['username'] ?? (string) array_shift($resultIdentity);
+        if (is_array(value: $resultIdentity)) {
+            $name = $resultIdentity['username'] ?? (string) array_shift(array: $resultIdentity);
         }
-        $identity->setName($name);
+
+        $identity->setName(name: $name);
 
         return $identity;
     }

@@ -11,6 +11,7 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\Mvc\MvcEvent;
 
+use Override;
 use function array_key_exists;
 use function in_array;
 use function sprintf;
@@ -34,48 +35,49 @@ class HttpMethodOverrideListener extends AbstractListenerAggregate
      *
      * @param int                   $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_ROUTE, [$this, 'onRoute'], -40);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $this->onRoute(...), priority: -40);
     }
 
     /**
      * Checks for X-HTTP-Method-Override header and sets header inside request object.
      *
-     * @return void|ApiProblemResponse
      */
-    public function onRoute(MvcEvent $event)
+    public function onRoute(MvcEvent $event): ?ApiProblemResponse
     {
         $request = $event->getRequest();
 
         if (! $request instanceof HttpRequest) {
-            return;
+            return null;
         }
 
-        if (! $request->getHeaders()->has('X-HTTP-Method-Override')) {
-            return;
+        if (! $request->getHeaders()->has(name: 'X-HTTP-Method-Override')) {
+            return null;
         }
 
         $method = $request->getMethod();
 
-        if (! array_key_exists($method, $this->httpMethodOverride)) {
-            return new ApiProblemResponse(new ApiProblem(
-                400,
-                sprintf('Overriding %s method with X-HTTP-Method-Override header is not allowed', $method)
+        if (! array_key_exists(key: $method, array: $this->httpMethodOverride)) {
+            return new ApiProblemResponse(apiProblem: new ApiProblem(
+                status: 400,
+                detail: sprintf('Overriding %s method with X-HTTP-Method-Override header is not allowed', $method)
             ));
         }
 
-        $header         = $request->getHeader('X-HTTP-Method-Override');
+        $header         = $request->getHeader(name: 'X-HTTP-Method-Override');
         $overrideMethod = $header->getFieldValue();
         $allowedMethods = $this->httpMethodOverride[$method];
 
-        if (! in_array($overrideMethod, $allowedMethods)) {
-            return new ApiProblemResponse(new ApiProblem(
-                400,
-                sprintf('Illegal override method %s in X-HTTP-Method-Override header', $overrideMethod)
+        if (! in_array(needle: $overrideMethod, haystack: $allowedMethods)) {
+            return new ApiProblemResponse(apiProblem: new ApiProblem(
+                status: 400,
+                detail: sprintf('Illegal override method %s in X-HTTP-Method-Override header', $overrideMethod)
             ));
         }
 
-        $request->setMethod($overrideMethod);
+        $request->setMethod(method: $overrideMethod);
+        return null;
     }
 }

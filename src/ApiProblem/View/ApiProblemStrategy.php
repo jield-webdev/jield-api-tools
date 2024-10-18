@@ -8,6 +8,7 @@ use Jield\ApiTools\ApiProblem\ApiProblem;
 use Laminas\View\Strategy\JsonStrategy;
 use Laminas\View\ViewEvent;
 
+use Override;
 use function is_string;
 
 /**
@@ -29,15 +30,15 @@ class ApiProblemStrategy extends JsonStrategy
     /**
      * Detect if we should use the ApiProblemRenderer based on model type.
      *
-     * @return null|ApiProblemRenderer
      */
-    public function selectRenderer(ViewEvent $e)
+    #[Override]
+    public function selectRenderer(ViewEvent $e): ?ApiProblemRenderer
     {
         $model = $e->getModel();
 
         if (! $model instanceof ApiProblemModel) {
             // unrecognized model; do nothing
-            return;
+            return null;
         }
 
         // ApiProblemModel found
@@ -50,10 +51,11 @@ class ApiProblemStrategy extends JsonStrategy
      * Injects the response with the rendered content, and sets the content
      * type based on the detection that occurred during renderer selection.
      */
-    public function injectResponse(ViewEvent $e)
+    #[Override]
+    public function injectResponse(ViewEvent $e): void
     {
         $result = $e->getResult();
-        if (! is_string($result)) {
+        if (! is_string(value: $result)) {
             // We don't have a string, and thus, no JSON
             return;
         }
@@ -65,13 +67,14 @@ class ApiProblemStrategy extends JsonStrategy
         }
 
         $problem     = $model->getApiProblem();
-        $statusCode  = $this->getStatusCodeFromApiProblem($problem);
+        $statusCode  = $this->getStatusCodeFromApiProblem(problem: $problem);
         $contentType = ApiProblem::CONTENT_TYPE;
 
         // Populate response
         $response = $e->getResponse();
-        $response->setStatusCode($statusCode);
+        $response->setStatusCode(code: $statusCode);
         $response->setContent($result);
+
         $headers = $response->getHeaders();
         $headers->addHeaderLine('Content-Type', $contentType);
     }
@@ -81,9 +84,8 @@ class ApiProblemStrategy extends JsonStrategy
      *
      * Ensures that the status falls within the acceptable range (100 - 599).
      *
-     * @return int
      */
-    protected function getStatusCodeFromApiProblem(ApiProblem $problem)
+    protected function getStatusCodeFromApiProblem(ApiProblem $problem): int
     {
         $status = $problem->status;
 

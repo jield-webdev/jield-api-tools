@@ -7,6 +7,7 @@ namespace Jield\ApiTools\Rpc\Factory;
 use Jield\ApiTools\Rpc\RpcController;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 use function class_exists;
 use function explode;
@@ -31,9 +32,9 @@ class RpcControllerFactory implements AbstractFactoryInterface
      * Determine if we can create a service with name
      *
      * @param string $requestedName
-     * @return bool
      */
-    public function canCreate(ContainerInterface $container, $requestedName)
+    #[Override]
+    public function canCreate(ContainerInterface $container, $requestedName): bool
     {
         // Prevent circular lookup
         if ($requestedName === $this->lastRequestedControllerService) {
@@ -50,43 +51,37 @@ class RpcControllerFactory implements AbstractFactoryInterface
         }
 
         $config = $config['api-tools-rpc'][$requestedName];
-
-        if (!isset($config['callable'])) {
-            return false;
-        }
-
-        return true;
+        return isset($config['callable']);
     }
 
     /**
      * Create and return an RpcController instance.
      *
      * @param string $requestedName
-     * @param null|array $options
-     * @return RpcController
      * @throws ServiceNotCreatedException If the callable configuration value
      *     associated with the controller is not callable.
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): RpcController
     {
         $config   = $container->get('config');
         $callable = $config['api-tools-rpc'][$requestedName]['callable'];
 
-        if (!is_string($callable) && !is_callable($callable)) {
+        if (!is_string(value: $callable) && !is_callable(value: $callable)) {
             throw new ServiceNotCreatedException(
-                'Unable to create a controller from the configured api-tools-rpc callable'
+                message: 'Unable to create a controller from the configured api-tools-rpc callable'
             );
         }
 
         if (
-            is_string($callable)
-            && strpos($callable, '::') !== false
+            is_string(value: $callable)
+            && str_contains(haystack: $callable, needle: '::')
         ) {
-            $callable = $this->marshalCallable($callable, $container);
+            $callable = $this->marshalCallable(string: $callable, container: $container);
         }
 
         $controller = new RpcController();
-        $controller->setWrappedCallable($callable);
+        $controller->setWrappedCallable(wrappedCallable: $callable);
         return $controller;
     }
 
@@ -96,10 +91,10 @@ class RpcControllerFactory implements AbstractFactoryInterface
      * @param mixed $string String of the form class::method
      * @return callable
      */
-    private function marshalCallable($string, ContainerInterface $container)
+    private function marshalCallable(mixed $string, ContainerInterface $container): callable|array
     {
         $callable = false;
-        [$class, $method] = explode('::', $string, 2);
+        [$class, $method] = explode(separator: '::', string: (string) $string, limit: 2);
 
         if (
             $container->has('ControllerManager')
@@ -107,24 +102,24 @@ class RpcControllerFactory implements AbstractFactoryInterface
         ) {
             $this->lastRequestedControllerService = $class;
             $callable                             = $this->marshalCallableFromContainer(
-                $class,
-                $method,
-                $container->get('ControllerManager')
+                class: $class,
+                method: $method,
+                container: $container->get('ControllerManager')
             );
         }
 
         $this->lastRequestedControllerService = null;
 
         if (!$callable) {
-            $callable = $this->marshalCallableFromContainer($class, $method, $container);
+            $callable = $this->marshalCallableFromContainer(class: $class, method: $method, container: $container);
         }
 
         if ($callable) {
             return $callable;
         }
 
-        if (!class_exists($class)) {
-            throw new ServiceNotCreatedException(sprintf(
+        if (!class_exists(class: $class)) {
+            throw new ServiceNotCreatedException(message: sprintf(
                 'Cannot create callback %s as class %s does not exist',
                 $string,
                 $class
@@ -141,7 +136,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
      * @param string $method
      * @return false|callable
      */
-    private function marshalCallableFromContainer($class, $method, ContainerInterface $container)
+    private function marshalCallableFromContainer(string $class, string $method, ContainerInterface $container): callable|false|array
     {
         if (!$container->has($class)) {
             return false;

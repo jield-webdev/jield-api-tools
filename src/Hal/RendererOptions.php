@@ -24,7 +24,7 @@ class RendererOptions extends AbstractOptions
      * @param string $hydrator
      * @return void
      */
-    public function setDefaultHydrator($hydrator)
+    public function setDefaultHydrator(string $hydrator): void
     {
         $this->defaultHydrator = $hydrator;
     }
@@ -32,7 +32,7 @@ class RendererOptions extends AbstractOptions
     /**
      * @return string
      */
-    public function getDefaultHydrator()
+    public function getDefaultHydrator(): string
     {
         return $this->defaultHydrator;
     }
@@ -41,7 +41,7 @@ class RendererOptions extends AbstractOptions
      * @param bool $flag
      * @return void
      */
-    public function setRenderEmbeddedEntities($flag)
+    public function setRenderEmbeddedEntities(bool $flag): void
     {
         $this->renderEmbeddedEntities = (bool) $flag;
     }
@@ -49,7 +49,7 @@ class RendererOptions extends AbstractOptions
     /**
      * @return bool
      */
-    public function getRenderEmbeddedEntities()
+    public function getRenderEmbeddedEntities(): bool
     {
         return $this->renderEmbeddedEntities;
     }
@@ -58,7 +58,7 @@ class RendererOptions extends AbstractOptions
      * @param bool $flag
      * @return void
      */
-    public function setRenderEmbeddedCollections($flag)
+    public function setRenderEmbeddedCollections(bool $flag): void
     {
         $this->renderEmbeddedCollections = (bool) $flag;
     }
@@ -66,7 +66,7 @@ class RendererOptions extends AbstractOptions
     /**
      * @return bool
      */
-    public function getRenderEmbeddedCollections()
+    public function getRenderEmbeddedCollections(): bool
     {
         return $this->renderEmbeddedCollections;
     }
@@ -75,7 +75,7 @@ class RendererOptions extends AbstractOptions
      * @param array $hydrators
      * @return void
      */
-    public function setHydrators(array $hydrators)
+    public function setHydrators(array $hydrators): void
     {
         $this->hydrators = $hydrators;
     }
@@ -83,7 +83,7 @@ class RendererOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getHydrators()
+    public function getHydrators(): array
     {
         return $this->hydrators;
     }

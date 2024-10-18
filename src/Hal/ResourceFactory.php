@@ -38,25 +38,24 @@ class ResourceFactory
     /**
      * Create a entity and/or collection based on a metadata map
      *
-     * @param  Paginator<int, mixed>|Traversable|array<array-key, mixed> $object
-     * @param  bool $renderEmbeddedEntities
-     * @return Entity|Collection
+     * @param Traversable|array<array-key, mixed>|Paginator<int, mixed> $object
+     * @param bool $renderEmbeddedEntities
      * @throws Exception\RuntimeException
      */
-    public function createEntityFromMetadata($object, Metadata $metadata, $renderEmbeddedEntities = true)
+    public function createEntityFromMetadata(array|Traversable|Paginator $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
     {
         if ($metadata->isCollection()) {
-            return $this->createCollectionFromMetadata($object, $metadata);
+            return $this->createCollectionFromMetadata(object: $object, metadata: $metadata);
         }
 
         /** @psalm-var array<string,mixed> $data */
-        $data = $this->entityExtractor->extract($object);
+        $data = $this->entityExtractor->extract(object: $object);
 
         $entityIdentifierName = $metadata->getEntityIdentifierName();
         if ($entityIdentifierName && ! isset($data[$entityIdentifierName])) {
-            throw new Exception\RuntimeException(sprintf(
+            throw new Exception\RuntimeException(message: sprintf(
                 'Unable to determine entity identifier for object of type "%s"; no fields matching "%s"',
-                get_debug_type($object),
+                get_debug_type(value: $object),
                 $entityIdentifierName
             ));
         }
@@ -68,48 +67,47 @@ class ResourceFactory
             $object = [];
         }
 
-        $halEntity = new Entity($object, $id);
+        $halEntity = new Entity(entity: $object, id: $id);
 
         $links = $halEntity->getLinks();
-        $this->marshalMetadataLinks($metadata, $links);
+        $this->marshalMetadataLinks(metadata: $metadata, links: $links);
 
         $forceSelfLink = $metadata->getForceSelfLink();
-        if ($forceSelfLink && ! $links->has('self')) {
+        if ($forceSelfLink && ! $links->has(relation: 'self')) {
             $link = $this->marshalLinkFromMetadata(
-                $metadata,
-                $object,
-                $id,
-                $metadata->getRouteIdentifierName()
+                metadata: $metadata,
+                object: $object,
+                id: $id,
+                routeIdentifierName: $metadata->getRouteIdentifierName()
             );
-            $links->add($link);
+            $links->add(link: $link);
         }
 
         return $halEntity;
     }
 
     /**
-     * @param  array|Traversable|Paginator $object
-     * @return Collection
+     * @param Traversable|array|Paginator $object
      */
-    public function createCollectionFromMetadata($object, Metadata $metadata)
+    public function createCollectionFromMetadata(Traversable|array|Paginator $object, Metadata $metadata): Collection
     {
-        $halCollection = new Collection($object);
-        $halCollection->setCollectionName($metadata->getCollectionName());
-        $halCollection->setCollectionRoute($metadata->getRoute());
-        $halCollection->setEntityRoute($metadata->getEntityRoute());
-        $halCollection->setRouteIdentifierName($metadata->getRouteIdentifierName());
-        $halCollection->setEntityIdentifierName($metadata->getEntityIdentifierName());
+        $halCollection = new Collection(collection: $object);
+        $halCollection->setCollectionName(name: $metadata->getCollectionName());
+        $halCollection->setCollectionRoute(route: $metadata->getRoute());
+        $halCollection->setEntityRoute(route: $metadata->getEntityRoute());
+        $halCollection->setRouteIdentifierName(identifier: $metadata->getRouteIdentifierName());
+        $halCollection->setEntityIdentifierName(identifier: $metadata->getEntityIdentifierName());
 
         $links = $halCollection->getLinks();
-        $this->marshalMetadataLinks($metadata, $links);
+        $this->marshalMetadataLinks(metadata: $metadata, links: $links);
 
         $forceSelfLink = $metadata->getForceSelfLink();
         if (
-            $forceSelfLink && ! $links->has('self')
+            $forceSelfLink && ! $links->has(relation: 'self')
             && ($metadata->hasUrl() || $metadata->hasRoute())
         ) {
-            $link = $this->marshalLinkFromMetadata($metadata, $object);
-            $links->add($link);
+            $link = $this->marshalLinkFromMetadata(metadata: $metadata, object: $object);
+            $links->add(link: $link);
         }
 
         return $halCollection;
@@ -118,30 +116,30 @@ class ResourceFactory
     /**
      * Creates a link object, given metadata and a resource
      *
-     * @param  Paginator<int, mixed>|iterable<array-key|mixed, mixed>|object $object
-     * @param  null|string $id
-     * @param  null|string $routeIdentifierName
-     * @param  string $relation
-     * @return Link
+     * @param object|iterable<array-key|mixed, mixed>|Paginator<int, mixed> $object
+     * @param string|null $id
+     * @param string|null $routeIdentifierName
+     * @param string $relation
      * @throws Exception\RuntimeException
      */
     public function marshalLinkFromMetadata(
-        Metadata $metadata,
-        $object,
-        $id = null,
-        $routeIdentifierName = null,
-        $relation = 'self'
-    ) {
-        $link = new Link($relation);
+        Metadata               $metadata,
+        array|object|Paginator $object,
+        string                 $id = null,
+        string                 $routeIdentifierName = null,
+        string                 $relation = 'self'
+    ): Link
+    {
+        $link = new Link(relation: $relation);
         if ($metadata->hasUrl()) {
-            $link->setUrl($metadata->getUrl());
+            $link->setUrl(href: $metadata->getUrl());
             return $link;
         }
 
         if (! $metadata->hasRoute()) {
-            throw new Exception\RuntimeException(sprintf(
+            throw new Exception\RuntimeException(message: sprintf(
                 'Unable to create a self link for resource of type "%s"; metadata does not contain a route or a href',
-                get_debug_type($object)
+                get_debug_type(value: $object)
             ));
         }
 
@@ -157,10 +155,10 @@ class ResourceFactory
             }
 
             // invoke callables with the object
-            if (is_callable($param)) {
+            if (is_callable(value: $param)) {
                 // @todo remove when minimum supported PHP version is bumped to 8.1 or greater
-                $callback = is_array($param) || (is_string($param) && str_contains($param, '::'))
-                    ? Closure::fromCallable($param)
+                $callback = is_array(value: $param) || (is_string(value: $param) && str_contains(haystack: $param, needle: '::'))
+                    ? Closure::fromCallable(callback: $param)
                     : $param;
                 /** @var mixed $value */
                 $value        = $callback($object);
@@ -172,20 +170,19 @@ class ResourceFactory
             $params = array_merge($params, [$routeIdentifierName => $id]);
         }
 
-        $link->setRoute($metadata->getRoute(), $params, $metadata->getRouteOptions());
+        $link->setRoute(route: $metadata->getRoute(), params: $params, options: $metadata->getRouteOptions());
         return $link;
     }
 
     /**
      * Inject any links found in the metadata into the resource's link collection
      *
-     * @return void
      */
-    public function marshalMetadataLinks(Metadata $metadata, LinkCollection $links)
+    public function marshalMetadataLinks(Metadata $metadata, LinkCollection $links): void
     {
         foreach ($metadata->getLinks() as $linkData) {
-            $link = Link::factory($linkData);
-            $links->add($link);
+            $link = Link::factory(spec: $linkData);
+            $links->add(link: $link);
         }
     }
 }

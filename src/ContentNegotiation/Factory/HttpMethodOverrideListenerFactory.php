@@ -10,13 +10,10 @@ use Jield\ApiTools\ContentNegotiation\HttpMethodOverrideListener;
 
 class HttpMethodOverrideListenerFactory
 {
-    /**
-     * @return HttpMethodOverrideListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): HttpMethodOverrideListener
     {
         $options             = $container->get(ContentNegotiationOptions::class);
         $httpOverrideMethods = $options->getHttpOverrideMethods();
-        return new HttpMethodOverrideListener($httpOverrideMethods);
+        return new HttpMethodOverrideListener(httpMethodOverride: $httpOverrideMethods);
     }
 }

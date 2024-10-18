@@ -7,6 +7,7 @@ namespace Jield\ApiTools\MvcAuth\Factory;
 use Laminas\Authentication\Adapter\Http as HttpAuth;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -18,10 +19,9 @@ class DefaultAuthHttpAdapterFactory implements FactoryInterface
      * Create an object
      *
      * @param string     $requestedName
-     * @param null|array $options
-     * @return HttpAuth|false
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): false|HttpAuth
     {
         // If no configuration present, nothing to create
         if (! $container->has('config')) {
@@ -35,6 +35,6 @@ class DefaultAuthHttpAdapterFactory implements FactoryInterface
             return false;
         }
 
-        return HttpAdapterFactory::factory($config['api-tools-mvc-auth']['authentication']['http'], $container);
+        return HttpAdapterFactory::factory(config: $config['api-tools-mvc-auth']['authentication']['http'], container: $container);
     }
 }

@@ -13,17 +13,17 @@ class QueryParam extends AbstractPlugin
     /**
      * Grabs a param from route match by default.
      *
-     * @param  null|string $param
-     * @param  null|mixed $default
+     * @param string|null $param
+     * @param mixed|null $default
      * @return mixed
      */
-    public function __invoke($param = null, $default = null)
+    public function __invoke(string $param = null, mixed $default = null): mixed
     {
         $controller = $this->getController();
         if ($controller instanceof AbstractController) {
-            $parameterData = $controller->getEvent()->getParam('LaminasContentNegotiationParameterData');
+            $parameterData = $controller->getEvent()->getParam(name: 'LaminasContentNegotiationParameterData');
             if ($parameterData instanceof ParameterDataContainer) {
-                return $parameterData->getQueryParam($param, $default);
+                return $parameterData->getQueryParam(name: $param, default: $default);
             }
         }
 

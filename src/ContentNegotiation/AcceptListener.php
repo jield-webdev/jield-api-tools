@@ -26,45 +26,39 @@ class AcceptListener
     /** @var array */
     protected $selectorsConfig = [];
 
-    /**
-     * @param array $config
-     */
     public function __construct(AcceptableViewModelSelector $selector, array $config)
     {
         $this->selector = $selector;
 
         if (
             isset($config['controllers'])
-            && is_array($config['controllers'])
+            && is_array(value: $config['controllers'])
         ) {
             $this->controllerConfig = $config['controllers'];
         }
 
         if (
             isset($config['selectors'])
-            && is_array($config['selectors'])
+            && is_array(value: $config['selectors'])
         ) {
             $this->selectorsConfig = $config['selectors'];
         }
     }
 
-    /**
-     * @return null|ApiProblemResponse
-     */
-    public function __invoke(MvcEvent $e)
+    public function __invoke(MvcEvent $e): ?ApiProblemResponse
     {
         $request = $e->getRequest();
-        if (! method_exists($request, 'getHeaders')) {
+        if (! method_exists(object_or_class: $request, method: 'getHeaders')) {
             // Should only trigger on HTTP requests
-            return;
+            return null;
         }
 
         $result = $e->getResult();
-        if (! is_array($result) && ! $result instanceof ViewModel) {
+        if (! is_array(value: $result) && ! $result instanceof ViewModel) {
             // We will only attempt to re-cast ContentNegotiation\ViewModel
             // results or arrays to what the AcceptableViewModelSelector gives
             // us. Anything else, we cannot handle.
-            return;
+            return null;
         }
 
         $controller = $e->getTarget();
@@ -72,25 +66,26 @@ class AcceptListener
             // The AcceptableViewModelSelector needs a controller that is
             // event-aware in order to work; if it's not, we cannot do
             // anything more.
-            return;
+            return null;
         }
-        $selector = $this->selector;
-        $selector->setController($controller);
 
-        $criteria = $e->getParam('LaminasContentNegotiation');
+        $selector = $this->selector;
+        $selector->setController(controller: $controller);
+
+        $criteria = $e->getParam(name: 'LaminasContentNegotiation');
 
         // If the criteria from the LaminasContentNegotiation parameter is a string,
         // attempt to get it via a selector.
-        if (is_string($criteria)) {
-            $criteria = $this->getCriteria($criteria);
+        if (is_string(value: $criteria)) {
+            $criteria = $this->getCriteria(criteria: $criteria);
         }
 
         // If we have no criteria, derive it from configuration and/or any set fallbacks
         if (! $criteria) {
-            $fallbackConfig = $e->getParam('LaminasContentNegotiationFallback');
-            $controllerName = $e->getRouteMatch()->getParam('controller');
+            $fallbackConfig = $e->getParam(name: 'LaminasContentNegotiationFallback');
+            $controllerName = $e->getRouteMatch()->getParam(name: 'controller');
 
-            $criteria = $this->getSelectorCriteria($fallbackConfig, $controllerName);
+            $criteria = $this->getSelectorCriteria(fallbackConfig: $fallbackConfig, controllerName: $controllerName);
         }
 
         // Retrieve a view model based on the criteria
@@ -98,14 +93,16 @@ class AcceptListener
         if (! $criteria || empty($criteria)) {
             $useDefault = true;
         }
-        $viewModel = $selector($criteria, $useDefault);
+
+        $viewModel = $selector(matchAgainst: $criteria, returnDefault: $useDefault);
 
         if (! $viewModel instanceof ViewModelInterface) {
-            return new ApiProblemResponse(new ApiProblem(406, 'Unable to resolve Accept header to a representation'));
+            return new ApiProblemResponse(apiProblem: new ApiProblem(status: 406, detail: 'Unable to resolve Accept header to a representation'));
         }
 
         // Populate the view model with the result...
-        $this->populateViewModel($result, $viewModel, $e);
+        $this->populateViewModel(result: $result, viewModel: $viewModel, e: $e);
+        return null;
     }
 
     /**
@@ -114,14 +111,14 @@ class AcceptListener
      * Try and determine the view model selection criteria based on the configuration
      * for the current controller service name, using a fallback if it exists.
      *
-     * @param  null|array $fallbackConfig
-     * @param  string $controllerName
+     * @param array|null $fallbackConfig
+     * @param string $controllerName
      * @return null|array
      */
-    protected function getSelectorCriteria($fallbackConfig, $controllerName)
+    protected function getSelectorCriteria(?array $fallbackConfig, string $controllerName): ?array
     {
-        if (empty($this->controllerConfig)) {
-            return $this->getCriteria($fallbackConfig);
+        if ($this->controllerConfig === []) {
+            return $this->getCriteria(criteria: $fallbackConfig);
         }
 
         // get the controllers from the content-neg configuration
@@ -129,13 +126,13 @@ class AcceptListener
 
         // if there is no config for this controller, move on
         if (! $controllerName || ! isset($controllers[$controllerName])) {
-            return $this->getCriteria($fallbackConfig);
+            return $this->getCriteria(criteria: $fallbackConfig);
         }
 
         // Retrieve the criteria; if none found, or invalid, use the fallback.
         $criteria = $controllers[$controllerName];
 
-        return $this->getCriteria($criteria) ?: $this->getCriteria($fallbackConfig);
+        return $this->getCriteria(criteria: $criteria) ?: $this->getCriteria(criteria: $fallbackConfig);
     }
 
     /**
@@ -147,34 +144,33 @@ class AcceptListener
      * If the result is an array, we pass those values as the view model variables.
      *
      * @param array|ViewModel $result
-     * @return void
      */
-    protected function populateViewModel($result, ViewModelInterface $viewModel, MvcEvent $e)
+    protected function populateViewModel(ViewModel|array $result, ViewModelInterface $viewModel, MvcEvent $e): void
     {
         if ($result instanceof ViewModel) {
             // "Re-cast" content-negotiation view models to the view model type
             // selected by the AcceptableViewModelSelector
 
-            $viewModel->setVariables($result->getVariables());
-            $viewModel->setTemplate($result->getTemplate());
-            $viewModel->setOptions($result->getOptions());
-            $viewModel->setCaptureTo($result->captureTo());
+            $viewModel->setVariables(variables: $result->getVariables());
+            $viewModel->setTemplate(template: $result->getTemplate());
+            $viewModel->setOptions(options: $result->getOptions());
+            $viewModel->setCaptureTo(capture: $result->captureTo());
             $viewModel->setTerminal($result->terminate());
-            $viewModel->setAppend($result->isAppend());
+            $viewModel->setAppend(append: $result->isAppend());
             if ($result->hasChildren()) {
                 foreach ($result->getChildren() as $child) {
-                    $viewModel->addChild($child);
+                    $viewModel->addChild(child: $child);
                 }
             }
 
-            $e->setResult($viewModel);
+            $e->setResult(result: $viewModel);
             return;
         }
 
         // At this point, the result is an array; use it to populate the view
         // model variables
-        $viewModel->setVariables($result);
-        $e->setResult($viewModel);
+        $viewModel->setVariables(variables: $result);
+        $e->setResult(result: $viewModel);
     }
 
     /**
@@ -187,22 +183,23 @@ class AcceptListener
      *
      * Otherwise, return nothing.
      *
-     * @param  string|array $criteria
+     * @param array|string $criteria
      * @return array|null
      */
-    protected function getCriteria($criteria)
+    protected function getCriteria(array|string $criteria): ?array
     {
         // if it's an array, that means we have direct configuration
-        if (is_array($criteria)) {
+        if (is_array(value: $criteria)) {
             return $criteria;
         }
 
         // if it's a string, we should try to resolve that key to a reusable selector set
-        if (is_string($criteria) && isset($this->selectorsConfig[$criteria])) {
+        if (is_string(value: $criteria) && isset($this->selectorsConfig[$criteria])) {
             $criteria = $this->selectorsConfig[$criteria];
             if (! empty($criteria)) {
                 return $criteria;
             }
         }
+        return null;
     }
 }

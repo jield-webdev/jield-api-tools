@@ -7,6 +7,7 @@ namespace Jield\ApiTools\ContentNegotiation;
 use Laminas\Stdlib\AbstractOptions;
 use Laminas\Stdlib\Exception\BadMethodCallException;
 
+use Override;
 use function array_merge_recursive;
 use function str_replace;
 
@@ -45,10 +46,11 @@ class ContentNegotiationOptions extends AbstractOptions
      *
      * @see self::normalizeOptions
      */
-    public function setFromArray($options)
+    #[Override]
+    public function setFromArray($options): AbstractOptions|ContentNegotiationOptions
     {
         return parent::setFromArray(
-            $this->normalizeOptions($options)
+            options: $this->normalizeOptions(config: $options)
         );
     }
 
@@ -61,12 +63,12 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param array $config
      * @return array
      */
-    private function normalizeOptions(array $config)
+    private function normalizeOptions(array $config): array
     {
         $mergedConfig = $config;
 
         foreach ($this->keysToNormalize as $key) {
-            $normalizedKey = $this->normalizeKey($key);
+            $normalizedKey = $this->normalizeKey(key: $key);
 
             if (isset($config[$key]) && isset($config[$normalizedKey])) {
                 $mergedConfig[$normalizedKey] = array_merge_recursive(
@@ -93,15 +95,15 @@ class ContentNegotiationOptions extends AbstractOptions
     }
 
     /**
-     * @deprecated since 1.4.0; hhould be removed in next major version, and only one
-     *     configuration key style should be supported.
-     *
      * @param string $key
      * @return string
+     *@deprecated since 1.4.0; hhould be removed in next major version, and only one
+     *     configuration key style should be supported.
+     *
      */
-    private function normalizeKey($key)
+    private function normalizeKey(string $key): string
     {
-        return str_replace('-', '_', $key);
+        return str_replace(search: '-', replace: '_', subject: $key);
     }
 
     /**
@@ -118,9 +120,10 @@ class ContentNegotiationOptions extends AbstractOptions
      * @throws BadMethodCallException
      * @return void
      */
+    #[Override]
     public function __set($key, $value)
     {
-        parent::__set($this->normalizeKey($key), $value);
+        parent::__set(key: $this->normalizeKey(key: $key), value: $value);
     }
 
     /**
@@ -136,16 +139,17 @@ class ContentNegotiationOptions extends AbstractOptions
      * @throws BadMethodCallException
      * @return mixed
      */
+    #[Override]
     public function __get($key)
     {
-        return parent::__get($this->normalizeKey($key));
+        return parent::__get(key: $this->normalizeKey(key: $key));
     }
 
     /**
      * @param array $controllers
      * @return void
      */
-    public function setControllers(array $controllers)
+    public function setControllers(array $controllers): void
     {
         $this->controllers = $controllers;
     }
@@ -153,7 +157,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getControllers()
+    public function getControllers(): array
     {
         return $this->controllers;
     }
@@ -162,7 +166,7 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param array $selectors
      * @return void
      */
-    public function setSelectors(array $selectors)
+    public function setSelectors(array $selectors): void
     {
         $this->selectors = $selectors;
     }
@@ -170,7 +174,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getSelectors()
+    public function getSelectors(): array
     {
         return $this->selectors;
     }
@@ -179,7 +183,7 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param array $whitelist
      * @return void
      */
-    public function setAcceptWhitelist(array $whitelist)
+    public function setAcceptWhitelist(array $whitelist): void
     {
         $this->acceptWhitelist = $whitelist;
     }
@@ -187,7 +191,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getAcceptWhitelist()
+    public function getAcceptWhitelist(): array
     {
         return $this->acceptWhitelist;
     }
@@ -196,7 +200,7 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param array $whitelist
      * @return void
      */
-    public function setContentTypeWhitelist(array $whitelist)
+    public function setContentTypeWhitelist(array $whitelist): void
     {
         $this->contentTypeWhitelist = $whitelist;
     }
@@ -204,7 +208,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getContentTypeWhitelist()
+    public function getContentTypeWhitelist(): array
     {
         return $this->contentTypeWhitelist;
     }
@@ -213,7 +217,7 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param boolean $xHttpMethodOverrideEnabled
      * @return void
      */
-    public function setXHttpMethodOverrideEnabled($xHttpMethodOverrideEnabled)
+    public function setXHttpMethodOverrideEnabled(bool $xHttpMethodOverrideEnabled): void
     {
         $this->xHttpMethodOverrideEnabled = $xHttpMethodOverrideEnabled;
     }
@@ -221,7 +225,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return boolean
      */
-    public function getXHttpMethodOverrideEnabled()
+    public function getXHttpMethodOverrideEnabled(): bool
     {
         return $this->xHttpMethodOverrideEnabled;
     }
@@ -230,7 +234,7 @@ class ContentNegotiationOptions extends AbstractOptions
      * @param array $httpOverrideMethods
      * @return void
      */
-    public function setHttpOverrideMethods(array $httpOverrideMethods)
+    public function setHttpOverrideMethods(array $httpOverrideMethods): void
     {
         $this->httpOverrideMethods = $httpOverrideMethods;
     }
@@ -238,7 +242,7 @@ class ContentNegotiationOptions extends AbstractOptions
     /**
      * @return array
      */
-    public function getHttpOverrideMethods()
+    public function getHttpOverrideMethods(): array
     {
         return $this->httpOverrideMethods;
     }

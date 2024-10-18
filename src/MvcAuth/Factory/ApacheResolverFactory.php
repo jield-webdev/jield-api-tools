@@ -6,6 +6,7 @@ namespace Jield\ApiTools\MvcAuth\Factory;
 
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 class ApacheResolverFactory implements FactoryInterface
@@ -16,10 +17,9 @@ class ApacheResolverFactory implements FactoryInterface
      * If appropriate configuration is not found, returns boolean false.
      *
      * @param string $requestedName
-     * @param null|array $options
-     * @return false|ApacheResolver
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): false|ApacheResolver
     {
         if (false === $container->has('config')) {
             return false;
@@ -41,10 +41,9 @@ class ApacheResolverFactory implements FactoryInterface
      *
      * Exists for backwards compatibility only; proxies to __invoke().
      *
-     * @return false|ApacheResolver
      */
-    public function createService(ServiceLocatorInterface $container)
+    public function createService(ServiceLocatorInterface $container): false|ApacheResolver
     {
-        return $this($container, ApacheResolver::class);
+        return $this(container: $container, requestedName: ApacheResolver::class);
     }
 }

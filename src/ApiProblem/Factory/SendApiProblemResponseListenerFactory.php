@@ -10,10 +10,7 @@ use Laminas\Http\Response as HttpResponse;
 
 class SendApiProblemResponseListenerFactory
 {
-    /**
-     * @return SendApiProblemResponseListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): SendApiProblemResponseListener
     {
         $config            = $container->get('config');
         $displayExceptions = isset($config['view_manager'])
@@ -21,12 +18,12 @@ class SendApiProblemResponseListenerFactory
             && $config['view_manager']['display_exceptions'];
 
         $listener = new SendApiProblemResponseListener();
-        $listener->setDisplayExceptions($displayExceptions);
+        $listener->setDisplayExceptions(flag: $displayExceptions);
 
         if ($container->has('Response')) {
             $response = $container->get('Response');
             if ($response instanceof HttpResponse) {
-                $listener->setApplicationResponse($response);
+                $listener->setApplicationResponse(response: $response);
             }
         }
 

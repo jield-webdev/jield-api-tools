@@ -24,27 +24,25 @@ final class AuthenticationHttpAdapterFactory
      * and the registered AuthenticationService.
      *
      * @param string $type The base "type" the adapter will provide
-     * @param array $config
-     * @return HttpAdapter
      */
-    public static function factory($type, array $config, ContainerInterface $container)
+    public static function factory(string $type, array $config, ContainerInterface $container): HttpAdapter
     {
         if (! $container->has('authentication')) {
             throw new ServiceNotCreatedException(
-                'Cannot create HTTP authentication adapter; missing AuthenticationService'
+                message: 'Cannot create HTTP authentication adapter; missing AuthenticationService'
             );
         }
 
-        if (! isset($config['options']) || ! is_array($config['options'])) {
+        if (! isset($config['options']) || ! is_array(value: $config['options'])) {
             throw new ServiceNotCreatedException(
-                'Cannot create HTTP authentication adapter; missing options'
+                message: 'Cannot create HTTP authentication adapter; missing options'
             );
         }
 
         return new HttpAdapter(
-            HttpAdapterFactory::factory($config['options'], $container),
-            $container->get('authentication'),
-            $type
+            httpAuth: HttpAdapterFactory::factory(config: $config['options'], container: $container),
+            authenticationService: $container->get('authentication'),
+            providesBase: $type
         );
     }
 }

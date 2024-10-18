@@ -16,8 +16,8 @@ class LinkCollectionExtractorFactory
      * @param ContainerInterface|ServiceLocatorInterface $container
      * @return LinkCollectionExtractor
      */
-    public function __invoke($container)
+    public function __invoke(ServiceLocatorInterface|ContainerInterface $container): LinkCollectionExtractor
     {
-        return new LinkCollectionExtractor($container->get(LinkExtractor::class));
+        return new LinkCollectionExtractor(linkExtractor: $container->get(LinkExtractor::class));
     }
 }

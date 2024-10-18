@@ -10,15 +10,12 @@ use Jield\ApiTools\ContentNegotiation\ContentNegotiationOptions;
 
 class AcceptFilterListenerFactory
 {
-    /**
-     * @return AcceptFilterListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): AcceptFilterListener
     {
         $listener = new AcceptFilterListener();
 
         $options = $container->get(ContentNegotiationOptions::class);
-        $listener->setConfig($options->getAcceptWhitelist());
+        $listener->setConfig(config: $options->getAcceptWhitelist());
 
         return $listener;
     }

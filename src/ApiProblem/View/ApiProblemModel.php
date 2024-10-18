@@ -21,14 +21,11 @@ class ApiProblemModel extends ViewModel
     public function __construct(?ApiProblem $problem = null)
     {
         if ($problem instanceof ApiProblem) {
-            $this->setApiProblem($problem);
+            $this->setApiProblem(problem: $problem);
         }
     }
 
-    /**
-     * @return ApiProblemModel
-     */
-    public function setApiProblem(ApiProblem $problem)
+    public function setApiProblem(ApiProblem $problem): static
     {
         $this->problem = $problem;
 
@@ -38,7 +35,7 @@ class ApiProblemModel extends ViewModel
     /**
      * @return ApiProblem
      */
-    public function getApiProblem()
+    public function getApiProblem(): ApiProblem
     {
         return $this->problem;
     }

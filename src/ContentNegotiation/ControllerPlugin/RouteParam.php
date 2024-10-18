@@ -13,27 +13,27 @@ use Laminas\Mvc\InjectApplicationEventInterface;
 class RouteParam extends AbstractPlugin
 {
     /**
-     * @param  null|string $param
-     * @param  null|mixed $default
+     * @param string|null $param
+     * @param mixed|null $default
      * @return mixed
      */
-    public function __invoke($param = null, $default = null)
+    public function __invoke(string $param = null, mixed $default = null): mixed
     {
         $controller = $this->getController();
 
         if (! $controller instanceof InjectApplicationEventInterface) {
             throw new RuntimeException(
-                'Controllers must implement Laminas\Mvc\InjectApplicationEventInterface to use this plugin.'
+                message: 'Controllers must implement Laminas\Mvc\InjectApplicationEventInterface to use this plugin.'
             );
         }
 
         if ($controller instanceof AbstractController) {
-            $parameterData = $controller->getEvent()->getParam('LaminasContentNegotiationParameterData');
+            $parameterData = $controller->getEvent()->getParam(name: 'LaminasContentNegotiationParameterData');
             if ($parameterData instanceof ParameterDataContainer) {
-                return $parameterData->getRouteParam($param, $default);
+                return $parameterData->getRouteParam(name: $param, default: $default);
             }
         }
 
-        return $controller->getEvent()->getRouteMatch()->getParam($param, $default);
+        return $controller->getEvent()->getRouteMatch()->getParam(name: $param, default: $default);
     }
 }

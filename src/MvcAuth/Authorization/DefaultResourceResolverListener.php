@@ -43,18 +43,18 @@ class DefaultResourceResolverListener
      *
      * Once created, it is injected into the $mvcAuthEvent.
      */
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): void
     {
         $mvcEvent   = $mvcAuthEvent->getMvcEvent();
         $request    = $mvcEvent->getRequest();
         $routeMatch = $mvcEvent->getRouteMatch();
 
-        $resource = $this->buildResourceString($routeMatch, $request);
+        $resource = $this->buildResourceString(routeMatch: $routeMatch, request: $request);
         if (! $resource) {
             return;
         }
 
-        $mvcAuthEvent->setResource($resource);
+        $mvcAuthEvent->setResource(resource: $resource);
     }
 
     /**
@@ -75,29 +75,29 @@ class DefaultResourceResolverListener
      * @param RequestInterface $request
      * @return false|string
      */
-    public function buildResourceString($routeMatch, $request)
+    public function buildResourceString(V2RouteMatch|RouteMatch $routeMatch, RequestInterface $request): false|string
     {
-        if (! ($routeMatch instanceof RouteMatch || $routeMatch instanceof V2RouteMatch)) {
-            throw new InvalidArgumentException(sprintf(
+        if (!$routeMatch instanceof RouteMatch && !$routeMatch instanceof V2RouteMatch) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expected either a %s or %s; received %s',
                 __METHOD__,
                 RouteMatch::class,
                 V2RouteMatch::class,
-                is_object($routeMatch) ? $routeMatch::class : gettype($routeMatch)
+                get_debug_type(value: $routeMatch)
             ));
         }
 
         // Considerations:
         // - We want the controller service name
-        $controller = $routeMatch->getParam('controller', false);
+        $controller = $routeMatch->getParam(name: 'controller', default: false);
         if (! $controller) {
             return false;
         }
 
         // - Is this an RPC or a REST call?
         //   - Basically, if it's not in the api-tools-rest configuration, we assume RPC
-        if (! array_key_exists($controller, $this->restControllers)) {
-            $action = $routeMatch->getParam('action', 'index');
+        if (! array_key_exists(key: $controller, array: $this->restControllers)) {
+            $action = $routeMatch->getParam(name: 'action', default: 'index');
             return sprintf('%s::%s', $controller, $action);
         }
 
@@ -105,10 +105,11 @@ class DefaultResourceResolverListener
         //     resource or a controller. The way to determine that is if we have
         //     an identifier. We find that info from the route parameters.
         $identifierName = $this->restControllers[$controller];
-        $id             = $this->getIdentifier($identifierName, $routeMatch, $request);
+        $id             = $this->getIdentifier(identifierName: $identifierName, routeMatch: $routeMatch, request: $request);
         if ($id !== false) {
             return sprintf('%s::entity', $controller);
         }
+
         return sprintf('%s::collection', $controller);
     }
 
@@ -123,9 +124,9 @@ class DefaultResourceResolverListener
      * @param RequestInterface $request
      * @return false|mixed
      */
-    protected function getIdentifier($identifierName, $routeMatch, $request)
+    protected function getIdentifier(string $identifierName, V2RouteMatch|RouteMatch $routeMatch, RequestInterface $request): mixed
     {
-        $id = $routeMatch->getParam($identifierName, false);
+        $id = $routeMatch->getParam(name: $identifierName, default: false);
         if ($id !== false) {
             return $id;
         }
@@ -134,6 +135,6 @@ class DefaultResourceResolverListener
             return false;
         }
 
-        return $request->getQuery($identifierName, false);
+        return $request->getQuery(name: $identifierName, default: false);
     }
 }

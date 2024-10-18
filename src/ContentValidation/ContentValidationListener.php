@@ -23,6 +23,7 @@ use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\Stdlib\ArrayUtils;
+use Override;
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -75,10 +76,6 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      */
     protected $restControllers;
 
-    /**
-     * @param array $config
-     * @param array $restControllers
-     */
     public function __construct(
         array                    $config = [],
         ?ServiceLocatorInterface $inputFilterManager = null,
@@ -89,9 +86,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         $this->inputFilterManager = $inputFilterManager;
         $this->restControllers    = $restControllers;
 
-        if (isset($config['methods_without_bodies']) && is_array($config['methods_without_bodies'])) {
+        if (isset($config['methods_without_bodies']) && is_array(value: $config['methods_without_bodies'])) {
             foreach ($config['methods_without_bodies'] as $method) {
-                $this->addMethodWithoutBody($method);
+                $this->addMethodWithoutBody(method: $method);
             }
         }
     }
@@ -102,11 +99,11 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * Sets the event manager identifiers to the current class, this class, and
      * the resource interface.
      *
-     * @return ContentValidationListener
      */
-    public function setEventManager(EventManagerInterface $events)
+    #[Override]
+    public function setEventManager(EventManagerInterface $events): static
     {
-        $events->addIdentifiers([
+        $events->addIdentifiers(identifiers: [
             static::class,
             self::class,
             self::EVENT_BEFORE_VALIDATE,
@@ -123,11 +120,13 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *
      * @return EventManagerInterface
      */
-    public function getEventManager()
+    #[Override]
+    public function getEventManager(): ?EventManagerInterface
     {
         if (null === $this->events) {
-            $this->setEventManager(new EventManager());
+            $this->setEventManager(events: new EventManager());
         }
+
         return $this->events;
     }
 
@@ -136,10 +135,11 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @see   ListenerAggregateInterface
      *
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
         // trigger after authentication/authorization and content negotiation
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_ROUTE, [$this, 'onRoute'], -650);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $this->onRoute(...), priority: -650);
     }
 
     /**
@@ -157,37 +157,38 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * - Invalid input filter service name
      * - Missing ParameterDataContainer (i.e., ContentNegotiation is not registered)
      *
-     * @return null|ApiProblemResponse
      */
-    public function onRoute(MvcEvent $e)
+    public function onRoute(MvcEvent $e): ?ApiProblemResponse
     {
         $request = $e->getRequest();
         if (!$request instanceof HttpRequest) {
-            return;
+            return null;
         }
 
         $routeMatches = $e->getRouteMatch();
-        if (!($routeMatches instanceof RouteMatch || $routeMatches instanceof V2RouteMatch)) {
-            return;
+        if (!$routeMatches instanceof RouteMatch && !$routeMatches instanceof V2RouteMatch) {
+            return null;
         }
 
-        $controllerService = $routeMatches->getParam('controller', false);
+        $controllerService = $routeMatches->getParam(name: 'controller', default: false);
         if (!$controllerService) {
-            return;
+            return null;
         }
 
         $method        = $request->getMethod();
-        $dataContainer = $e->getParam('LaminasContentNegotiationParameterData', false);
+        $dataContainer = $e->getParam(name: 'LaminasContentNegotiationParameterData', default: false);
         if (!$dataContainer instanceof ParameterDataContainer) {
             return new ApiProblemResponse(
-                new ApiProblem(
-                    500,
-                    'Laminas\\ApiTools\\ContentNegotiation module is not initialized; cannot validate request'
+                apiProblem: new ApiProblem(
+                    status: 500,
+                    detail: 'Laminas\\ApiTools\\ContentNegotiation module is not initialized; cannot validate request'
                 )
             );
         }
-
-        $data = $receivedData = in_array($method, $this->methodsWithoutBodies)
+        $data = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
+            ? $dataContainer->getQueryParams()
+            : $dataContainer->getBodyParams();
+        $receivedData = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
             ? $dataContainer->getQueryParams()
             : $dataContainer->getBodyParams();
 
@@ -195,70 +196,68 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
             $data = [];
         }
 
-        $isCollection = $this->isCollection($controllerService, $data, $routeMatches, $request);
+        $isCollection = $this->isCollection(serviceName: $controllerService, data: $data, matches: $routeMatches, request: $request);
 
-        $inputFilterService = $this->getInputFilterService($controllerService, $method, $isCollection);
+        $inputFilterService = $this->getInputFilterService(controllerService: $controllerService, method: $method, isCollection: $isCollection);
 
         if (!$inputFilterService) {
-            return;
+            return null;
         }
 
-        if (!$this->hasInputFilter($inputFilterService)) {
+        if (!$this->hasInputFilter(inputFilterService: $inputFilterService)) {
             return new ApiProblemResponse(
-                new ApiProblem(
-                    500,
-                    sprintf('Listed input filter "%s" does not exist; cannot validate request', $inputFilterService)
+                apiProblem: new ApiProblem(
+                    status: 500,
+                    detail: sprintf('Listed input filter "%s" does not exist; cannot validate request', $inputFilterService)
                 )
             );
         }
 
         $files = $request->getFiles();
-        if (!$isCollection && 0 < count($files)) {
+        if (!$isCollection && 0 < count(value: $files)) {
             // File uploads are not validated for collections; impossible to
             // match file fields to discrete sets
-            $data = ArrayUtils::merge($data, $files->toArray(), true);
+            $data = ArrayUtils::merge(a: $data, b: $files->toArray(), preserveNumericKeys: true);
         }
 
-        $inputFilter = $this->getInputFilter($inputFilterService);
+        $inputFilter = $this->getInputFilter(inputFilterService: $inputFilterService);
 
         if (
-            $isCollection && !in_array($method, $this->methodsWithoutBodies)
+            $isCollection && !in_array(needle: $method, haystack: $this->methodsWithoutBodies)
             && !$inputFilter instanceof CollectionInputFilter
         ) {
             $collectionInputFilter = new CollectionInputFilter();
-            $collectionInputFilter->setInputFilter($inputFilter);
+            $collectionInputFilter->setInputFilter(inputFilter: $inputFilter);
             $inputFilter = $collectionInputFilter;
         }
 
-        $e->setParam('Jield\ApiTools\ContentValidation\InputFilter', $inputFilter);
-        $e->setParam('Jield\ApiTools\ContentValidation\ParameterData', $data);
+        $e->setParam(name: 'Jield\ApiTools\ContentValidation\InputFilter', value: $inputFilter);
+        $e->setParam(name: 'Jield\ApiTools\ContentValidation\ParameterData', value: $data);
 
         $currentEventName = $e->getName();
-        $e->setName(self::EVENT_BEFORE_VALIDATE);
+        $e->setName(name: self::EVENT_BEFORE_VALIDATE);
 
         $events  = $this->getEventManager();
-        $results = $events->triggerEventUntil(function ($result) {
-            return $result instanceof ApiProblem
-                || $result instanceof ApiProblemResponse;
-        }, $e);
-        $e->setName($currentEventName);
+        $results = $events->triggerEventUntil(callback: fn($result) => $result instanceof ApiProblem
+            || $result instanceof ApiProblemResponse, event: $e);
+        $e->setName(name: $currentEventName);
 
         $last = $results->last();
 
         if ($last instanceof ApiProblem) {
-            $last = new ApiProblemResponse($last);
+            $last = new ApiProblemResponse(apiProblem: $last);
         }
 
         if ($last instanceof ApiProblemResponse) {
             return $last;
         }
 
-        $data = ArrayUtils::merge($data, $e->getParam('Jield\ApiTools\ContentValidation\ParameterData'), true);
+        $data = ArrayUtils::merge(a: $data, b: $e->getParam(name: 'Jield\ApiTools\ContentValidation\ParameterData'), preserveNumericKeys: true);
 
-        $inputFilter->setData($data);
+        $inputFilter->setData(data: $data);
 
         $status = $request->isPatch()
-            ? $this->validatePatch($inputFilter, $data, $isCollection)
+            ? $this->validatePatch(inputFilter: $inputFilter, data: $data, isCollection: $isCollection)
             : $inputFilter->isValid();
 
         if ($status instanceof ApiProblemResponse) {
@@ -268,7 +267,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         // Invalid? Return a 422 response.
         if (false === $status) {
             return new ApiProblemResponse(
-                new ApiProblem(422, 'Failed Validation', null, null, [
+                apiProblem: new ApiProblem(status: 422, detail: 'Failed Validation', type: null, title: null, additional: [
                     'validation_messages' => $inputFilter->getMessages(),
                 ])
             );
@@ -279,7 +278,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         //   that was the default experience starting in 1.0.
         // - If the flag is present AND is boolean true, that is also
         //   an indicator that the raw data should be present.
-        $useRawData = $this->useRawData($controllerService);
+        $useRawData = $this->useRawData(controllerService: $controllerService);
         if (!$useRawData) {
             $data = $inputFilter->getValues();
         }
@@ -289,9 +288,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         // - If `remove_empty_data` flag is present AND is boolean true, then remove
         //   empty data from current data array
         // - Does not remove empty data if keys matched received data
-        $removeEmptyData = $this->shouldRemoveEmptyData($controllerService);
+        $removeEmptyData = $this->shouldRemoveEmptyData(controllerService: $controllerService);
         if ($removeEmptyData) {
-            $data = $this->removeEmptyData($data, $receivedData);
+            $data = $this->removeEmptyData(data: $data, compareTo: $receivedData);
         }
 
         // If we don't have an instance of UnknownInputsCapableInterface, or no
@@ -301,38 +300,41 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
             !$inputFilter instanceof UnknownInputsCapableInterface
             || !$inputFilter->hasUnknown()
         ) {
-            $dataContainer->setBodyParams($data);
-            return;
+            $dataContainer->setBodyParams(bodyParams: $data);
+            return null;
         }
 
         $unknown = $inputFilter->getUnknown();
 
-        if ($this->allowsOnlyFieldsInFilter($controllerService)) {
+        if ($this->allowsOnlyFieldsInFilter(controllerService: $controllerService)) {
             if ($inputFilter instanceof CollectionInputFilter) {
                 $unknownFields = [];
                 foreach ($unknown as $key => $fields) {
-                    $unknownFields[] = '[' . $key . ': ' . implode(', ', array_keys($fields)) . ']';
+                    $unknownFields[] = '[' . $key . ': ' . implode(separator: ', ', array: array_keys(array: $fields)) . ']';
                 }
-                $fields = implode(', ', $unknownFields);
-            } else {
-                $fields = implode(', ', array_keys($unknown));
-            }
-            $detail  = sprintf('Unrecognized fields: %s', $fields);
-            $problem = new ApiProblem(Response::STATUS_CODE_422, $detail);
 
-            return new ApiProblemResponse($problem);
+                $fields = implode(separator: ', ', array: $unknownFields);
+            } else {
+                $fields = implode(separator: ', ', array: array_keys(array: $unknown));
+            }
+
+            $detail  = sprintf('Unrecognized fields: %s', $fields);
+            $problem = new ApiProblem(status: Response::STATUS_CODE_422, detail: $detail);
+
+            return new ApiProblemResponse(apiProblem: $problem);
         }
 
         // The raw data already contains unknown inputs, so no need to merge
         // them with the data.
         if ($useRawData) {
-            $dataContainer->setBodyParams($data);
-            return;
+            $dataContainer->setBodyParams(bodyParams: $data);
+            return null;
         }
 
         // When not using raw data, we merge the unknown data with the
         // validated data to get the full set of input.
-        $dataContainer->setBodyParams(array_merge($data, $unknown));
+        $dataContainer->setBodyParams(bodyParams: array_merge($data, $unknown));
+        return null;
     }
 
     /**
@@ -341,7 +343,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $method
      * @return void
      */
-    public function addMethodWithoutBody($method)
+    public function addMethodWithoutBody(string $method): void
     {
         $this->methodsWithoutBodies[] = $method;
     }
@@ -350,7 +352,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $controllerService
      * @return boolean
      */
-    protected function allowsOnlyFieldsInFilter($controllerService)
+    protected function allowsOnlyFieldsInFilter(string $controllerService): bool
     {
         if (isset($this->config[$controllerService]['allows_only_fields_in_filter'])) {
             return true === $this->config[$controllerService]['allows_only_fields_in_filter'];
@@ -363,31 +365,21 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $controllerService
      * @return bool
      */
-    protected function useRawData($controllerService)
+    protected function useRawData(string $controllerService): bool
     {
-        if (
-            !isset($this->config[$controllerService]['use_raw_data'])
-            || (isset($this->config[$controllerService]['use_raw_data'])
-                && $this->config[$controllerService]['use_raw_data'] === true)
-        ) {
-            return true;
-        }
-        return false;
+        return !isset($this->config[$controllerService]['use_raw_data'])
+        || (isset($this->config[$controllerService]['use_raw_data'])
+            && $this->config[$controllerService]['use_raw_data'] === true);
     }
 
     /**
      * @param string $controllerService
      * @return bool
      */
-    protected function shouldRemoveEmptyData($controllerService)
+    protected function shouldRemoveEmptyData(string $controllerService): bool
     {
-        if (
-            isset($this->config[$controllerService]['remove_empty_data'])
-            && $this->config[$controllerService]['remove_empty_data'] === true
-        ) {
-            return true;
-        }
-        return false;
+        return isset($this->config[$controllerService]['remove_empty_data'])
+        && $this->config[$controllerService]['remove_empty_data'] === true;
     }
 
     /**
@@ -396,58 +388,58 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *     keys/values in $data which are intentional
      * @return array
      */
-    protected function removeEmptyData(array $data, array $compareTo = [])
+    protected function removeEmptyData(array $data, array $compareTo = []): array
     {
         /**
          * Callback for array_filter() to remove null values (array_filter() removes 'false' values)
          *
          * @param mixed $value
-         * @param null|int|string $key
+         * @param int|string|null $key
          */
-        $removeNull = function ($value, $key = null) use ($compareTo): bool {
+        $removeNull = function (mixed $value, int|string $key = null) use ($compareTo): bool {
             // If comparison array is empty, do a straight comparison
-            if (empty($compareTo)) {
+            if ($compareTo === []) {
                 return null !== $value;
             }
 
             // If key exists in comparison array, the 'null' value is on purpose, leave as is
-            if (array_key_exists($key, $compareTo)) {
+            if (array_key_exists(key: $key, array: $compareTo)) {
                 return true;
             }
 
             return null !== $value;
         };
 
-        $data = array_filter($data, $removeNull, ARRAY_FILTER_USE_BOTH);
+        $data = array_filter(array: $data, callback: $removeNull, mode: ARRAY_FILTER_USE_BOTH);
 
-        if (empty($data)) {
+        if ($data === []) {
             return $data;
         }
 
         foreach ($data as $key => $value) {
             if (
-                !is_array($value)
-                && (!empty($value) || is_bool($value) && !in_array($key, $compareTo))
+                !is_array(value: $value)
+                && (!empty($value) || is_bool(value: $value) && !in_array(needle: $key, haystack: $compareTo))
             ) {
                 continue;
             }
 
-            if (!is_array($value)) {
+            if (!is_array(value: $value)) {
                 unset($data[$key]);
                 continue;
             }
 
-            if (empty(array_filter($value, $removeNull, ARRAY_FILTER_USE_BOTH))) {
+            if (array_filter(array: $value, callback: $removeNull, mode: ARRAY_FILTER_USE_BOTH) === []) {
                 unset($data[$key]);
                 continue;
             }
 
-            $tmpValue = array_key_exists($key, $compareTo) && is_array($compareTo[$key])
-                ? $this->removeEmptyData($value, $compareTo[$key])
-                : $this->removeEmptyData($value);
+            $tmpValue = array_key_exists(key: $key, array: $compareTo) && is_array(value: $compareTo[$key])
+                ? $this->removeEmptyData(data: $value, compareTo: $compareTo[$key])
+                : $this->removeEmptyData(data: $value);
 
             // Additional check to ensure it's not an empty recursive result
-            if (empty(array_filter($tmpValue, $removeNull, ARRAY_FILTER_USE_BOTH))) {
+            if (array_filter(array: $tmpValue, callback: $removeNull, mode: ARRAY_FILTER_USE_BOTH) === []) {
                 unset($data[$key]);
                 continue;
             }
@@ -471,7 +463,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param bool $isCollection
      * @return string|false
      */
-    protected function getInputFilterService($controllerService, $method, $isCollection)
+    protected function getInputFilterService(string $controllerService, string $method, bool $isCollection): false|string
     {
         if ($isCollection && isset($this->config[$controllerService][$method . '_COLLECTION'])) {
             return $this->config[$controllerService][$method . '_COLLECTION'];
@@ -481,15 +473,11 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
             return $this->config[$controllerService][$method];
         }
 
-        if ($method === 'DELETE' || in_array($method, $this->methodsWithoutBodies)) {
+        if ($method === 'DELETE' || in_array(needle: $method, haystack: $this->methodsWithoutBodies)) {
             return false;
         }
 
-        if (isset($this->config[$controllerService]['input_filter'])) {
-            return $this->config[$controllerService]['input_filter'];
-        }
-
-        return false;
+        return $this->config[$controllerService]['input_filter'] ?? false;
     }
 
     /**
@@ -498,9 +486,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $inputFilterService
      * @return bool
      */
-    protected function hasInputFilter($inputFilterService)
+    protected function hasInputFilter(string $inputFilterService): bool
     {
-        if (array_key_exists($inputFilterService, $this->inputFilters)) {
+        if (array_key_exists(key: $inputFilterService, array: $this->inputFilters)) {
             return true;
         }
 
@@ -526,7 +514,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $inputFilterService
      * @return InputFilterInterface
      */
-    protected function getInputFilter($inputFilterService)
+    protected function getInputFilter(string $inputFilterService): InputFilterInterface
     {
         return $this->inputFilters[$inputFilterService];
     }
@@ -537,58 +525,56 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      * @param string $serviceName
      * @param array $data
      * @param RouteMatch|V2RouteMatch $matches
-     * @return bool
      */
-    protected function isCollection($serviceName, $data, $matches, HttpRequest $request)
+    protected function isCollection(string $serviceName, array $data, V2RouteMatch|RouteMatch $matches, HttpRequest $request): bool
     {
-        if (!array_key_exists($serviceName, $this->restControllers)) {
+        if (!array_key_exists(key: $serviceName, array: $this->restControllers)) {
             return false;
         }
 
-        if ($request->isPost() && (empty($data) || ArrayUtils::isHashTable($data))) {
+        if ($request->isPost() && (empty($data) || ArrayUtils::isHashTable(value: $data))) {
             return false;
         }
 
         $identifierName = $this->restControllers[$serviceName];
-        if ($matches->getParam($identifierName) !== null) {
+        if ($matches->getParam(name: $identifierName) !== null) {
             return false;
         }
 
-        return null === $request->getQuery($identifierName, null);
+        return null === $request->getQuery(name: $identifierName, default: null);
     }
 
     /**
      * Validate a PATCH request
      *
-     * @param array|object $data
+     * @param object|array $data
      * @param bool $isCollection
-     * @return bool|ApiProblemResponse
      */
-    protected function validatePatch(InputFilterInterface $inputFilter, $data, $isCollection)
+    protected function validatePatch(InputFilterInterface $inputFilter, object|array $data, bool $isCollection): bool|ApiProblemResponse
     {
         if ($isCollection) {
             $validationGroup = $data;
             foreach ($validationGroup as &$subData) {
-                $subData = array_keys($subData);
+                $subData = array_keys(array: $subData);
             }
         } else {
-            $validationGroup = array_keys($data);
+            $validationGroup = array_keys(array: $data);
         }
 
         try {
-            $inputFilter->setValidationGroup($validationGroup);
+            $inputFilter->setValidationGroup(name: $validationGroup);
             return $inputFilter->isValid();
-        } catch (InputFilterInvalidArgumentException $ex) {
+        } catch (InputFilterInvalidArgumentException $inputFilterInvalidArgumentException) {
             $pattern = '/expects a list of valid input names; "(?P<field>[^"]*)" was not found/';
-            $matched = preg_match($pattern, $ex->getMessage(), $matches);
+            $matched = preg_match(pattern: $pattern, subject: $inputFilterInvalidArgumentException->getMessage(), matches: $matches);
             if ($matched === 0) {
                 return new ApiProblemResponse(
-                    new ApiProblem(400, $ex)
+                    apiProblem: new ApiProblem(status: 400, detail: $inputFilterInvalidArgumentException)
                 );
             }
 
             return new ApiProblemResponse(
-                new ApiProblem(400, 'Unrecognized field "' . $matches['field'] . '"')
+                apiProblem: new ApiProblem(status: 400, detail: 'Unrecognized field "' . $matches['field'] . '"')
             );
         }
     }

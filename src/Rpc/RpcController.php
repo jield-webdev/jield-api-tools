@@ -9,6 +9,7 @@ use Exception;
 use Laminas\Mvc\Controller\AbstractActionController as BaseAbstractActionController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Model\JsonModel;
+use Override;
 use function call_user_func_array;
 use function is_array;
 use function is_callable;
@@ -27,51 +28,46 @@ class RpcController extends BaseAbstractActionController
      * @param callable $wrappedCallable
      * @return void
      */
-    public function setWrappedCallable($wrappedCallable)
+    public function setWrappedCallable(callable $wrappedCallable): void
     {
         $this->wrappedCallable = $wrappedCallable;
     }
 
-    /**
-     * @return void
-     */
-    public function onDispatch(MvcEvent $e)
+    #[Override]
+    public function onDispatch(MvcEvent $e): void
     {
         $routeMatch = $e->getRouteMatch();
 
-        $contentNegotiationParams = $e->getParam('LaminasContentNegotiationParameterData');
-        if ($contentNegotiationParams) {
-            $routeParameters = $contentNegotiationParams->getRouteParams();
-        } else {
-            $routeParameters = $routeMatch->getParams();
-        }
+        $contentNegotiationParams = $e->getParam(name: 'LaminasContentNegotiationParameterData');
+        $routeParameters = $contentNegotiationParams ? $contentNegotiationParams->getRouteParams() : $routeMatch->getParams();
 
-        $parameterMatcher = new ParameterMatcher($e);
+        $parameterMatcher = new ParameterMatcher(mvcEvent: $e);
 
         // match route params to dispatchable parameters
         if ($this->wrappedCallable instanceof Closure) {
             $callable = $this->wrappedCallable;
-        } elseif (is_array($this->wrappedCallable) && is_callable($this->wrappedCallable)) {
+        } elseif (is_array(value: $this->wrappedCallable) && is_callable(value: $this->wrappedCallable)) {
             $callable = $this->wrappedCallable;
-        } elseif (is_object($this->wrappedCallable) || null === $this->wrappedCallable) {
-            $action   = $routeMatch->getParam('action', 'not-found');
-            $method   = static::getMethodFromAction($action);
+        } elseif (is_object(value: $this->wrappedCallable) || null === $this->wrappedCallable) {
+            $action   = $routeMatch->getParam(name: 'action', default: 'not-found');
+            $method   = static::getMethodFromAction(action: $action);
             $callable = null === $this->wrappedCallable && static::class !== self::class
                 ? $this
                 : $this->wrappedCallable;
-            if (!method_exists($callable, $method)) {
+            if (!method_exists(object_or_class: $callable, method: $method)) {
                 $method = 'notFoundAction';
             }
+
             $callable = [$callable, $method];
         } else {
-            throw new Exception('RPC Controller Not Understood');
+            throw new Exception(message: 'RPC Controller Not Understood');
         }
 
-        $dispatchParameters = $parameterMatcher->getMatchedParameters($callable, $routeParameters ?: []);
-        $result             = call_user_func_array($callable, $dispatchParameters);
+        $dispatchParameters = $parameterMatcher->getMatchedParameters(callable: $callable, parameters: $routeParameters ?: []);
+        $result             = call_user_func_array(callback: $callable, args: $dispatchParameters);
 
-        $e->setParam('LaminasContentNegotiationFallback', [JsonModel::class => ['application/json']]);
-        $e->setResult($result);
+        $e->setParam(name: 'LaminasContentNegotiationFallback', value: [JsonModel::class => ['application/json']]);
+        $e->setResult(result: $result);
     }
 
     /**
@@ -80,12 +76,13 @@ class RpcController extends BaseAbstractActionController
      * @param string $action
      * @return string
      */
-    public static function getMethodFromAction($action)
+    #[Override]
+    public static function getMethodFromAction($action): string
     {
-        $method = str_replace(['.', '-', '_'], ' ', $action);
-        $method = ucwords($method);
-        $method = str_replace(' ', '', $method);
-        $method = lcfirst($method);
+        $method = str_replace(search: ['.', '-', '_'], replace: ' ', subject: $action);
+        $method = ucwords(string: $method);
+        $method = str_replace(search: ' ', replace: '', subject: $method);
+        $method = lcfirst(string: $method);
 
         return $method;
     }

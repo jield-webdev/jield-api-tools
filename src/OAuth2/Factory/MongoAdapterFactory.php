@@ -16,15 +16,12 @@ use function is_array;
 
 class MongoAdapterFactory
 {
-    /**
-     * @return MongoAdapter
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): MongoAdapter
     {
         $config = $container->get('config');
         return new MongoAdapter(
-            $this->getMongoDb($container, $config),
-            $this->getOauth2ServerConfig($config)
+            $this->getMongoDb(container: $container, config: $config),
+            $this->getOauth2ServerConfig(config: $config)
         );
     }
 
@@ -34,18 +31,17 @@ class MongoAdapterFactory
      * @param ServiceLocatorInterface $container
      * @return MongoAdapter
      */
-    public function createService($container)
+    public function createService(ServiceLocatorInterface $container): MongoAdapter
     {
-        return $this($container);
+        return $this(container: $container);
     }
 
     /**
      * Get the mongo database
      *
-     * @param array|ArrayAccess $config
-     * @return MongoDB
+     * @param ArrayAccess|array $config
      */
-    protected function getMongoDb(ContainerInterface $container, $config)
+    protected function getMongoDb(ContainerInterface $container, ArrayAccess|array $config): MongoDB
     {
         $dbLocatorName = $config['api-tools-oauth2']['mongo']['locator_name'] ?? 'MongoDB';
 
@@ -58,14 +54,14 @@ class MongoAdapterFactory
             || empty($config['api-tools-oauth2']['mongo']['database'])
         ) {
             throw new Exception\RuntimeException(
-                'The database configuration [\'api-tools-oauth2\'][\'mongo\'] for OAuth2 is missing'
+                message: "The database configuration ['api-tools-oauth2']['mongo'] for OAuth2 is missing"
             );
         }
 
         $options            = $config['api-tools-oauth2']['mongo']['options'] ?? [];
         $options['connect'] = false;
         $server             = $config['api-tools-oauth2']['mongo']['dsn'] ?? null;
-        $mongo              = new MongoClient($server, $options);
+        $mongo              = new MongoClient(server: $server, options: $options);
 
         return $mongo->{$config['api-tools-oauth2']['mongo']['database']};
     }
@@ -73,14 +69,14 @@ class MongoAdapterFactory
     /**
      * Retrieve oauth2-server-php configuration
      *
-     * @param array|ArrayAccess $config
+     * @param ArrayAccess|array $config
      * @return array
      */
-    protected function getOauth2ServerConfig($config)
+    protected function getOauth2ServerConfig(ArrayAccess|array $config): array
     {
         if (
             isset($config['api-tools-oauth2']['storage_settings'])
-            && is_array($config['api-tools-oauth2']['storage_settings'])
+            && is_array(value: $config['api-tools-oauth2']['storage_settings'])
         ) {
             return $config['api-tools-oauth2']['storage_settings'];
         }

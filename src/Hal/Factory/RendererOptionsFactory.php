@@ -16,15 +16,14 @@ use function is_array;
 class RendererOptionsFactory
 {
     /**
-     * @return RendererOptions
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): RendererOptions
     {
         $config = $container->get('Jield\ApiTools\Hal\HalConfig');
 
-        $rendererConfig = isset($config['renderer']) && is_array($config['renderer'])
+        $rendererConfig = isset($config['renderer']) && is_array(value: $config['renderer'])
             ? $config['renderer']
             : [];
 
@@ -36,6 +35,6 @@ class RendererOptionsFactory
         }
 
         /** @psalm-var Traversable|array<array-key, mixed>|null $rendererConfig */
-        return new RendererOptions($rendererConfig);
+        return new RendererOptions(options: $rendererConfig);
     }
 }

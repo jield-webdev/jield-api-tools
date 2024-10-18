@@ -113,7 +113,7 @@ final readonly class ListenerValueObject
     {
         return [
             $this->listener => [
-                'type'    => str_contains($this->route, ':') ? Segment::class : Literal::class,
+                'type'    => str_contains(haystack: $this->route, needle: ':') ? Segment::class : Literal::class,
                 'options' => [
                     'route'    => $this->route,
                     'defaults' => [

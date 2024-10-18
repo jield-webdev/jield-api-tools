@@ -6,6 +6,7 @@ namespace Jield\ApiTools\ContentValidation;
 
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 class ContentValidationListenerFactory implements FactoryInterface
@@ -14,19 +15,18 @@ class ContentValidationListenerFactory implements FactoryInterface
      * Create and return a ContentValidationListener instance.
      *
      * @param string $requestedName
-     * @param array|null $options
-     * @return ContentValidationListener
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): ContentValidationListener
     {
         $config                  = $container->has('config') ? $container->get('config') : [];
         $contentValidationConfig = $config['api-tools-content-validation'] ?? [];
-        $restServices            = $this->getRestServicesFromConfig($config);
+        $restServices            = $this->getRestServicesFromConfig(config: $config);
 
         return new ContentValidationListener(
-            $contentValidationConfig,
-            $container->get('InputFilterManager'),
-            $restServices
+            config: $contentValidationConfig,
+            inputFilterManager: $container->get('InputFilterManager'),
+            restControllers: $restServices
         );
     }
 
@@ -39,7 +39,7 @@ class ContentValidationListenerFactory implements FactoryInterface
      * @param array $config
      * @return array
      */
-    protected function getRestServicesFromConfig(array $config)
+    protected function getRestServicesFromConfig(array $config): array
     {
         $restServices = [];
         if (! isset($config['api-tools-rest'])) {
@@ -50,6 +50,7 @@ class ContentValidationListenerFactory implements FactoryInterface
             if (! isset($restConfig['route_identifier_name'])) {
                 continue;
             }
+
             $restServices[$controllerService] = $restConfig['route_identifier_name'];
         }
 

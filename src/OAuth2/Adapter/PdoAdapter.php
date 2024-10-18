@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\OAuth2\Adapter;
 
 use OAuth2\Storage\Pdo as OAuth2Pdo;
+use Override;
 use function sprintf;
 
 /**
@@ -21,7 +22,7 @@ class PdoAdapter extends OAuth2Pdo
      */
     public function __construct($connection, $config = [])
     {
-        parent::__construct($connection, $config);
+        parent::__construct(connection: $connection, config: $config);
         if (isset($config['bcrypt_cost'])) {
             $this->bcryptCost = $config['bcrypt_cost'];
         }
@@ -34,13 +35,15 @@ class PdoAdapter extends OAuth2Pdo
      * @param string $clientSecret
      * @return bool
      */
+    #[Override]
     public function checkClientCredentials($clientId, $clientSecret = null): bool
     {
-        $stmt = $this->db->prepare(sprintf(
+        $stmt = $this->db->prepare(query: sprintf(
             'SELECT * from %s where client_id = :client_id',
             $this->config['client_table']
         ));
-        $stmt->execute(['client_id' => $clientId]);
+        $stmt->execute(params: ['client_id' => $clientId]);
+
         $result = $stmt->fetch();
 
         // Do not bother verifying if the secret is missing or empty.
@@ -49,7 +52,7 @@ class PdoAdapter extends OAuth2Pdo
         }
 
         // bcrypt verify
-        return password_verify($clientSecret, $result['client_secret']);
+        return password_verify(password: (string) $clientSecret, hash: (string)$result['client_secret']);
     }
 
     /**
@@ -63,6 +66,7 @@ class PdoAdapter extends OAuth2Pdo
      * @param string $userId
      * @return bool
      */
+    #[Override]
     public function setClientDetails(
         $clientId,
         $clientSecret = null,
@@ -80,9 +84,9 @@ class PdoAdapter extends OAuth2Pdo
         }
 
         if (!empty($clientSecret)) {
-            $clientSecret = password_hash($clientSecret, PASSWORD_BCRYPT, ['cost' => $this->bcryptCost]);
+            $clientSecret = password_hash(password: $clientSecret, algo: PASSWORD_BCRYPT, options: ['cost' => $this->bcryptCost]);
         }
 
-        return parent::setClientDetails($clientId, $clientSecret, $redirectUri, $grantTypes, $scope, $userId);
+        return parent::setClientDetails(client_id: $clientId, client_secret: $clientSecret, redirect_uri: $redirectUri, grant_types: $grantTypes, scope: $scope, user_id: $userId);
     }
 }

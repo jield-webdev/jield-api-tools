@@ -6,12 +6,14 @@ namespace Jield\ApiTools\OAuth2\Factory;
 
 use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 use function is_array;
 use function sprintf;
 
 final class PdoAdapterFactory implements FactoryInterface
 {
+    #[Override]
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): PdoAdapter
     {
         $config = $container->get('config');
@@ -30,7 +32,7 @@ final class PdoAdapterFactory implements FactoryInterface
         );
 
         $oauth2ServerConfig = [];
-        if (isset($oauthConfig['storage_settings']) && is_array($oauthConfig['storage_settings'])) {
+        if (isset($oauthConfig['storage_settings']) && is_array(value: $oauthConfig['storage_settings'])) {
             $oauth2ServerConfig = $oauthConfig['storage_settings'];
         }
 
@@ -38,11 +40,11 @@ final class PdoAdapterFactory implements FactoryInterface
         $oauth2ServerConfig['bcrypt_cost'] = 14;
         $oauth2ServerConfig['user_table']  = 'admin_user';
 
-        return new PdoAdapter([
+        return new PdoAdapter(connection: [
             'dsn'      => $dsn,
             'username' => $username,
             'password' => $password,
             'options'  => $options,
-        ], $oauth2ServerConfig);
+        ], config: $oauth2ServerConfig);
     }
 }

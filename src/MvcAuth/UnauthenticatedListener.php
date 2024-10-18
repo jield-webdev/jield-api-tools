@@ -12,7 +12,6 @@ class UnauthenticatedListener
     /**
      * Determine if we have an authentication failure, and, if so, return a 401 response
      *
-     * @return null|ApiProblemResponse
      */
     public function __invoke(MvcAuthEvent $mvcAuthEvent): ?ApiProblemResponse
     {
@@ -26,8 +25,8 @@ class UnauthenticatedListener
         }
 
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
-        $response = new ApiProblemResponse(new ApiProblem(401, 'Unauthorized'));
-        $mvcEvent->setResponse($response);
+        $response = new ApiProblemResponse(apiProblem: new ApiProblem(status: 401, detail: 'Unauthorized'));
+        $mvcEvent->setResponse(response: $response);
         return $response;
     }
 }

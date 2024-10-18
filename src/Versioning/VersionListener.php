@@ -9,6 +9,7 @@ use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Router\RouteMatch;
+use Override;
 use function preg_match;
 use function preg_quote;
 use function preg_replace;
@@ -20,46 +21,47 @@ class VersionListener implements ListenerAggregateInterface
     /**
      * {@inheritDoc}
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_ROUTE, [$this, 'onRoute'], -41);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $this->onRoute(...), priority: -41);
     }
 
     /**
      * Determine if versioning is in the route matches, and update the controller accordingly
      *
-     * @return RouteMatch|null
      */
-    public function onRoute(MvcEvent $e)
+    public function onRoute(MvcEvent $e): ?RouteMatch
     {
         $routeMatches = $e->getRouteMatch();
         if (!($routeMatches instanceof RouteMatch)) {
-            return;
+            return null;
         }
 
-        $version = $this->getVersionFromRouteMatch($routeMatches);
+        $version = $this->getVersionFromRouteMatch(routeMatches: $routeMatches);
         if (!$version) {
             // No version found in matches; done
-            return;
+            return null;
         }
 
-        $controller = $routeMatches->getParam('controller', false);
+        $controller = $routeMatches->getParam(name: 'controller', default: false);
         if (!$controller) {
             // no controller; we have bigger problems!
-            return;
+            return null;
         }
 
-        $pattern = '#' . preg_quote('\V') . '(\d+)' . preg_quote('\\') . '#';
-        if (!preg_match($pattern, $controller, $matches)) {
+        $pattern = '#' . preg_quote(str: '\V') . '(\d+)' . preg_quote(str: '\\') . '#';
+        if (!preg_match(pattern: $pattern, subject: (string) $controller, matches: $matches)) {
             // controller does not have a version subnamespace
-            return;
+            return null;
         }
 
-        $replacement = preg_replace($pattern, '\V' . $version . '\\', $controller);
+        $replacement = preg_replace(pattern: $pattern, replacement: '\V' . $version . '\\', subject: (string) $controller);
         if ($controller === $replacement) {
-            return;
+            return null;
         }
-        $routeMatches->setParam('controller', $replacement);
+
+        $routeMatches->setParam(name: 'controller', value: $replacement);
         return $routeMatches;
     }
 
@@ -73,12 +75,13 @@ class VersionListener implements ListenerAggregateInterface
      * @param RouteMatch $routeMatches
      * @return int|false
      */
-    protected function getVersionFromRouteMatch($routeMatches)
+    protected function getVersionFromRouteMatch(RouteMatch $routeMatches): false|int
     {
-        $version = $routeMatches->getParam('laminas_ver_version', false);
+        $version = $routeMatches->getParam(name: 'laminas_ver_version', default: false);
         if ($version) {
             return $version;
         }
-        return $routeMatches->getParam('version', false);
+
+        return $routeMatches->getParam(name: 'version', default: false);
     }
 }

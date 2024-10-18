@@ -9,18 +9,16 @@ use Psr\Container\ContainerInterface;
 
 class ContentTypeListenerFactory
 {
-    /**
-     * @return ContentTypeListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ContentTypeListener
     {
         $config = $container->has('config') ? $container->get('config') : [];
         $config = $config['api-tools-versioning']['content-type'] ?? [];
 
         $listener = new ContentTypeListener();
         foreach ($config as $regexp) {
-            $listener->addRegexp($regexp);
+            $listener->addRegexp(regex: $regexp);
         }
+
         return $listener;
     }
 }

@@ -18,91 +18,84 @@ interface ResourceInterface extends EventManagerAwareInterface
      * @param array $params
      * @return self
      */
-    public function setEventParams(array $params);
+    public function setEventParams(array $params): ResourceInterface;
 
     /**
      * Get the event parameters
      *
      * @return array
      */
-    public function getEventParams();
+    public function getEventParams(): array;
 
     /**
      * @param string $name
-     * @param mixed  $value
-     * @return mixed
      */
-    public function setEventParam($name, $value);
+    public function setEventParam(string $name, mixed $value): mixed;
 
-    /**
-     * @param mixed $name
-     * @param mixed $default
-     * @return mixed
-     */
-    public function getEventParam($name, $default = null);
+    public function getEventParam(mixed $name, mixed $default = null): mixed;
 
     /**
      * Create a record in the resource
      *
-     * @param  array|object $data
+     * @param object|array $data
      * @return array|object
      */
-    public function create($data);
+    public function create(object|array $data): object|array;
 
     /**
      * Update (replace) an existing record
      *
-     * @param  string|int $id
-     * @param  array|object $data
+     * @param int|string $id
+     * @param object|array $data
      * @return array|object
      */
-    public function update($id, $data);
+    public function update(int|string $id, object|array $data): object|array;
 
     /**
      * Update (replace) an existing collection of records
      *
-     * @param  array $data
+     * @param array $data
      * @return array|object
      */
-    public function replaceList($data);
+    public function replaceList(array $data): object|array;
 
     /**
      * Partial update of an existing record
      *
-     * @param  string|int $id
-     * @param  array|object $data
+     * @param int|string $id
+     * @param object|array $data
      * @return array|object
      */
-    public function patch($id, $data);
+    public function patch(int|string $id, object|array $data): object|array;
 
     /**
      * Delete an existing record
      *
-     * @param  string|int $id
+     * @param int|string $id
      * @return bool
      */
-    public function delete($id);
+    public function delete(int|string $id): bool;
 
     /**
      * Delete an existing collection of records
      *
-     * @param  null|array $data
+     * @param array|null $data
      * @return bool
      */
-    public function deleteList($data = null);
+    public function deleteList(array $data = null): bool;
 
     /**
      * Fetch an existing record
      *
-     * @param  string|int $id
+     * @param int|string $id
      * @return false|array|object
      */
-    public function fetch($id);
+    public function fetch(int|string $id): object|false|array;
 
     /**
      * Fetch a collection of records
      *
      * @return Paginator
      */
-    public function fetchAll();
+    public function fetchAll(): Paginator;
 }

@@ -8,6 +8,7 @@ use Jield\ApiTools\Hal\Collection;
 use Jield\ApiTools\Hal\Entity;
 use Laminas\View\Model\JsonModel;
 
+use Override;
 use function sprintf;
 use function trigger_error;
 
@@ -27,7 +28,7 @@ class HalJsonModel extends JsonModel
      *
      * @return bool
      */
-    public function isCollection()
+    public function isCollection(): bool
     {
         /** @var mixed $payload */
         $payload = $this->getPayload();
@@ -43,9 +44,9 @@ class HalJsonModel extends JsonModel
      *
      * @return bool
      */
-    public function isResource()
+    public function isResource(): bool
     {
-        trigger_error(sprintf('%s is deprecated; please use %s::isEntity', __METHOD__, self::class), E_USER_DEPRECATED);
+        trigger_error(message: sprintf('%s is deprecated; please use %s::isEntity', __METHOD__, self::class), error_level: E_USER_DEPRECATED);
         return self::isEntity();
     }
 
@@ -54,7 +55,7 @@ class HalJsonModel extends JsonModel
      *
      * @return bool
      */
-    public function isEntity()
+    public function isEntity(): bool
     {
         /** @var mixed $payload */
         $payload = $this->getPayload();
@@ -66,12 +67,10 @@ class HalJsonModel extends JsonModel
      *
      * This is the value to represent in the response.
      *
-     * @param  mixed $payload
-     * @return self
      */
-    public function setPayload($payload)
+    public function setPayload(mixed $payload): static
     {
-        $this->setVariable('payload', $payload);
+        $this->setVariable(name: 'payload', value: $payload);
         return $this;
     }
 
@@ -80,9 +79,9 @@ class HalJsonModel extends JsonModel
      *
      * @return mixed
      */
-    public function getPayload()
+    public function getPayload(): mixed
     {
-        return $this->getVariable('payload');
+        return $this->getVariable(name: 'payload');
     }
 
     /**
@@ -93,7 +92,8 @@ class HalJsonModel extends JsonModel
      * @param  bool $terminate
      * @return self
      */
-    public function setTerminal($terminate = true)
+    #[Override]
+    public function setTerminal($terminate = true): static
     {
         return $this;
     }

@@ -13,18 +13,15 @@ use Webmozart\Assert\Assert;
 
 class HalJsonRendererFactory
 {
-    /**
-     * @return HalJsonRenderer
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): HalJsonRenderer
     {
         $helpers = $container->get('ViewHelperManager');
-        Assert::isInstanceOf($helpers, HelperPluginManager::class);
+        Assert::isInstanceOf(value: $helpers, class: HelperPluginManager::class);
         $apiProblemRenderer = $container->get(ApiProblemRenderer::class);
-        Assert::isInstanceOf($apiProblemRenderer, ApiProblemRenderer::class);
+        Assert::isInstanceOf(value: $apiProblemRenderer, class: ApiProblemRenderer::class);
 
-        $renderer = new HalJsonRenderer($apiProblemRenderer);
-        $renderer->setHelperPluginManager($helpers);
+        $renderer = new HalJsonRenderer(apiProblemRenderer: $apiProblemRenderer);
+        $renderer->setHelperPluginManager(helpers: $helpers);
 
         return $renderer;
     }

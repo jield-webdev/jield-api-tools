@@ -9,10 +9,7 @@ trait LinkCollectionAwareTrait
     /** @var LinkCollection */
     protected $links;
 
-    /**
-     * @return self
-     */
-    public function setLinks(LinkCollection $links)
+    public function setLinks(LinkCollection $links): static
     {
         $this->links = $links;
         return $this;
@@ -21,11 +18,12 @@ trait LinkCollectionAwareTrait
     /**
      * @return LinkCollection
      */
-    public function getLinks()
+    public function getLinks(): LinkCollection
     {
         if (! $this->links instanceof LinkCollection) {
-            $this->setLinks(new LinkCollection());
+            $this->setLinks(links: new LinkCollection());
         }
+
         return $this->links;
     }
 }

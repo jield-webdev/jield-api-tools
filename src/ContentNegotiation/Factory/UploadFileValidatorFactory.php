@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ContentNegotiation\Factory;
 
+use Override;
 use Psr\Container\ContainerInterface;
 use Jield\ApiTools\ContentNegotiation\Validator\UploadFile;
 use Laminas\ServiceManager\AbstractPluginManager;
@@ -24,32 +25,32 @@ class UploadFileValidatorFactory implements FactoryInterface
     /**
      * @param string $requestedName,
      * @param array<string, mixed>|null $options
-     * @return UploadFile
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): UploadFile
     {
         if (
             $container instanceof AbstractPluginManager
-            && ! method_exists($container, 'configure')
+            && ! method_exists(object_or_class: $container, method: 'configure')
         ) {
             $container = $container->getServiceLocator() ?: $container;
         }
 
-        $validator = new UploadFile($options);
+        $validator = new UploadFile(options: $options);
         if ($container->has('Request')) {
-            $validator->setRequest($container->get('Request'));
+            $validator->setRequest(request: $container->get('Request'));
         }
+
         return $validator;
     }
 
     /**
      * Create and return an UploadFile validator (v2 compatibility)
      *
-     * @param null|string $name
-     * @param null|string $requestedName
-     * @return UploadFile
+     * @param string|null $name
+     * @param string|null $requestedName
      */
-    public function createService(ServiceLocatorInterface $container, $name = null, $requestedName = null)
+    public function createService(ServiceLocatorInterface $container, string $name = null, string $requestedName = null): UploadFile
     {
         $requestedName = $requestedName ?: UploadFile::class;
 
@@ -57,7 +58,7 @@ class UploadFileValidatorFactory implements FactoryInterface
             $container = $container->getServiceLocator() ?: $container;
         }
 
-        return $this($container, $requestedName, $this->options);
+        return $this(container: $container, requestedName: $requestedName, options: $this->options);
     }
 
     /**
@@ -66,7 +67,7 @@ class UploadFileValidatorFactory implements FactoryInterface
      * @param array $options
      * @return void
      */
-    public function setCreationOptions(array $options)
+    public function setCreationOptions(array $options): void
     {
         $this->options = $options;
     }

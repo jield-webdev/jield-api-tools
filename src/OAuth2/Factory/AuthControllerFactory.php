@@ -9,24 +9,24 @@ use Jield\ApiTools\OAuth2\Provider\UserId;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use OAuth2\Server as OAuth2Server;
+use Override;
 use Psr\Container\ContainerInterface;
 
 class AuthControllerFactory implements FactoryInterface
 {
     /**
      * @param string $requestedName
-     * @param null|array $options
-     * @return AuthController
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): AuthController
     {
         $authController = new AuthController(
-            $this->getOAuth2ServerFactory($container),
-            $container->get(UserId::class)
+            serverFactory: $this->getOAuth2ServerFactory(container: $container),
+            userIdProvider: $container->get(UserId::class)
         );
 
         $authController->setApiProblemErrorResponse(
-            $this->marshalApiProblemErrorResponse($container)
+            apiProblemErrorResponse: $this->marshalApiProblemErrorResponse(container: $container)
         );
 
         return $authController;
@@ -38,9 +38,8 @@ class AuthControllerFactory implements FactoryInterface
      * For BC purposes, if the OAuth2Server service returns an actual
      * instance, this will wrap it in a closure before returning it.
      *
-     * @return callable
      */
-    private function getOAuth2ServerFactory(ContainerInterface $container)
+    private function getOAuth2ServerFactory(ContainerInterface $container): callable
     {
         $oauth2ServerFactory = $container->get('Jield\ApiTools\OAuth2\Service\OAuth2Server');
         if (! $oauth2ServerFactory instanceof OAuth2Server) {
@@ -53,9 +52,8 @@ class AuthControllerFactory implements FactoryInterface
     /**
      * Determine whether or not to render API Problem error responses.
      *
-     * @return bool
      */
-    private function marshalApiProblemErrorResponse(ContainerInterface $container)
+    private function marshalApiProblemErrorResponse(ContainerInterface $container): bool
     {
         if (! $container->has('config')) {
             return false;

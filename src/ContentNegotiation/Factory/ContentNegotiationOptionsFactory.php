@@ -11,12 +11,9 @@ use function is_array;
 
 class ContentNegotiationOptionsFactory
 {
-    /**
-     * @return ContentNegotiationOptions
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ContentNegotiationOptions
     {
-        return new ContentNegotiationOptions($this->getConfig($container));
+        return new ContentNegotiationOptions(options: $this->getConfig(container: $container));
     }
 
     /**
@@ -27,9 +24,8 @@ class ContentNegotiationOptionsFactory
      * - Validates that the api-tools-content-negotiation key exists, and evaluates
      *   to an array; if not,returns an empty array.
      *
-     * @return array
      */
-    private function getConfig(ContainerInterface $container)
+    private function getConfig(ContainerInterface $container): array
     {
         if (! $container->has('config')) {
             return [];
@@ -39,7 +35,7 @@ class ContentNegotiationOptionsFactory
 
         if (
             ! isset($config['api-tools-content-negotiation'])
-            || ! is_array($config['api-tools-content-negotiation'])
+            || ! is_array(value: $config['api-tools-content-negotiation'])
         ) {
             return [];
         }

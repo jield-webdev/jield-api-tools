@@ -13,6 +13,7 @@ use Laminas\Mvc\MvcEvent;
 use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 
+use Override;
 use function array_key_exists;
 use function array_walk;
 use function implode;
@@ -38,57 +39,54 @@ class OptionsListener implements ListenerAggregateInterface
 
     /**
      * @param int $priority
-     * @return void
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_ROUTE, [$this, 'onRoute'], -100);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $this->onRoute(...), priority: -100);
     }
 
-    /**
-     * @return void|Response
-     */
-    public function onRoute(MvcEvent $event)
+    public function onRoute(MvcEvent $event): ?Response
     {
         $request = $event->getRequest();
         if (! $request instanceof Request) {
             // Not an HTTP request? nothing to do
-            return;
+            return null;
         }
 
         $matches = $event->getRouteMatch();
         if (! $matches) {
             // No matches, nothing to do
-            return;
+            return null;
         }
 
-        $controller = $matches->getParam('controller', false);
+        $controller = $matches->getParam(name: 'controller', default: false);
         if (! $controller) {
             // No controller in the matches, nothing to do
-            return;
+            return null;
         }
 
-        if (! array_key_exists($controller, $this->config)) {
+        if (! array_key_exists(key: $controller, array: $this->config)) {
             // No matching controller in our configuration, nothing to do
-            return;
+            return null;
         }
 
-        $config  = $this->getConfigForControllerAndMatches($this->config[$controller], $matches);
-        $methods = $this->normalizeMethods($config);
+        $config  = $this->getConfigForControllerAndMatches(config: $this->config[$controller], matches: $matches);
+        $methods = $this->normalizeMethods(methods: $config);
 
         $method = $request->getMethod();
         if ($method === Request::METHOD_OPTIONS) {
             // OPTIONS request? return response with Allow header
-            return $this->getOptionsResponse($event, $methods);
+            return $this->getOptionsResponse(event: $event, options: $methods);
         }
 
-        if (in_array($method, $methods)) {
+        if (in_array(needle: $method, haystack: $methods)) {
             // Valid HTTP method; nothing to do
-            return;
+            return null;
         }
 
         // Invalid method; return 405 response
-        return $this->get405Response($event, $methods);
+        return $this->get405Response(event: $event, options: $methods);
     }
 
     /**
@@ -98,30 +96,27 @@ class OptionsListener implements ListenerAggregateInterface
      *
      * Ensure all options in the array are UPPERCASE.
      *
-     * @param  string|array $methods
+     * @param array|string $methods
      * @return array
      */
-    protected function normalizeMethods($methods)
+    protected function normalizeMethods(array|string $methods): array|string
     {
-        if (is_string($methods)) {
+        if (is_string(value: $methods)) {
             $methods = (array) $methods;
         }
 
-        array_walk($methods, function (&$value) {
-            return strtoupper($value);
-        });
+        array_walk(array: $methods, callback: fn(&$value) => strtoupper(string: (string) $value));
         return $methods;
     }
 
     /**
      * Create the Allow header
      *
-     * @param  array $options
      */
-    protected function createAllowHeader(array $options, Response $response)
+    protected function createAllowHeader(array $options, Response $response): void
     {
         $headers = $response->getHeaders();
-        $headers->addHeaderLine('Allow', implode(',', $options));
+        $headers->addHeaderLine(headerFieldNameOrLine: 'Allow', fieldValue: implode(separator: ',', array: $options));
     }
 
     /**
@@ -129,26 +124,22 @@ class OptionsListener implements ListenerAggregateInterface
      *
      * Creates an empty response with an Allow header.
      *
-     * @param  array $options
-     * @return Response
      */
-    protected function getOptionsResponse(MvcEvent $event, array $options)
+    protected function getOptionsResponse(MvcEvent $event, array $options): Response
     {
         $response = $event->getResponse();
-        $this->createAllowHeader($options, $response);
+        $this->createAllowHeader(options: $options, response: $response);
         return $response;
     }
 
     /**
      * Prepare a 405 response
      *
-     * @param  array $options
-     * @return Response
      */
-    protected function get405Response(MvcEvent $event, array $options)
+    protected function get405Response(MvcEvent $event, array $options): Response
     {
-        $response = $this->getOptionsResponse($event, $options);
-        $response->setStatusCode(405, 'Method Not Allowed');
+        $response = $this->getOptionsResponse(event: $event, options: $options);
+        $response->setStatusCode(code: 405);
         return $response;
     }
 
@@ -163,37 +154,37 @@ class OptionsListener implements ListenerAggregateInterface
      *
      * @param RouteMatch|V2RouteMatch $matches
      */
-    protected function getConfigForControllerAndMatches(array $config, $matches): array
+    protected function getConfigForControllerAndMatches(array $config, V2RouteMatch|RouteMatch $matches): array
     {
         $collectionConfig = [];
         if (
-            array_key_exists('collection_http_methods', $config)
-            && is_array($config['collection_http_methods'])
+            array_key_exists(key: 'collection_http_methods', array: $config)
+            && is_array(value: $config['collection_http_methods'])
         ) {
             $collectionConfig = $config['collection_http_methods'];
             // Ensure the HTTP method names are normalized
-            array_walk($collectionConfig, function (&$value) {
-                $value = strtoupper($value);
+            array_walk(array: $collectionConfig, callback: function (&$value) {
+                $value = strtoupper(string: $value);
             });
         }
 
         $identifier = false;
-        if (array_key_exists('route_identifier_name', $config)) {
+        if (array_key_exists(key: 'route_identifier_name', array: $config)) {
             $identifier = $config['route_identifier_name'];
         }
 
-        if (! $identifier || $matches->getParam($identifier, false) === false) {
+        if (! $identifier || $matches->getParam(name: $identifier, default: false) === false) {
             return $collectionConfig;
         }
 
         if (
-            array_key_exists('entity_http_methods', $config)
-            && is_array($config['entity_http_methods'])
+            array_key_exists(key: 'entity_http_methods', array: $config)
+            && is_array(value: $config['entity_http_methods'])
         ) {
             $entityConfig = $config['entity_http_methods'];
             // Ensure the HTTP method names are normalized
-            array_walk($entityConfig, function (&$value) {
-                $value = strtoupper($value);
+            array_walk(array: $entityConfig, callback: function (&$value) {
+                $value = strtoupper(string: $value);
             });
             return $entityConfig;
         }

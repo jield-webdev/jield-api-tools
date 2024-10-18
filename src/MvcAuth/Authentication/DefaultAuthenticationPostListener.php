@@ -12,17 +12,16 @@ class DefaultAuthenticationPostListener
     /**
      * Determine if we have an authentication failure, and, if so, return a 401 response
      *
-     * @return null|HttpResponse
      */
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): ?HttpResponse
     {
         if (! $mvcAuthEvent->hasAuthenticationResult()) {
-            return;
+            return null;
         }
 
         $authResult = $mvcAuthEvent->getAuthenticationResult();
         if ($authResult->isValid()) {
-            return;
+            return null;
         }
 
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
@@ -31,8 +30,8 @@ class DefaultAuthenticationPostListener
             return $response;
         }
 
-        $response->setStatusCode(401);
-        $response->setReasonPhrase('Unauthorized');
+        $response->setStatusCode(code: 401);
+        $response->setReasonPhrase(reasonPhrase: 'Unauthorized');
         return $response;
     }
 }

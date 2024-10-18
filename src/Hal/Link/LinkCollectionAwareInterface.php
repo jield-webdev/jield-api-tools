@@ -6,13 +6,10 @@ namespace Jield\ApiTools\Hal\Link;
 
 interface LinkCollectionAwareInterface
 {
-    /**
-     * @return mixed
-     */
-    public function setLinks(LinkCollection $links);
+    public function setLinks(LinkCollection $links): mixed;
 
     /**
      * @return LinkCollection
      */
-    public function getLinks();
+    public function getLinks(): LinkCollection;
 }

@@ -11,6 +11,7 @@ use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 
+use Override;
 use function method_exists;
 
 class RestParametersListener implements ListenerAggregateInterface
@@ -20,41 +21,44 @@ class RestParametersListener implements ListenerAggregateInterface
     protected $sharedListeners = [];
 
     /** @param int $priority */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_DISPATCH, [$this, 'onDispatch'], 100);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_DISPATCH, listener: $this->onDispatch(...), priority: 100);
     }
 
-    public function attachShared(SharedEventManagerInterface $events)
+    public function attachShared(SharedEventManagerInterface $events): void
     {
         $listener = $events->attach(
             RestController::class,
             MvcEvent::EVENT_DISPATCH,
-            [$this, 'onDispatch'],
-            100
+            listener: $this->onDispatch(...),
+            priority: 100
         );
 
         if (! $listener) {
-            $listener = [$this, 'onDispatch'];
+            $listener = $this->onDispatch(...);
         }
 
         $this->sharedListeners[] = $listener;
     }
 
-    public function detachShared(SharedEventManagerInterface $events)
+    public function detachShared(SharedEventManagerInterface $events): void
     {
-        $eventManagerVersion = method_exists($events, 'getEvents') ? 2 : 3;
+        $eventManagerVersion = method_exists(object_or_class: $events, method: 'getEvents') ? 2 : 3;
         foreach ($this->sharedListeners as $index => $listener) {
             switch ($eventManagerVersion) {
                 case 2:
-                    if ($events->detach(RestController::class, $listener)) {
+                    if ($events->detach(listener: RestController::class, identifier: $listener)) {
                         unset($this->sharedListeners[$index]);
                     }
+
                     break;
                 case 3:
-                    if ($events->detach($listener, RestController::class, MvcEvent::EVENT_DISPATCH)) {
+                    if ($events->detach(listener: $listener, identifier: RestController::class, eventName: MvcEvent::EVENT_DISPATCH)) {
                         unset($this->sharedListeners[$index]);
                     }
+
                     break;
             }
         }
@@ -63,7 +67,7 @@ class RestParametersListener implements ListenerAggregateInterface
     /**
      * Listen to the dispatch event
      */
-    public function onDispatch(MvcEvent $e)
+    public function onDispatch(MvcEvent $e): void
     {
         $controller = $e->getTarget();
         if (! $controller instanceof RestController) {
@@ -74,7 +78,7 @@ class RestParametersListener implements ListenerAggregateInterface
         $query    = $request->getQuery();
         $matches  = $e->getRouteMatch();
         $resource = $controller->getResource();
-        $resource->setQueryParams($query);
-        $resource->setRouteMatch($matches);
+        $resource->setQueryParams(params: $query);
+        $resource->setRouteMatch(matches: $matches);
     }
 }

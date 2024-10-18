@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Jield\ApiTools\ContentNegotiation;
 
 use Laminas\Http\PhpEnvironment\Request as BaseRequest;
-
 use function fopen;
 use function fwrite;
 use function is_resource;
-use function is_string;
 use function rewind;
 
 /**
@@ -39,38 +37,18 @@ class Request extends BaseRequest
      */
     public function getContentAsStream()
     {
-        if (is_resource($this->contentStream)) {
-            rewind($this->contentStream);
+        if (is_resource(value: $this->contentStream)) {
+            rewind(stream: $this->contentStream);
             return $this->contentStream;
         }
 
         if (empty($this->content)) {
-            return fopen($this->contentStream, 'r');
+            return fopen(filename: $this->contentStream, mode: 'r');
         }
 
-        $this->contentStream = fopen('php://temp', 'r+');
-        fwrite($this->contentStream, $this->content);
-        rewind($this->contentStream);
+        $this->contentStream = fopen(filename: 'php://temp', mode: 'r+');
+        fwrite(stream: $this->contentStream, data: (string)$this->content);
+        rewind(stream: $this->contentStream);
         return $this->contentStream;
-    }
-
-    /**
-     * Set the content stream to use with getContentAsStream()
-     *
-     * @param string|resource $stream Either the stream URI to use, or a stream resource
-     * @return self
-     * @throws Exception\InvalidContentStreamException
-     */
-    public function setContentStream($stream)
-    {
-        if (
-            ! is_string($stream)
-            && ! is_resource($stream)
-        ) {
-            throw new Exception\InvalidContentStreamException();
-        }
-
-        $this->contentStream = $stream;
-        return $this;
     }
 }

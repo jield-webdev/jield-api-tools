@@ -9,6 +9,7 @@ use Jield\ApiTools\MvcAuth\Authorization\AclAuthorizationFactory as AclFactory;
 use Laminas\Http\Request;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 use function array_key_exists;
@@ -35,13 +36,12 @@ class AclAuthorizationFactory implements FactoryInterface
      * Create and return an AclAuthorization instance.
      *
      * @param string $requestedName
-     * @param null|array $options
-     * @return AclAuthorization
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): AclAuthorization
     {
-        $config = $this->getConfigFromContainer($container);
-        return $this->createAclFromConfig($config);
+        $config = $this->getConfigFromContainer(container: $container);
+        return $this->createAclFromConfig(config: $config);
     }
 
     /**
@@ -52,21 +52,21 @@ class AclAuthorizationFactory implements FactoryInterface
      * @param array $config
      * @return AclAuthorization
      */
-    protected function createAclFromConfig(array $config)
+    protected function createAclFromConfig(array $config): AclAuthorization
     {
         $aclConfig     = [];
         $denyByDefault = false;
 
-        if (array_key_exists('deny_by_default', $config)) {
+        if (array_key_exists(key: 'deny_by_default', array: $config)) {
             $denyByDefault = $aclConfig['deny_by_default'] = (bool) $config['deny_by_default'];
             unset($config['deny_by_default']);
         }
 
         foreach ($config as $controllerService => $privileges) {
-            $this->createAclConfigFromPrivileges($controllerService, $privileges, $aclConfig, $denyByDefault);
+            $this->createAclConfigFromPrivileges(controllerService: $controllerService, privileges: $privileges, aclConfig: $aclConfig, denyByDefault: $denyByDefault);
         }
 
-        return AclFactory::factory($aclConfig);
+        return AclFactory::factory(config: $aclConfig);
     }
 
     /**
@@ -81,10 +81,10 @@ class AclAuthorizationFactory implements FactoryInterface
      * @param bool $denyByDefault
      */
     protected function createAclConfigFromPrivileges(
-        $controllerService,
-        array $privileges,
-        &$aclConfig,
-        $denyByDefault
+        string $controllerService,
+        array  $privileges,
+        array  &$aclConfig,
+        bool   $denyByDefault
     ): void {
         // Normalize the controller service name.
         // laminas-mvc will always pass the name using namespace seprators, but
@@ -92,10 +92,10 @@ class AclAuthorizationFactory implements FactoryInterface
         $controllerService = strtr($controllerService, '-', '\\');
         if (isset($privileges['actions'])) {
             foreach ($privileges['actions'] as $action => $methods) {
-                $action      = lcfirst($action);
+                $action      = lcfirst(string: (string) $action);
                 $aclConfig[] = [
                     'resource'   => sprintf('%s::%s', $controllerService, $action),
-                    'privileges' => $this->createPrivilegesFromMethods($methods, $denyByDefault),
+                    'privileges' => $this->createPrivilegesFromMethods(methods: $methods, denyByDefault: $denyByDefault),
                 ];
             }
         }
@@ -103,14 +103,14 @@ class AclAuthorizationFactory implements FactoryInterface
         if (isset($privileges['collection'])) {
             $aclConfig[] = [
                 'resource'   => sprintf('%s::collection', $controllerService),
-                'privileges' => $this->createPrivilegesFromMethods($privileges['collection'], $denyByDefault),
+                'privileges' => $this->createPrivilegesFromMethods(methods: $privileges['collection'], denyByDefault: $denyByDefault),
             ];
         }
 
         if (isset($privileges['entity'])) {
             $aclConfig[] = [
                 'resource'   => sprintf('%s::entity', $controllerService),
-                'privileges' => $this->createPrivilegesFromMethods($privileges['entity'], $denyByDefault),
+                'privileges' => $this->createPrivilegesFromMethods(methods: $privileges['entity'], denyByDefault: $denyByDefault),
             ];
         }
     }
@@ -122,7 +122,7 @@ class AclAuthorizationFactory implements FactoryInterface
      * @param bool $denyByDefault
      * @return array|null
      */
-    protected function createPrivilegesFromMethods(array $methods, $denyByDefault)
+    protected function createPrivilegesFromMethods(array $methods, bool $denyByDefault): ?array
     {
         $privileges = [];
 
@@ -142,6 +142,7 @@ class AclAuthorizationFactory implements FactoryInterface
                 if (isset($privileges[$method])) {
                     unset($privileges[$method]);
                 }
+
                 continue;
             }
 
@@ -153,7 +154,7 @@ class AclAuthorizationFactory implements FactoryInterface
             return null;
         }
 
-        return array_keys($privileges);
+        return array_keys(array: $privileges);
     }
 
     /**
@@ -162,9 +163,8 @@ class AclAuthorizationFactory implements FactoryInterface
      * Attempts to pull the 'config' service, and, further, the
      * api-tools-mvc-auth.authorization segment.
      *
-     * @return array
      */
-    private function getConfigFromContainer(ContainerInterface $container)
+    private function getConfigFromContainer(ContainerInterface $container): array
     {
         if (! $container->has('config')) {
             return [];

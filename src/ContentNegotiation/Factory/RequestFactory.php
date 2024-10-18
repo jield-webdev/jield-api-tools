@@ -18,15 +18,12 @@ use const PHP_SAPI;
  */
 class RequestFactory
 {
-    /**
-     * @return ConsoleRequest|HttpRequest
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): HttpRequest|ConsoleRequest
     {
         // If console tooling is present, use that to determine whether or not
         // we are in a console environment. This approach allows overriding the
         // environment for purposes of testing HTTP requests from the CLI.
-        if (class_exists(Console::class)) {
+        if (class_exists(class: Console::class)) {
             return Console::isConsole() ? new ConsoleRequest() : new HttpRequest();
         }
 

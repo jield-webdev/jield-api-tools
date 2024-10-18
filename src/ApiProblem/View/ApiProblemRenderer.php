@@ -6,6 +6,7 @@ namespace Jield\ApiTools\ApiProblem\View;
 
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Renderer\JsonRenderer;
+use Override;
 
 class ApiProblemRenderer extends JsonRenderer
 {
@@ -22,7 +23,7 @@ class ApiProblemRenderer extends JsonRenderer
      * @param bool $flag
      * @return self
      */
-    public function setDisplayExceptions($flag)
+    public function setDisplayExceptions(bool $flag): static
     {
         $this->displayExceptions = (bool) $flag;
 
@@ -34,7 +35,8 @@ class ApiProblemRenderer extends JsonRenderer
      * @param array|null                             $values
      * @return string
      */
-    public function render($nameOrModel, $values = null)
+    #[Override]
+    public function render($nameOrModel, $values = null): string
     {
         if (! $nameOrModel instanceof ApiProblemModel) {
             return '';
@@ -43,9 +45,9 @@ class ApiProblemRenderer extends JsonRenderer
         $apiProblem = $nameOrModel->getApiProblem();
 
         if ($this->displayExceptions) {
-            $apiProblem->setDetailIncludesStackTrace(true);
+            $apiProblem->setDetailIncludesStackTrace(flag: true);
         }
 
-        return parent::render($apiProblem->toArray());
+        return parent::render(nameOrModel: $apiProblem->toArray());
     }
 }

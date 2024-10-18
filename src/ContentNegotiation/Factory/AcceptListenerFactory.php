@@ -11,23 +11,19 @@ use Laminas\Mvc\Controller\Plugin\AcceptableViewModelSelector;
 
 class AcceptListenerFactory
 {
-    /**
-     * @return AcceptListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): AcceptListener
     {
         return new AcceptListener(
-            $this->getAcceptableViewModelSelector($container),
-            $container->get(ContentNegotiationOptions::class)->toArray()
+            selector: $this->getAcceptableViewModelSelector(container: $container),
+            config: $container->get(ContentNegotiationOptions::class)->toArray()
         );
     }
 
     /**
      * Retrieve or generate the AcceptableViewModelSelector plugin instance.
      *
-     * @return AcceptableViewModelSelector
      */
-    private function getAcceptableViewModelSelector(ContainerInterface $container)
+    private function getAcceptableViewModelSelector(ContainerInterface $container): AcceptableViewModelSelector
     {
         if (! $container->has('ControllerPluginManager')) {
             return new AcceptableViewModelSelector();

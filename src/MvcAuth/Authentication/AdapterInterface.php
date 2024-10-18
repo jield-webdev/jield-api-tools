@@ -14,7 +14,7 @@ interface AdapterInterface
     /**
      * @return array Array of types this adapter can handle.
      */
-    public function provides();
+    public function provides(): array;
 
     /**
      * Attempt to match a requested authentication type
@@ -23,7 +23,7 @@ interface AdapterInterface
      * @param string $type
      * @return bool
      */
-    public function matches($type);
+    public function matches(string $type): bool;
 
     /**
      * Attempt to retrieve the authentication type based on the request.
@@ -31,9 +31,8 @@ interface AdapterInterface
      * Allows an adapter to have custom logic for detecting if a request
      * might be providing credentials it's interested in.
      *
-     * @return false|string
      */
-    public function getTypeFromRequest(Request $request);
+    public function getTypeFromRequest(Request $request): false|string;
 
     /**
      * Perform pre-flight authentication operations.
@@ -50,5 +49,5 @@ interface AdapterInterface
      * @return false|IdentityInterface False on failure, IdentityInterface
      *     otherwise
      */
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent);
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): false|IdentityInterface;
 }

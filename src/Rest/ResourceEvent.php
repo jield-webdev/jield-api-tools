@@ -13,6 +13,7 @@ use Laminas\InputFilter\InputFilterInterface;
 use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\Parameters;
 use Laminas\Stdlib\RequestInterface;
+use Override;
 use function gettype;
 use function is_array;
 use function is_object;
@@ -41,30 +42,26 @@ class ResourceEvent extends Event
      * @param array|ArrayAccess|object $params
      * @return self
      */
-    public function setParams($params)
+    #[Override]
+    public function setParams($params): static
     {
-        if (!is_array($params) && !is_object($params)) {
-            throw new EventManagerInvalidArgumentException(sprintf(
+        if (!is_array(value: $params) && !is_object(value: $params)) {
+            throw new EventManagerInvalidArgumentException(message: sprintf(
                 'Event parameters must be an array or object; received "%s"',
-                gettype($params)
+                gettype(value: $params)
             ));
         }
 
-        if (is_array($params) || $params instanceof ArrayAccess) {
-            if (isset($params['request'])) {
-                $this->setRequest($params['request']);
-                unset($params['request']);
-            }
+        if ((is_array(value: $params) || $params instanceof ArrayAccess) && isset($params['request'])) {
+            $this->setRequest(request: $params['request']);
+            unset($params['request']);
         }
 
-        parent::setParams($params);
+        parent::setParams(params: $params);
         return $this;
     }
 
-    /**
-     * @return self
-     */
-    public function setIdentity(?IdentityInterface $identity = null)
+    public function setIdentity(?IdentityInterface $identity = null): static
     {
         $this->identity = $identity;
         return $this;
@@ -73,15 +70,12 @@ class ResourceEvent extends Event
     /**
      * @return null|IdentityInterface
      */
-    public function getIdentity()
+    public function getIdentity(): ?IdentityInterface
     {
         return $this->identity;
     }
 
-    /**
-     * @return self
-     */
-    public function setInputFilter(?InputFilterInterface $inputFilter = null)
+    public function setInputFilter(?InputFilterInterface $inputFilter = null): static
     {
         $this->inputFilter = $inputFilter;
         return $this;
@@ -90,15 +84,12 @@ class ResourceEvent extends Event
     /**
      * @return null|InputFilterInterface
      */
-    public function getInputFilter()
+    public function getInputFilter(): ?InputFilterInterface
     {
         return $this->inputFilter;
     }
 
-    /**
-     * @return self
-     */
-    public function setQueryParams(?Parameters $params = null)
+    public function setQueryParams(?Parameters $params = null): static
     {
         $this->queryParams = $params;
         return $this;
@@ -107,7 +98,7 @@ class ResourceEvent extends Event
     /**
      * @return null|Parameters
      */
-    public function getQueryParams()
+    public function getQueryParams(): ?Parameters
     {
         return $this->queryParams;
     }
@@ -118,23 +109,18 @@ class ResourceEvent extends Event
      * If not present, returns the $default value provided.
      *
      * @param string $name
-     * @param mixed $default
-     * @return mixed
      */
-    public function getQueryParam($name, $default = null)
+    public function getQueryParam(string $name, mixed $default = null): mixed
     {
         $params = $this->getQueryParams();
         if (null === $params) {
             return $default;
         }
 
-        return $params->get($name, $default);
+        return $params->get(name: $name, default: $default);
     }
 
-    /**
-     * @return self
-     */
-    public function setRequest(?RequestInterface $request = null)
+    public function setRequest(?RequestInterface $request = null): static
     {
         $this->request = $request;
         return $this;
@@ -143,26 +129,27 @@ class ResourceEvent extends Event
     /**
      * @return null|RequestInterface
      */
-    public function getRequest()
+    public function getRequest(): ?RequestInterface
     {
         return $this->request;
     }
 
     /**
-     * @param RouteMatch|V2RouteMatch $matches
+     * @param RouteMatch|V2RouteMatch|null $matches
      * @return self
      */
-    public function setRouteMatch($matches = null)
+    public function setRouteMatch(V2RouteMatch|RouteMatch $matches = null): static
     {
-        if (null !== $matches && !($matches instanceof RouteMatch || $matches instanceof V2RouteMatch)) {
-            throw new InvalidArgumentException(sprintf(
+        if (null !== $matches && (!$matches instanceof RouteMatch && !$matches instanceof V2RouteMatch)) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expects a null or %s or %s instances; received %s',
                 __METHOD__,
                 RouteMatch::class,
                 V2RouteMatch::class,
-                is_object($matches) ? $matches::class : gettype($matches)
+                get_debug_type(value: $matches)
             ));
         }
+
         $this->routeMatch = $matches;
         return $this;
     }
@@ -170,7 +157,7 @@ class ResourceEvent extends Event
     /**
      * @return null|RouteMatch|V2RouteMatch
      */
-    public function getRouteMatch()
+    public function getRouteMatch(): V2RouteMatch|RouteMatch|null
     {
         return $this->routeMatch;
     }
@@ -181,16 +168,14 @@ class ResourceEvent extends Event
      * If not present, returns the $default value provided.
      *
      * @param string $name
-     * @param mixed $default
-     * @return mixed
      */
-    public function getRouteParam($name, $default = null)
+    public function getRouteParam(string $name, mixed $default = null): mixed
     {
         $matches = $this->getRouteMatch();
         if (null === $matches) {
             return $default;
         }
 
-        return $matches->getParam($name, $default);
+        return $matches->getParam(name: $name, default: $default);
     }
 }

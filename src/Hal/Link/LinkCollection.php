@@ -8,6 +8,7 @@ use ArrayIterator;
 use Countable;
 use IteratorAggregate;
 use Jield\ApiTools\ApiProblem\Exception;
+use Override;
 use Psr\Link\LinkInterface;
 use ReturnTypeWillChange;
 
@@ -37,9 +38,10 @@ class LinkCollection implements Countable, IteratorAggregate
      * @return int
      */
     #[ReturnTypeWillChange]
-    public function count()
+    #[Override]
+    public function count(): int
     {
-        return count($this->links);
+        return count(value: $this->links);
     }
 
     /**
@@ -48,21 +50,21 @@ class LinkCollection implements Countable, IteratorAggregate
      * @return ArrayIterator
      */
     #[ReturnTypeWillChange]
-    public function getIterator()
+    #[Override]
+    public function getIterator(): ArrayIterator
     {
-        return new ArrayIterator($this->links);
+        return new ArrayIterator(array: $this->links);
     }
 
     /**
      * Add a link
      *
-     * @deprecated Since 1.5.0; use idempotentAdd() for PSR-13 and RFC 5988 compliance.
-     *
      * @param  bool $overwrite
-     * @return self
      * @throws Exception\DomainException
+     *@deprecated Since 1.5.0; use idempotentAdd() for PSR-13 and RFC 5988 compliance.
+     *
      */
-    public function add(Link $link, $overwrite = false)
+    public function add(Link $link, bool $overwrite = false): static
     {
         $relation = $link->getRelation();
         if (! isset($this->links[$relation]) || $overwrite || 'self' === $relation) {
@@ -74,12 +76,10 @@ class LinkCollection implements Countable, IteratorAggregate
             $this->links[$relation] = [$this->links[$relation]];
         }
 
-        if (! is_array($this->links[$relation])) {
-            $type = is_object($this->links[$relation])
-                ? get_class($this->links[$relation])
-                : gettype($this->links[$relation]);
+        if (! is_array(value: $this->links[$relation])) {
+            $type = get_debug_type(value: $this->links[$relation]);
 
-            throw new Exception\DomainException(sprintf(
+            throw new Exception\DomainException(message: sprintf(
                 '%s::$links should be either a %s\Link or an array; however, it is a "%s"',
                 self::class,
                 __NAMESPACE__,
@@ -95,22 +95,21 @@ class LinkCollection implements Countable, IteratorAggregate
      * Add a link to the collection and update the collection's relations according to RFC 5988.
      *
      * @todo Rename to "add" after deprecating the current "add" implementation
-     * @return void
      */
-    public function idempotentAdd(LinkInterface $link)
+    public function idempotentAdd(LinkInterface $link): void
     {
-        $existingRels = array_keys($this->links);
+        $existingRels = array_keys(array: $this->links);
         $linkRels     = $link->getRels();
 
         // update existing rels
         $intersection = array_intersect($linkRels, $existingRels);
         foreach ($intersection as $relation) {
             $relationLinks = $this->links[$relation];
-            if (! is_array($relationLinks)) {
+            if (! is_array(value: $relationLinks)) {
                 $relationLinks = [$relationLinks];
             }
 
-            if (! in_array($link, $relationLinks, true)) {
+            if (! in_array(needle: $link, haystack: $relationLinks, strict: true)) {
                 $relationLinks[]        = $link;
                 $this->links[$relation] = $relationLinks; // inside the if, otherwise it's not really idempotent
             }
@@ -126,14 +125,15 @@ class LinkCollection implements Countable, IteratorAggregate
     /**
      * Retrieve a link relation
      *
-     * @param  string $relation
+     * @param string $relation
      * @return LinkInterface|Link|array<mixed>|null
      */
-    public function get($relation)
+    public function get(string $relation): Link|array|LinkInterface|null
     {
-        if (! $this->has($relation)) {
+        if (! $this->has(relation: $relation)) {
             return null;
         }
+
         /** @psalm-var LinkInterface|Link|array<mixed>|null $value */
         $value = $this->links[$relation];
 
@@ -143,25 +143,26 @@ class LinkCollection implements Countable, IteratorAggregate
     /**
      * Does a given link relation exist?
      *
-     * @param  string $relation
+     * @param string $relation
      * @return bool
      */
-    public function has($relation)
+    public function has(string $relation): bool
     {
-        return array_key_exists($relation, $this->links);
+        return array_key_exists(key: $relation, array: $this->links);
     }
 
     /**
      * Remove a given link relation
      *
-     * @param  string $relation
+     * @param string $relation
      * @return bool
      */
-    public function remove($relation)
+    public function remove(string $relation): bool
     {
-        if (! $this->has($relation)) {
+        if (! $this->has(relation: $relation)) {
             return false;
         }
+
         unset($this->links[$relation]);
         return true;
     }

@@ -12,6 +12,7 @@ use OAuth2\Request as OAuth2Request;
 use OAuth2\Response as OAuth2Response;
 use OAuth2\Server as OAuth2Server;
 
+use Override;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -25,9 +26,6 @@ class OAuth2Adapter extends AbstractAdapter
      * @var array
      */
     protected $authorizationTokenTypes = ['bearer'];
-
-    /** @var OAuth2Server */
-    private $oauth2Server;
 
     /**
      * Authentication types this adapter provides.
@@ -48,15 +46,13 @@ class OAuth2Adapter extends AbstractAdapter
     ];
 
     /** @psalm-param null|string|string[] $types */
-    public function __construct(OAuth2Server $oauth2Server, $types = null)
+    public function __construct(private readonly OAuth2Server $oauth2Server, $types = null)
     {
-        $this->oauth2Server = $oauth2Server;
-
-        if (is_string($types) && ! empty($types)) {
+        if (is_string(value: $types) && ($types !== '' && $types !== '0')) {
             $types = [$types];
         }
 
-        if (is_array($types)) {
+        if (is_array(value: $types)) {
             $this->providesTypes = $types;
         }
     }
@@ -64,7 +60,8 @@ class OAuth2Adapter extends AbstractAdapter
     /**
      * @return array Array of types this adapter can handle.
      */
-    public function provides()
+    #[Override]
+    public function provides(): array
     {
         return $this->providesTypes;
     }
@@ -76,34 +73,35 @@ class OAuth2Adapter extends AbstractAdapter
      * @param string $type
      * @return bool
      */
-    public function matches($type)
+    #[Override]
+    public function matches(string $type): bool
     {
-        return in_array($type, $this->providesTypes, true);
+        return in_array(needle: $type, haystack: $this->providesTypes, strict: true);
     }
 
     /**
      * Determine if the given request is a type (oauth2) that we recognize
      *
-     * @return false|string
      */
-    public function getTypeFromRequest(Request $request)
+    #[Override]
+    public function getTypeFromRequest(Request $request): false|string
     {
-        $type = parent::getTypeFromRequest($request);
+        $type = parent::getTypeFromRequest(request: $request);
 
         if (false !== $type) {
             return 'oauth2';
         }
 
         if (
-            ! in_array($request->getMethod(), $this->requestsWithoutBodies)
-            && $request->getHeaders()->has('Content-Type')
-            && $request->getHeaders()->get('Content-Type')->match('application/x-www-form-urlencoded')
-            && $request->getPost('access_token')
+            ! in_array(needle: $request->getMethod(), haystack: $this->requestsWithoutBodies)
+            && $request->getHeaders()->has(name: 'Content-Type')
+            && $request->getHeaders()->get(name: 'Content-Type')->match('application/x-www-form-urlencoded')
+            && $request->getPost(name: 'access_token')
         ) {
             return 'oauth2';
         }
 
-        if (null !== $request->getQuery('access_token')) {
+        if (null !== $request->getQuery(name: 'access_token')) {
             return 'oauth2';
         }
 
@@ -117,6 +115,7 @@ class OAuth2Adapter extends AbstractAdapter
      *
      * @return void
      */
+    #[Override]
     public function preAuth(Request $request, Response $response)
     {
     }
@@ -124,30 +123,30 @@ class OAuth2Adapter extends AbstractAdapter
     /**
      * Attempt to authenticate the current request.
      *
-     * @return Identity\AuthenticatedIdentity|Identity\GuestIdentity|Response
      */
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent)
+    #[Override]
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Response|Identity\GuestIdentity|Identity\AuthenticatedIdentity
     {
         $oauth2request = new OAuth2Request(
-            $request->getQuery()->toArray(),
-            $request->getPost()->toArray(),
-            [],
-            $request->getCookie() ? $request->getCookie()->getArrayCopy() : [],
-            $request->getFiles() ? $request->getFiles()->toArray() : [],
-            method_exists($request, 'getServer') ? $request->getServer()->toArray() : $_SERVER,
-            $request->getContent(),
-            $request->getHeaders()->toArray()
+            query: $request->getQuery()->toArray(),
+            request: $request->getPost()->toArray(),
+            attributes: [],
+            cookies: $request->getCookie() ? $request->getCookie()->getArrayCopy() : [],
+            files: $request->getFiles() ? $request->getFiles()->toArray() : [],
+            server: method_exists(object_or_class: $request, method: 'getServer') ? $request->getServer()->toArray() : $_SERVER,
+            content: $request->getContent(),
+            headers: $request->getHeaders()->toArray()
         );
 
-        $token = $this->oauth2Server->getAccessTokenData($oauth2request);
+        $token = $this->oauth2Server->getAccessTokenData(request: $oauth2request);
 
         // Failure to validate
         if (! $token) {
-            return $this->processInvalidToken($response);
+            return $this->processInvalidToken(response: $response);
         }
 
-        $identity = new Identity\AuthenticatedIdentity($token);
-        $identity->setName($token['user_id']);
+        $identity = new Identity\AuthenticatedIdentity(identity: $token);
+        $identity->setName(name: $token['user_id']);
 
         return $identity;
     }
@@ -155,20 +154,19 @@ class OAuth2Adapter extends AbstractAdapter
     /**
      * Handle a invalid Token.
      *
-     * @return Response|Identity\GuestIdentity
      */
-    private function processInvalidToken(Response $response)
+    private function processInvalidToken(Response $response): Response|Identity\GuestIdentity
     {
         $oauth2Response = $this->oauth2Server->getResponse();
         $status         = $oauth2Response->getStatusCode();
 
         // 401 or 403 mean invalid credentials or unauthorized scopes; report those.
-        if (in_array($status, [401, 403], true) && null !== $oauth2Response->getParameter('error')) {
-            return $this->mergeOAuth2Response($status, $response, $oauth2Response);
+        if (in_array(needle: $status, haystack: [401, 403], strict: true) && null !== $oauth2Response->getParameter(name: 'error')) {
+            return $this->mergeOAuth2Response(status: $status, response: $response, oauth2Response: $oauth2Response);
         }
 
         // Merge in any headers; typically sets a WWW-Authenticate header.
-        $this->mergeOAuth2ResponseHeaders($response, $oauth2Response->getHttpHeaders());
+        $this->mergeOAuth2ResponseHeaders(response: $response, oauth2Headers: $oauth2Response->getHttpHeaders());
 
         // Otherwise, no credentials were present at all, so we just return a guest identity.
         return new Identity\GuestIdentity();
@@ -178,29 +176,26 @@ class OAuth2Adapter extends AbstractAdapter
      * Merge the OAuth2\Response instance's status and headers into the current Laminas\Http\Response.
      *
      * @param int $status
-     * @return Response
      */
-    private function mergeOAuth2Response($status, Response $response, OAuth2Response $oauth2Response)
+    private function mergeOAuth2Response(int $status, Response $response, OAuth2Response $oauth2Response): Response
     {
-        $response->setStatusCode($status);
-        return $this->mergeOAuth2ResponseHeaders($response, $oauth2Response->getHttpHeaders());
+        $response->setStatusCode(code: $status);
+        return $this->mergeOAuth2ResponseHeaders(response: $response, oauth2Headers: $oauth2Response->getHttpHeaders());
     }
 
     /**
      * Merge the OAuth2\Response headers into the current Laminas\Http\Response.
      *
-     * @param array $oauth2Headers
-     * @return Response
      */
-    private function mergeOAuth2ResponseHeaders(Response $response, array $oauth2Headers)
+    private function mergeOAuth2ResponseHeaders(Response $response, array $oauth2Headers): Response
     {
-        if (empty($oauth2Headers)) {
+        if ($oauth2Headers === []) {
             return $response;
         }
 
         $headers = $response->getHeaders();
         foreach ($oauth2Headers as $header => $value) {
-            $headers->addHeaderLine($header, $value);
+            $headers->addHeaderLine(headerFieldNameOrLine: $header, fieldValue: $value);
         }
 
         return $response;

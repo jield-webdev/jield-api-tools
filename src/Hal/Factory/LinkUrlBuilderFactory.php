@@ -18,22 +18,22 @@ class LinkUrlBuilderFactory
      * @param ContainerInterface|ServiceLocatorInterface $container
      * @return LinkUrlBuilder
      */
-    public function __invoke($container)
+    public function __invoke(ServiceLocatorInterface|ContainerInterface $container): LinkUrlBuilder
     {
         $halConfig = $container->get('Jield\ApiTools\Hal\HalConfig');
 
         $viewHelperManager = $container->get('ViewHelperManager');
 
         $serverUrlHelper = $viewHelperManager->get('ServerUrl');
-        Assert::isInstanceOf($serverUrlHelper, ServerUrl::class);
+        Assert::isInstanceOf(value: $serverUrlHelper, class: ServerUrl::class);
 
         if (isset($halConfig['options']['use_proxy'])) {
             $serverUrlHelper->setUseProxy($halConfig['options']['use_proxy']);
         }
 
         $urlHelper = $viewHelperManager->get('Url');
-        Assert::isInstanceOf($urlHelper, Url::class);
+        Assert::isInstanceOf(value: $urlHelper, class: Url::class);
 
-        return new LinkUrlBuilder($serverUrlHelper, $urlHelper);
+        return new LinkUrlBuilder(serverUrlHelper: $serverUrlHelper, urlHelper: $urlHelper);
     }
 }

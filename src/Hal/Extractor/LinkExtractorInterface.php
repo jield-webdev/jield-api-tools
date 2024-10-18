@@ -11,7 +11,6 @@ interface LinkExtractorInterface
     /**
      * Extract a structured link array from a Link instance.
      *
-     * @return array
      */
-    public function extract(Link $link);
+    public function extract(Link $link): array;
 }

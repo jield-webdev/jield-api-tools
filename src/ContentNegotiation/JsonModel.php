@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ContentNegotiation;
 
-use JsonSerializable;
 use Jield\ApiTools\Hal\Collection as HalCollection;
 use Jield\ApiTools\Hal\Entity as HalEntity;
+use JsonSerializable;
 use Laminas\Json\Json;
 use Laminas\Stdlib\JsonSerializable as StdlibJsonSerializable;
 use Laminas\View\Model\JsonModel as BaseJsonModel;
-
+use Override;
 use function json_last_error;
 use function method_exists;
-
 use const JSON_ERROR_CTRL_CHAR;
 use const JSON_ERROR_DEPTH;
 use const JSON_ERROR_NONE;
@@ -34,19 +33,18 @@ class JsonModel extends BaseJsonModel
      *
      * Overrides parent to extract variables from JsonSerializable objects.
      *
-     * @param  array|Traversable|JsonSerializable|StdlibJsonSerializable $variables
-     * @param  bool $overwrite
+     * @param array|\Traversable|JsonSerializable|StdlibJsonSerializable $variables
+     * @param bool $overwrite
      * @return self
      */
-    public function setVariables($variables, $overwrite = false)
+    #[Override]
+    public function setVariables($variables, $overwrite = false): JsonModel
     {
-        if (
-            $variables instanceof JsonSerializable
-            || $variables instanceof StdlibJsonSerializable
-        ) {
+        if ($variables instanceof JsonSerializable) {
             $variables = $variables->jsonSerialize();
         }
-        return parent::setVariables($variables, $overwrite);
+
+        return parent::setVariables(variables: $variables, overwrite: $overwrite);
     }
 
     /**
@@ -54,10 +52,11 @@ class JsonModel extends BaseJsonModel
      *
      * Becomes a no-op; this model should always be terminal.
      *
-     * @param  bool $flag
+     * @param bool $flag
      * @return self
      */
-    public function setTerminal($flag)
+    #[Override]
+    public function setTerminal($flag): static
     {
         // Do nothing; should always terminate
         return $this;
@@ -76,7 +75,8 @@ class JsonModel extends BaseJsonModel
      *
      * @return string
      */
-    public function serialize()
+    #[Override]
+    public function serialize(): false|string
     {
         $variables = $this->getVariables();
 
@@ -87,7 +87,7 @@ class JsonModel extends BaseJsonModel
 
         // Use Jield\ApiTools\Hal\Entity's composed entity
         if ($variables instanceof HalEntity) {
-            $variables = method_exists($variables, 'getEntity')
+            $variables = method_exists(object_or_class: $variables, method: 'getEntity')
                 ? $variables->getEntity() // v1.2+
                 : $variables->entity;     // v1.0-1.1.*
         }
@@ -98,13 +98,13 @@ class JsonModel extends BaseJsonModel
         }
 
         if (null !== $this->jsonpCallback) {
-            return $this->jsonpCallback . '(' . Json::encode($variables) . ');';
+            return $this->jsonpCallback . '(' . Json::encode(valueToEncode: $variables) . ');';
         }
 
-        $serialized = Json::encode($variables);
+        $serialized = Json::encode(valueToEncode: $variables);
 
         if (false === $serialized) {
-            $this->raiseError(json_last_error());
+            $this->raiseError(error: json_last_error());
         }
 
         return $serialized;
@@ -117,7 +117,7 @@ class JsonModel extends BaseJsonModel
      * @return never
      * @throws Exception\InvalidJsonException
      */
-    protected function raiseError($error)
+    protected function raiseError(int $error)
     {
         $message = 'JSON encoding error occurred: ';
         switch ($error) {
@@ -139,6 +139,7 @@ class JsonModel extends BaseJsonModel
                 $message .= 'Unknown error';
                 break;
         }
-        throw new Exception\InvalidJsonException($message);
+
+        throw new Exception\InvalidJsonException(message: $message);
     }
 }

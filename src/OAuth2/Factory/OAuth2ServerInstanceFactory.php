@@ -19,20 +19,14 @@ use function is_string;
 
 class OAuth2ServerInstanceFactory
 {
-    private array $config;
-
-    private ContainerInterface $services;
-
     private ?OAuth2Server $server = null;
 
     /**
      * @param array $config Configuration to use when creating the instance.
      * @param ContainerInterface $services ServiceLocator for retrieving storage adapters.
      */
-    public function __construct(array $config, ContainerInterface $services)
+    public function __construct(private readonly array $config, private readonly ContainerInterface $services)
     {
-        $this->config   = $config;
-        $this->services = $services;
     }
 
     /**
@@ -41,9 +35,9 @@ class OAuth2ServerInstanceFactory
      * @return OAuth2Server
      * @throws Exception\RuntimeException
      */
-    public function __invoke()
+    public function __invoke(): ?OAuth2Server
     {
-        if ($this->server) {
+        if ($this->server instanceof \OAuth2\Server) {
             return $this->server;
         }
 
@@ -51,18 +45,18 @@ class OAuth2ServerInstanceFactory
 
         if (! isset($config['storage']) || empty($config['storage'])) {
             throw new Exception\RuntimeException(
-                'The storage configuration for OAuth2 is missing'
+                message: 'The storage configuration for OAuth2 is missing'
             );
         }
 
         $storagesServices = [];
-        if (is_string($config['storage'])) {
+        if (is_string(value: $config['storage'])) {
             $storagesServices[] = $config['storage'];
-        } elseif (is_array($config['storage'])) {
+        } elseif (is_array(value: $config['storage'])) {
             $storagesServices = $config['storage'];
         } else {
             throw new Exception\RuntimeException(
-                'The storage configuration for OAuth2 should be string or array'
+                message: 'The storage configuration for OAuth2 should be string or array'
             );
         }
 
@@ -84,7 +78,7 @@ class OAuth2ServerInstanceFactory
         ], $options);
 
         // Pass a storage object or array of storage objects to the OAuth2 server class
-        $server              = new OAuth2Server($storage, $options);
+        $server              = new OAuth2Server(storage: $storage, config: $options);
         $availableGrantTypes = $config['grant_types'];
 
         if (isset($availableGrantTypes['client_credentials']) && $availableGrantTypes['client_credentials'] === true) {
@@ -94,22 +88,22 @@ class OAuth2ServerInstanceFactory
             }
 
             // Add the "Client Credentials" grant type (it is the simplest of the grant types)
-            $server->addGrantType(new ClientCredentials($server->getStorage('client_credentials'), $clientOptions));
+            $server->addGrantType(grantType: new ClientCredentials(storage: $server->getStorage(name: 'client_credentials'), config: $clientOptions));
         }
 
         if (isset($availableGrantTypes['authorization_code']) && $availableGrantTypes['authorization_code'] === true) {
             // Add the "Authorization Code" grant type (this is where the oauth magic happens)
-            $server->addGrantType(new AuthorizationCode($server->getStorage('authorization_code')));
+            $server->addGrantType(grantType: new AuthorizationCode(storage: $server->getStorage(name: 'authorization_code')));
         }
 
         if (isset($availableGrantTypes['password']) && $availableGrantTypes['password'] === true) {
             // Add the "User Credentials" grant type
-            $server->addGrantType(new UserCredentials($server->getStorage('user_credentials')));
+            $server->addGrantType(grantType: new UserCredentials(storage: $server->getStorage(name: 'user_credentials')));
         }
 
         if (isset($availableGrantTypes['jwt']) && $availableGrantTypes['jwt'] === true) {
             // Add the "JWT Bearer" grant type
-            $server->addGrantType(new JwtBearer($server->getStorage('jwt_bearer'), $audience));
+            $server->addGrantType(grantType: new JwtBearer(storage: $server->getStorage(name: 'jwt_bearer'), audience: $audience));
         }
 
         if (isset($availableGrantTypes['refresh_token']) && $availableGrantTypes['refresh_token'] === true) {
@@ -117,12 +111,13 @@ class OAuth2ServerInstanceFactory
             if (isset($options['always_issue_new_refresh_token'])) {
                 $refreshOptions['always_issue_new_refresh_token'] = $options['always_issue_new_refresh_token'];
             }
+
             if (isset($options['unset_refresh_token_after_use'])) {
                 $refreshOptions['unset_refresh_token_after_use'] = $options['unset_refresh_token_after_use'];
             }
 
             // Add the "Refresh Token" grant type
-            $server->addGrantType(new RefreshToken($server->getStorage('refresh_token'), $refreshOptions));
+            $server->addGrantType(grantType: new RefreshToken(storage: $server->getStorage(name: 'refresh_token'), config: $refreshOptions));
         }
 
         return $this->server = $server;

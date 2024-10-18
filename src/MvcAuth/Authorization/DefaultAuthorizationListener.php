@@ -26,36 +26,36 @@ class DefaultAuthorizationListener
      *
      * @return bool
      */
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): ?bool
     {
         if ($mvcAuthEvent->isAuthorized()) {
-            return;
+            return null;
         }
 
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
 
         $request = $mvcEvent->getRequest();
         if (! $request instanceof Request) {
-            return;
+            return null;
         }
 
         $response = $mvcEvent->getResponse();
         if (! $response instanceof Response) {
-            return;
+            return null;
         }
 
         $routeMatch = $mvcEvent->getRouteMatch();
-        if (! ($routeMatch instanceof RouteMatch || $routeMatch instanceof V2RouteMatch)) {
-            return;
+        if (!$routeMatch instanceof RouteMatch && !$routeMatch instanceof V2RouteMatch) {
+            return null;
         }
 
         $identity = $mvcAuthEvent->getIdentity();
         if (! $identity instanceof IdentityInterface) {
-            return;
+            return null;
         }
 
         $resource = $mvcAuthEvent->getResource();
         $identity = $mvcAuthEvent->getIdentity();
-        return $this->authorization->isAuthorized($identity, $resource, $request->getMethod());
+        return $this->authorization->isAuthorized(identity: $identity, resource: $resource, privilege: $request->getMethod());
     }
 }

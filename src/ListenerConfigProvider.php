@@ -27,7 +27,7 @@ final class ListenerConfigProvider
 
         foreach ($finder as $fileInfo) {
             $className       = $this->getClassNameFromFileInfo(fileInfo: $fileInfo);
-            $reflectionClass = $this->getReflectionClassFromClassName($className);
+            $reflectionClass = $this->getReflectionClassFromClassName(className: $className);
 
             if ($reflectionClass->isInstantiable() && $reflectionClass->isSubclassOf(
                     class: AbstractRoutedListener::class
@@ -59,8 +59,8 @@ final class ListenerConfigProvider
                 if (in_array(needle: 'create', haystack: $definedClasses, strict: true)) {
                     //Create can be for entities or collections depending on we have an :id in the route
                     $routeType   = str_contains(
-                        $staticClass::getRoute(),
-                        ':'
+                        haystack: $staticClass::getRoute(),
+                        needle: ':'
                     ) ? RouteTypeEnum::ENTITY : RouteTypeEnum::COLLECTION;
                     $routeMethod = RouteMethodEnum::POST;
                 }
@@ -85,7 +85,7 @@ final class ListenerConfigProvider
                         route: $staticClass::getRoute(),
                         routeType: $routeType,
                         routeMethod: $routeMethod,
-                        configAbstractFactories: $this->getConstructorArguments($className),
+                        configAbstractFactories: $this->getConstructorArguments(className: $className),
                         entityCollectionWhiteList: $staticClass::getEntityCollectionWhiteList(),
                         pageSize: $staticClass::getPageSize(),
                         inputFilterSpecification: $staticClass::getInputFilterSpecification(),

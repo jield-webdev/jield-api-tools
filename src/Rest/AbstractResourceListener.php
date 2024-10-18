@@ -12,6 +12,7 @@ use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\InputFilter\InputFilterInterface;
 use Laminas\Stdlib\Parameters;
 
+use Override;
 use function sprintf;
 
 abstract class AbstractResourceListener implements ListenerAggregateInterface
@@ -55,14 +56,14 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      * @param string $className
      * @return $this
      */
-    public function setEntityClass($className)
+    public function setEntityClass(string $className): static
     {
         $this->entityClass = $className;
         return $this;
     }
 
     /** @return string */
-    public function getEntityClass()
+    public function getEntityClass(): string
     {
         return $this->entityClass;
     }
@@ -71,14 +72,14 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      * @param string $className
      * @return $this
      */
-    public function setCollectionClass($className)
+    public function setCollectionClass(string $className): static
     {
         $this->collectionClass = $className;
         return $this;
     }
 
     /** @return string */
-    public function getCollectionClass()
+    public function getCollectionClass(): string
     {
         return $this->collectionClass;
     }
@@ -88,7 +89,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * @return ResourceEvent
      */
-    public function getEvent()
+    public function getEvent(): ResourceEvent
     {
         return $this->event;
     }
@@ -101,16 +102,13 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * @return null|IdentityInterface
      */
-    public function getIdentity()
+    public function getIdentity(): ?IdentityInterface
     {
         if ($this->identity) {
             return $this->identity;
         }
 
         $event = $this->getEvent();
-        if (!$event instanceof ResourceEvent) {
-            return null;
-        }
 
         $this->identity = $event->getIdentity();
         return $this->identity;
@@ -124,16 +122,13 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * @return null|InputFilterInterface
      */
-    public function getInputFilter()
+    public function getInputFilter(): ?InputFilterInterface
     {
         if ($this->inputFilter) {
             return $this->inputFilter;
         }
 
         $event = $this->getEvent();
-        if (!$event instanceof ResourceEvent) {
-            return null;
-        }
 
         $this->inputFilter = $event->getInputFilter();
         return $this->inputFilter;
@@ -144,17 +139,18 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * @param int $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach('create', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('delete', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('deleteList', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('fetch', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('fetchAll', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('patch', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('patchList', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('replaceList', [$this, 'dispatch']);
-        $this->listeners[] = $events->attach('update', [$this, 'dispatch']);
+        $this->listeners[] = $events->attach(eventName: 'create', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'delete', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'deleteList', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'fetch', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'fetchAll', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'patch', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'patchList', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'replaceList', listener: $this->dispatch(...));
+        $this->listeners[] = $events->attach(eventName: 'update', listener: $this->dispatch(...));
     }
 
     /**
@@ -162,44 +158,43 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * Marshals arguments from the event parameters.
      *
-     * @return mixed
      */
-    public function dispatch(ResourceEvent $event)
+    public function dispatch(ResourceEvent $event): mixed
     {
         $this->event = $event;
         switch ($event->getName()) {
             case 'create':
-                $data = $event->getParam('data', []);
-                return $this->create($data);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->create(data: $data);
             case 'delete':
-                $id = $event->getParam('id', null);
-                return $this->delete($id);
+                $id = $event->getParam(name: 'id', default: null);
+                return $this->delete(id: $id);
             case 'deleteList':
-                $data = $event->getParam('data', []);
-                return $this->deleteList($data);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->deleteList(data: $data);
             case 'fetch':
-                $id = $event->getParam('id', null);
-                return $this->fetch($id);
+                $id = $event->getParam(name: 'id', default: null);
+                return $this->fetch(id: $id);
             case 'fetchAll':
                 $queryParams = $event->getQueryParams() ?: [];
-                return $this->fetchAll($queryParams);
+                return $this->fetchAll(params: $queryParams);
             case 'patch':
-                $id   = $event->getParam('id', null);
-                $data = $event->getParam('data', []);
-                return $this->patch($id, $data);
+                $id   = $event->getParam(name: 'id', default: null);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->patch(id: $id, data: $data);
             case 'patchList':
-                $data = $event->getParam('data', []);
-                return $this->patchList($data);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->patchList(data: $data);
             case 'replaceList':
-                $data = $event->getParam('data', []);
-                return $this->replaceList($data);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->replaceList(data: $data);
             case 'update':
-                $id   = $event->getParam('id', null);
-                $data = $event->getParam('data', []);
-                return $this->update($id, $data);
+                $id   = $event->getParam(name: 'id', default: null);
+                $data = $event->getParam(name: 'data', default: []);
+                return $this->update(id: $id, data: $data);
             default:
                 throw new Exception\RuntimeException(
-                    sprintf(
+                    message: sprintf(
                         '%s has not been setup to handle the event "%s"',
                         __METHOD__,
                         $event->getName()
@@ -211,45 +206,41 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
     /**
      * Create a resource
      *
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function create($data)
+    public function create(mixed $data): mixed
     {
-        return new ApiProblem(405, 'The POST method has not been defined');
+        return new ApiProblem(status: 405, detail: 'The POST method has not been defined');
     }
 
     /**
      * Delete a resource
      *
-     * @param mixed $id
      * @return ApiProblem|mixed
      */
-    public function delete($id)
+    public function delete(mixed $id): mixed
     {
-        return new ApiProblem(405, 'The DELETE method has not been defined for individual resources');
+        return new ApiProblem(status: 405, detail: 'The DELETE method has not been defined for individual resources');
     }
 
     /**
      * Delete a collection, or members of a collection
      *
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function deleteList($data)
+    public function deleteList(mixed $data): mixed
     {
-        return new ApiProblem(405, 'The DELETE method has not been defined for collections');
+        return new ApiProblem(status: 405, detail: 'The DELETE method has not been defined for collections');
     }
 
     /**
      * Fetch a resource
      *
-     * @param mixed $id
      * @return ApiProblem|mixed
      */
-    public function fetch($id)
+    public function fetch(mixed $id): mixed
     {
-        return new ApiProblem(405, 'The GET method has not been defined for individual resources');
+        return new ApiProblem(status: 405, detail: 'The GET method has not been defined for individual resources');
     }
 
     /**
@@ -258,54 +249,48 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      * @param array|Parameters $params
      * @return ApiProblem|mixed
      */
-    public function fetchAll($params = [])
+    public function fetchAll(array|Parameters $params = []): mixed
     {
-        return new ApiProblem(405, 'The GET method has not been defined for collections');
+        return new ApiProblem(status: 405, detail: 'The GET method has not been defined for collections');
     }
 
     /**
      * Patch (partial in-place update) a resource
      *
-     * @param mixed $id
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function patch($id, $data)
+    public function patch(mixed $id, mixed $data): mixed
     {
-        return new ApiProblem(405, 'The PATCH method has not been defined for individual resources');
+        return new ApiProblem(status: 405, detail: 'The PATCH method has not been defined for individual resources');
     }
 
     /**
      * Patch (partial in-place update) a collection or members of a collection
      *
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function patchList($data)
+    public function patchList(mixed $data): mixed
     {
-        return new ApiProblem(405, 'The PATCH method has not been defined for collections');
+        return new ApiProblem(status: 405, detail: 'The PATCH method has not been defined for collections');
     }
 
     /**
      * Replace a collection or members of a collection
      *
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function replaceList($data)
+    public function replaceList(mixed $data): mixed
     {
-        return new ApiProblem(405, 'The PUT method has not been defined for collections');
+        return new ApiProblem(status: 405, detail: 'The PUT method has not been defined for collections');
     }
 
     /**
      * Update a resource
      *
-     * @param mixed $id
-     * @param mixed $data
      * @return ApiProblem|mixed
      */
-    public function update($id, $data)
+    public function update(mixed $id, mixed $data): mixed
     {
-        return new ApiProblem(405, 'The PUT method has not been defined for individual resources');
+        return new ApiProblem(status: 405, detail: 'The PUT method has not been defined for individual resources');
     }
 }

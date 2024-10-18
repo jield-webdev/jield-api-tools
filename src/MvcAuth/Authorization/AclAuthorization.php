@@ -6,6 +6,7 @@ namespace Jield\ApiTools\MvcAuth\Authorization;
 
 use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 use Laminas\Permissions\Acl\Acl;
+use Override;
 
 /**
  * Authorization implementation that uses the ACL component
@@ -19,9 +20,9 @@ class AclAuthorization extends Acl implements AuthorizationInterface
      *
      * @param mixed $resource
      * @param mixed $privilege
-     * @return bool
      */
-    public function isAuthorized(IdentityInterface $identity, $resource, $privilege)
+    #[Override]
+    public function isAuthorized(IdentityInterface $identity, mixed $resource, mixed $privilege): bool
     {
         if (null !== $resource && (! $this->hasResource($resource))) {
             $this->addResource($resource);

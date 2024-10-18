@@ -10,6 +10,7 @@ use Laminas\View\Model\ModelInterface;
 use Laminas\View\Strategy\JsonStrategy;
 use Laminas\View\ViewEvent;
 
+use Override;
 use function is_string;
 use function method_exists;
 
@@ -35,20 +36,20 @@ class HalJsonStrategy extends JsonStrategy
     /**
      * Detect if we should use the HalJsonRenderer based on model type.
      *
-     * @return null|HalJsonRenderer
      */
-    public function selectRenderer(ViewEvent $e)
+    #[Override]
+    public function selectRenderer(ViewEvent $e): ?HalJsonRenderer
     {
         $model = $e->getModel();
 
         if (! $model instanceof HalJsonModel) {
             // unrecognized model; do nothing
-            return;
+            return null;
         }
 
         // JsonModel found
-        if (method_exists($this->renderer, 'setViewEvent')) {
-            $this->renderer->setViewEvent($e);
+        if (method_exists(object_or_class: $this->renderer, method: 'setViewEvent')) {
+            $this->renderer->setViewEvent(event: $e);
         }
 
         return $this->renderer;
@@ -60,7 +61,8 @@ class HalJsonStrategy extends JsonStrategy
      * Injects the response with the rendered content, and sets the content
      * type based on the detection that occurred during renderer selection.
      */
-    public function injectResponse(ViewEvent $e)
+    #[Override]
+    public function injectResponse(ViewEvent $e): void
     {
         $renderer = $e->getRenderer();
         if ($renderer !== $this->renderer) {
@@ -69,7 +71,7 @@ class HalJsonStrategy extends JsonStrategy
         }
 
         $result = $e->getResult();
-        if (! is_string($result)) {
+        if (! is_string(value: $result)) {
             // We don't have a string, and thus, no JSON
             return;
         }
@@ -82,22 +84,22 @@ class HalJsonStrategy extends JsonStrategy
             return;
         }
 
-        $response->setContent($result);
+        $response->setContent(value: $result);
 
         $headers = $response->getHeaders();
         $headers->addHeaderLine(
-            'content-type',
-            $this->getContentTypeFromModel($model)
+            headerFieldNameOrLine: 'content-type',
+            fieldValue: $this->getContentTypeFromModel(model: $model)
         );
     }
 
     /**
      * Determine the response content-type to return based on the view model.
      *
-     * @param null|ApiProblemModel|HalJsonModel|ModelInterface $model
+     * @param ApiProblemModel|HalJsonModel|ModelInterface|null $model
      * @return string The content-type to use.
      */
-    private function getContentTypeFromModel($model)
+    private function getContentTypeFromModel(HalJsonModel|ApiProblemModel|ModelInterface|null $model): string
     {
         if ($model instanceof ApiProblemModel) {
             return 'application/problem+json';

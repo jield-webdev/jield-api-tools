@@ -9,21 +9,18 @@ use Psr\Container\ContainerInterface;
 
 class AuthenticationServiceFactory
 {
-    /**
-     * @return AuthenticationService
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): AuthenticationService
     {
         $config = $container->get('config');
 
         if ($container->has(\Laminas\Authentication\AuthenticationService::class)) {
             return new AuthenticationService(
-                $container->get(\Laminas\Authentication\AuthenticationService::class),
-                $config
+                authenticationService: $container->get(\Laminas\Authentication\AuthenticationService::class),
+                config: $config
             );
         }
 
-        return new AuthenticationService(null, $config);
+        return new AuthenticationService(authenticationService: null, config: $config);
     }
 
     /**
@@ -32,8 +29,8 @@ class AuthenticationServiceFactory
      * @param ServiceLocatorInterface $container
      * @return AuthenticationService
      */
-    public function createService($container)
+    public function createService(ServiceLocatorInterface $container): AuthenticationService
     {
-        return $this($container);
+        return $this(container: $container);
     }
 }

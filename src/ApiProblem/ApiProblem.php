@@ -11,8 +11,6 @@ use Throwable;
 use function array_key_exists;
 use function array_keys;
 use function array_merge;
-use function count;
-use function get_class;
 use function in_array;
 use function is_numeric;
 use function sprintf;
@@ -104,7 +102,7 @@ class ApiProblem
             415 => 'Unsupported Media Type',
             416 => 'Requested range not satisfiable',
             417 => 'Expectation Failed',
-            418 => 'I\'m a teapot',
+            418 => "I'm a teapot",
             422 => 'Unprocessable Entity',
             423 => 'Locked',
             424 => 'Failed Dependency',
@@ -140,28 +138,30 @@ class ApiProblem
      * from $problemStatusTitles as a result.
      *
      * @param int|string $status
-     * @param string|Exception|Throwable $detail
-     * @param string $type
-     * @param string $title
+     * @param Throwable|Exception|string $detail
+     * @param string|null $type
+     * @param string|null $title
      * @param array $additional
      */
-    public function __construct($status, $detail, $type = null, $title = null, array $additional = [])
+    public function __construct(int|string $status, Throwable|Exception|string $detail, string $type = null, string $title = null, array $additional = [])
     {
         if ($detail instanceof ProblemExceptionInterface) {
             if (null === $type) {
                 $type = $detail->getType();
             }
+
             if (null === $title) {
                 $title = $detail->getTitle();
             }
-            if (empty($additional)) {
+
+            if ($additional === []) {
                 $additional = $detail->getAdditionalDetails();
             }
         }
 
         // Ensure a valid HTTP status
         if (
-            !is_numeric($status)
+            !is_numeric(value: $status)
             || ($status < 100)
             || ($status > 599)
         ) {
@@ -186,10 +186,10 @@ class ApiProblem
      * @return mixed
      * @throws InvalidArgumentException
      */
-    public function __get($name)
+    public function __get(string $name)
     {
-        $normalized = strtolower($name);
-        if (in_array($normalized, array_keys($this->normalizedProperties))) {
+        $normalized = strtolower(string: $name);
+        if (in_array(needle: $normalized, haystack: array_keys(array: $this->normalizedProperties))) {
             $prop = $this->normalizedProperties[$normalized];
 
             return $this->{$prop};
@@ -203,7 +203,7 @@ class ApiProblem
             return $this->additionalDetails[$normalized];
         }
 
-        throw new InvalidArgumentException(sprintf(
+        throw new InvalidArgumentException(message: sprintf(
             'Invalid property name "%s"',
             $name
         ));
@@ -214,7 +214,7 @@ class ApiProblem
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $problem = [
             'type'   => $this->type,
@@ -233,7 +233,7 @@ class ApiProblem
      * @param bool $flag
      * @return ApiProblem
      */
-    public function setDetailIncludesStackTrace($flag)
+    public function setDetailIncludesStackTrace(bool $flag): static
     {
         $this->detailIncludesStackTrace = (bool)$flag;
 
@@ -248,9 +248,9 @@ class ApiProblem
      *
      * @return string
      */
-    protected function getDetail()
+    protected function getDetail(): ProblemExceptionInterface|Throwable|Exception|string
     {
-        if ($this->detail instanceof Throwable || $this->detail instanceof Exception) {
+        if ($this->detail instanceof Throwable) {
             return $this->createDetailFromException();
         }
 
@@ -265,7 +265,7 @@ class ApiProblem
      */
     protected function getStatus(): int
     {
-        if ($this->detail instanceof Throwable || $this->detail instanceof Exception) {
+        if ($this->detail instanceof Throwable) {
             $this->status = (int)$this->createStatusFromException();
         }
 
@@ -285,22 +285,21 @@ class ApiProblem
      *
      * @return string
      */
-    protected function getTitle()
+    protected function getTitle(): ?string
     {
         if (null !== $this->title) {
             return $this->title;
         }
 
         if (
-            null === $this->title
-            && $this->type === 'https://datatracker.ietf.org/doc/html/rfc7231#section-6'
-            && array_key_exists($this->getStatus(), $this->problemStatusTitles)
+            $this->type === 'https://datatracker.ietf.org/doc/html/rfc7231#section-6'
+            && array_key_exists(key: $this->getStatus(), array: $this->problemStatusTitles)
         ) {
             return $this->problemStatusTitles[$this->status];
         }
 
         if ($this->detail instanceof Throwable) {
-            return get_class($this->detail);
+            return $this->detail::class;
         }
 
         if (null === $this->title) {
@@ -315,7 +314,7 @@ class ApiProblem
      *
      * @return string
      */
-    protected function createDetailFromException()
+    protected function createDetailFromException(): string
     {
         /** @var Exception|Throwable $e */
         $e = $this->detail;
@@ -324,7 +323,7 @@ class ApiProblem
             return $e->getMessage();
         }
 
-        $message                          = trim($e->getMessage());
+        $message                          = trim(string: $e->getMessage());
         $this->additionalDetails['trace'] = $e->getTrace();
 
         $previous = [];
@@ -332,12 +331,13 @@ class ApiProblem
         while ($e) {
             $previous[] = [
                 'code'    => (int)$e->getCode(),
-                'message' => trim($e->getMessage()),
+                'message' => trim(string: $e->getMessage()),
                 'trace'   => $e->getTrace(),
             ];
             $e          = $e->getPrevious();
         }
-        if (count($previous)) {
+
+        if ($previous !== []) {
             $this->additionalDetails['exception_stack'] = $previous;
         }
 
@@ -349,7 +349,7 @@ class ApiProblem
      *
      * @return int|string
      */
-    protected function createStatusFromException()
+    protected function createStatusFromException(): int|string
     {
         /** @var Exception|Throwable $e */
         $e      = $this->detail;

@@ -8,6 +8,7 @@ use Jield\ApiTools\MvcAuth\Authorization\DefaultResourceResolverListener;
 use Laminas\Http\Request;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -28,15 +29,14 @@ class DefaultResourceResolverListenerFactory implements FactoryInterface
      * Create and return a DefaultResourceResolverListener instance.
      *
      * @param string             $requestedName
-     * @param null|array         $options
-     * @return DefaultResourceResolverListener
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): DefaultResourceResolverListener
     {
         $config = $container->has('config') ? $container->get('config') : [];
 
         return new DefaultResourceResolverListener(
-            $this->getRestServicesFromConfig($config)
+            restControllers: $this->getRestServicesFromConfig(config: $config)
         );
     }
 
@@ -49,7 +49,7 @@ class DefaultResourceResolverListenerFactory implements FactoryInterface
      * @param array $config
      * @return array
      */
-    protected function getRestServicesFromConfig(array $config)
+    protected function getRestServicesFromConfig(array $config): array
     {
         $restServices = [];
         if (! isset($config['api-tools-rest'])) {
@@ -60,6 +60,7 @@ class DefaultResourceResolverListenerFactory implements FactoryInterface
             if (! isset($restConfig['route_identifier_name'])) {
                 continue;
             }
+
             $restServices[$controllerService] = $restConfig['route_identifier_name'];
         }
 

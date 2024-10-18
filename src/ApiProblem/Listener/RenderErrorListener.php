@@ -10,6 +10,7 @@ use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Exception\ExceptionInterface as ViewExceptionInterface;
+use Override;
 use Throwable;
 use function json_encode;
 
@@ -26,16 +27,17 @@ class RenderErrorListener extends AbstractListenerAggregate
     /**
      * {@inheritDoc}
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_RENDER_ERROR, [$this, 'onRenderError'], 100);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_RENDER_ERROR, listener: $this->onRenderError(...), priority: 100);
     }
 
     /**
      * @param bool $flag
      * @return RenderErrorListener
      */
-    public function setDisplayExceptions($flag)
+    public function setDisplayExceptions(bool $flag): static
     {
         $this->displayExceptions = (bool)$flag;
 
@@ -50,9 +52,8 @@ class RenderErrorListener extends AbstractListenerAggregate
      *
      * As such, report as an unacceptable response.
      *
-     * @return void
      */
-    public function onRenderError(MvcEvent $e)
+    public function onRenderError(MvcEvent $e): void
     {
         $response    = $e->getResponse();
         $status      = 406;
@@ -61,17 +62,14 @@ class RenderErrorListener extends AbstractListenerAggregate
         $detail      = 'Your request could not be resolved to an acceptable representation.';
         $details     = false;
 
-        $exception = $e->getParam('exception');
+        $exception = $e->getParam(name: 'exception');
         if (
-            ($exception instanceof Throwable || $exception instanceof Exception)
+            ($exception instanceof Throwable)
             && !$exception instanceof ViewExceptionInterface
         ) {
             $code = $exception->getCode();
-            if ($code >= 100 && $code <= 600) {
-                $status = $code;
-            } else {
-                $status = 500;
-            }
+            $status = $code >= 100 && $code <= 600 ? $code : 500;
+
             $title   = 'Unexpected error';
             $detail  = $exception->getMessage();
             $details = [
@@ -92,8 +90,8 @@ class RenderErrorListener extends AbstractListenerAggregate
         }
 
         $response->getHeaders()->addHeaderLine('content-type', ApiProblem::CONTENT_TYPE);
-        $response->setStatusCode($status);
-        $response->setContent(json_encode($payload));
+        $response->setStatusCode(code: $status);
+        $response->setContent(json_encode(value: $payload));
 
         $e->stopPropagation();
     }

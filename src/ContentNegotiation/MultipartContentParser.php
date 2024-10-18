@@ -49,7 +49,7 @@ class MultipartContentParser
      */
     public function __construct(ContentTypeHeader $contentType, HttpRequest $request)
     {
-        if (! preg_match('/boundary=(?P<boundary>[^\s]+)/', $contentType->getFieldValue(), $matches)) {
+        if (! preg_match(pattern: '/boundary=(?P<boundary>[^\s]+)/', subject: $contentType->getFieldValue(), matches: $matches)) {
             throw new Exception\InvalidMultipartContentException();
         }
 
@@ -66,10 +66,10 @@ class MultipartContentParser
      *
      * @return string
      */
-    public static function getUploadTempDir()
+    public static function getUploadTempDir(): string
     {
-        $tmpDir = ini_get('upload_tmp_dir');
-        if (! empty($tmpDir) && is_dir($tmpDir)) {
+        $tmpDir = ini_get(option: 'upload_tmp_dir');
+        if (! ($tmpDir === '' || $tmpDir === '0' || $tmpDir === false) && is_dir(filename: $tmpDir)) {
             return $tmpDir;
         }
 
@@ -83,17 +83,17 @@ class MultipartContentParser
      *
      * @return array
      */
-    public function parse()
+    public function parse(): array
     {
         if ($this->request instanceof Request) {
-            return $this->parseFromStream($this->request->getContentAsStream());
+            return $this->parseFromStream(stream: $this->request->getContentAsStream());
         }
 
-        $stream = fopen('php://temp', 'r+');
-        fwrite($stream, $this->request->getContent());
-        rewind($stream);
+        $stream = fopen(filename: 'php://temp', mode: 'r+');
+        fwrite(stream: $stream, data: (string) $this->request->getContent());
+        rewind(stream: $stream);
 
-        return $this->parseFromStream($stream);
+        return $this->parseFromStream(stream: $stream);
     }
 
     /**
@@ -103,7 +103,7 @@ class MultipartContentParser
      * @return array
      * @throws Exception\InvalidMultipartContentException
      */
-    protected function parseFromStream($stream)
+    protected function parseFromStream($stream): array
     {
         $buffer         = '';
         $data           = new Parameters();
@@ -122,50 +122,50 @@ class MultipartContentParser
         $partBoundaryPatternStart = '/^--' . $this->boundary . '(--)?/';
         $partBoundaryPatternEnd   = '/^--' . $this->boundary . '--$/';
 
-        while (false !== ($line = fgets($stream))) {
-            $trimmedLine = rtrim($line);
+        while (false !== ($line = fgets(stream: $stream))) {
+            $trimmedLine = rtrim(string: $line);
 
-            if (preg_match($partBoundaryPatternStart, $trimmedLine)) {
+            if (preg_match(pattern: $partBoundaryPatternStart, subject: $trimmedLine)) {
                 if ($partInProgress) {
                     // Time to handle the data we've already parsed!
                     // Data
                     if (! $filename) {
-                        $content = rtrim($content, "\r\n");
-                        $buffer .= sprintf('%s=%s&', $name, rawurlencode($content));
+                        $content = rtrim(string: $content, characters: "\r\n");
+                        $buffer .= sprintf('%s=%s&', $name, rawurlencode(string: $content));
                     }
 
                     // File (successful upload so far)
                     if ($filename && $tmpFile) {
                         // Write the last line, stripping the EOL characters
-                        if (false === fwrite($tmpFile, rtrim($lastline, "\r\n"))) {
+                        if (false === fwrite(stream: $tmpFile, data: rtrim(string: $lastline, characters: "\r\n"))) {
                             // Ooops! error writing the very last line!
                             $file['error'] = UPLOAD_ERR_CANT_WRITE;
-                            fclose($tmpFile);
+                            fclose(stream: $tmpFile);
                         } else {
                             // Success! Let's try and guess the MIME type based on the file written
-                            fclose($tmpFile);
+                            fclose(stream: $tmpFile);
 
-                            if ($mimeType === 'application/octet-stream' && function_exists('finfo_open')) {
-                                $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                                $type  = finfo_file($finfo, $file['tmp_name']);
+                            if ($mimeType === 'application/octet-stream' && function_exists(function: 'finfo_open')) {
+                                $finfo = finfo_open(flags: FILEINFO_MIME_TYPE);
+                                $type  = finfo_file(finfo: $finfo, filename: $file['tmp_name']);
                                 if (false !== $type) {
                                     $file['type'] = $type;
                                 }
                             }
 
                             // Finally, set the filesize
-                            $file['size'] = filesize($file['tmp_name']);
+                            $file['size'] = filesize(filename: $file['tmp_name']);
                         }
                     }
 
                     if ($filename) {
                         // At this point, we can add the file entry, regardless of error condition
-                        $files->set($name, $file);
+                        $files->set(name: $name, value: $file);
                     }
                 }
 
                 // Is this a boundary end? If so, we're done
-                if (preg_match($partBoundaryPatternEnd, $trimmedLine)) {
+                if (preg_match(pattern: $partBoundaryPatternEnd, subject: $trimmedLine)) {
                     // Met the "end" boundary; time to stop!
                     break;
                 }
@@ -185,7 +185,7 @@ class MultipartContentParser
             }
 
             if ($inHeader) {
-                if (preg_match('/^\s*$/s', $line)) {
+                if (preg_match(pattern: '/^\s*$/s', subject: $line)) {
                     // Headers are done; cleanup
                     $inHeader = false;
                     $content  = '';
@@ -194,22 +194,21 @@ class MultipartContentParser
                     $lastline = null;
 
                     // Parse headers
-                    $name = $this->getNameFromHeaders($headers);
+                    $name = $this->getNameFromHeaders(headers: $headers);
 
                     if (! $name) {
                         throw new Exception\InvalidMultipartContentException(
-                            'Missing Content-Disposition header, or Content-Disposition header does not '
-                            . 'contain a "name" field'
+                            message: 'Missing Content-Disposition header, or Content-Disposition header does not contain a "name" field'
                         );
                     }
 
-                    $filename = $this->getFilenameFromHeaders($headers);
-                    $mimeType = $this->getMimeTypeFromHeaders($headers);
+                    $filename = $this->getFilenameFromHeaders(headers: $headers);
+                    $mimeType = $this->getMimeTypeFromHeaders(headers: $headers);
                     continue;
                 }
 
-                if (preg_match('/^(?P<header>[a-z]+[a-z0-9_-]+):\s*(?P<value>.*)$/i', $trimmedLine, $matches)) {
-                    $header           = strtoupper($matches['header']);
+                if (preg_match(pattern: '/^(?P<header>[a-z]+[a-z0-9_-]+):\s*(?P<value>.*)$/i', subject: $trimmedLine, matches: $matches)) {
+                    $header           = strtoupper(string: $matches['header']);
                     $headers[$header] = $matches['value'];
 
                     continue;
@@ -217,7 +216,7 @@ class MultipartContentParser
 
                 if (! $header) {
                     throw new Exception\InvalidMultipartContentException(
-                        'Malformed or missing MIME part header for multipart content'
+                        message: 'Malformed or missing MIME part header for multipart content'
                     );
                 }
 
@@ -245,15 +244,15 @@ class MultipartContentParser
                 $file['name'] = $filename;
                 $file['type'] = $mimeType;
 
-                $tmpDir = $this->getUploadTempDir();
+                $tmpDir = static::getUploadTempDir();
                 if (empty($tmpDir)) {
                     // Cannot ascertain temporary directory; this is an error
                     $file['error'] = UPLOAD_ERR_NO_TMP_DIR;
                     continue;
                 }
 
-                $file['tmp_name'] = tempnam($tmpDir, 'laminasc');
-                $tmpFile          = fopen($file['tmp_name'], 'wb');
+                $file['tmp_name'] = tempnam(directory: $tmpDir, prefix: 'laminasc');
+                $tmpFile          = fopen(filename: $file['tmp_name'], mode: 'wb');
                 if (false === $tmpFile) {
                     // Cannot open the temporary file for writing; this is an error
                     $file['error'] = UPLOAD_ERR_CANT_WRITE;
@@ -268,21 +267,22 @@ class MultipartContentParser
                 continue;
             }
 
-            if (false === fwrite($tmpFile, $lastline)) {
+            if (false === fwrite(stream: $tmpFile, data: $lastline)) {
                 $file['error'] = UPLOAD_ERR_CANT_WRITE;
-                fclose($tmpFile);
+                fclose(stream: $tmpFile);
                 continue;
             }
+
             $lastline = $line;
         }
 
-        fclose($stream);
+        fclose(stream: $stream);
 
         if ($files->count()) {
-            $this->request->setFiles($files);
+            $this->request->setFiles(files: $files);
         }
 
-        $data->fromString(rtrim($buffer, '&'));
+        $data->fromString(string: rtrim(string: $buffer, characters: '&'));
 
         return $data->toArray();
     }
@@ -293,13 +293,13 @@ class MultipartContentParser
      * @param  array $headers
      * @return false|string
      */
-    protected function getNameFromHeaders(array $headers)
+    protected function getNameFromHeaders(array $headers): false|string
     {
         if (! isset($headers['CONTENT-DISPOSITION'])) {
             return false;
         }
 
-        if (! preg_match('/(?:;|\s)name="(?P<name>[^"]+)"/', $headers['CONTENT-DISPOSITION'], $matches)) {
+        if (! preg_match(pattern: '/(?:;|\s)name="(?P<name>[^"]+)"/', subject: (string)$headers['CONTENT-DISPOSITION'], matches: $matches)) {
             return false;
         }
 
@@ -312,13 +312,13 @@ class MultipartContentParser
      * @param  array $headers
      * @return false|string
      */
-    protected function getFilenameFromHeaders(array $headers)
+    protected function getFilenameFromHeaders(array $headers): false|string
     {
         if (! isset($headers['CONTENT-DISPOSITION'])) {
             return false;
         }
 
-        if (! preg_match('/filename="(?P<filename>[^"]*)"/', $headers['CONTENT-DISPOSITION'], $matches)) {
+        if (! preg_match(pattern: '/filename="(?P<filename>[^"]*)"/', subject: (string)$headers['CONTENT-DISPOSITION'], matches: $matches)) {
             return false;
         }
 
@@ -331,7 +331,7 @@ class MultipartContentParser
      * @param  array $headers
      * @return string
      */
-    protected function getMimeTypeFromHeaders(array $headers)
+    protected function getMimeTypeFromHeaders(array $headers): string
     {
         if (! isset($headers['CONTENT-TYPE'])) {
             return 'application/octet-stream';

@@ -5,26 +5,24 @@ declare(strict_types=1);
 namespace Jield\ApiTools\MvcAuth\Identity;
 
 use Laminas\Permissions\Rbac\Role;
+use Override;
 
 class AuthenticatedIdentity extends Role implements IdentityInterface
 {
-    /** @var mixed */
-    protected $identity;
-
     /** @param mixed $identity */
-    public function __construct($identity)
+    public function __construct(protected $identity)
     {
-        $this->identity = $identity;
     }
 
     /** @return null|string */
-    public function getRoleId()
+    public function getRoleId(): ?string
     {
         return $this->name;
     }
 
     /** @return mixed */
-    public function getAuthenticationIdentity()
+    #[Override]
+    public function getAuthenticationIdentity(): mixed
     {
         return $this->identity;
     }
@@ -33,7 +31,7 @@ class AuthenticatedIdentity extends Role implements IdentityInterface
      * @param string $name
      * @return void
      */
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }

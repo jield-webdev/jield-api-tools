@@ -8,7 +8,6 @@ use Jield\ApiTools\Hal\Exception;
 use Laminas\Hydrator\HydratorPluginManager;
 use Laminas\Hydrator\HydratorPluginManagerInterface;
 use Laminas\ServiceManager\ServiceManager;
-
 use function array_key_exists;
 use function get_debug_type;
 use function get_parent_class;
@@ -30,39 +29,27 @@ class MetadataMap
      * If provided, will pass $map to setMap().
      * If provided, will pass $hydrators to setHydratorManager().
      *
-     * @param  null|array<class-string, array<string,string>|Metadata> $map
-     * @param  null|HydratorPluginManager|HydratorPluginManagerInterface $hydrators
+     * @param null|array<class-string, array<string,string>|Metadata> $map
+     * @param HydratorPluginManager|HydratorPluginManagerInterface|null $hydrators
      */
-    public function __construct(?array $map = null, $hydrators = null)
+    public function __construct(?array $map = null, HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
     {
         if (null !== $hydrators) {
-            $this->setHydratorManager($hydrators);
+            $this->setHydratorManager(hydrators: $hydrators);
         }
 
-        if (! empty($map)) {
-            $this->setMap($map);
+        if ($map !== null && $map !== []) {
+            $this->setMap(map: $map);
         }
     }
 
     /**
-     * @param  HydratorPluginManager|HydratorPluginManagerInterface $hydrators
+     * @param HydratorPluginManager|HydratorPluginManagerInterface $hydrators
      * @return self
      */
-    public function setHydratorManager($hydrators)
+    public function setHydratorManager(HydratorPluginManager|HydratorPluginManagerInterface $hydrators): static
     {
-        if ($hydrators instanceof HydratorPluginManagerInterface) {
-            $this->hydrators = $hydrators;
-        } elseif ($hydrators instanceof HydratorPluginManager) {
-            $this->hydrators = $hydrators;
-        } else {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '$hydrators argument to %s must be an instance of either %s or %s; received %s',
-                self::class,
-                HydratorPluginManagerInterface::class,
-                HydratorPluginManager::class,
-                get_debug_type($hydrators)
-            ));
-        }
+        $this->hydrators = $hydrators;
 
         return $this;
     }
@@ -70,11 +57,11 @@ class MetadataMap
     /**
      * @return HydratorPluginManager|HydratorPluginManagerInterface
      */
-    public function getHydratorManager()
+    public function getHydratorManager(): HydratorPluginManager|HydratorPluginManagerInterface|null
     {
         if (null === $this->hydrators) {
-            $hydrators = new HydratorPluginManager(new ServiceManager());
-            $this->setHydratorManager($hydrators);
+            $hydrators = new HydratorPluginManager(configInstanceOrParentLocator: new ServiceManager());
+            $this->setHydratorManager(hydrators: $hydrators);
             return $hydrators;
         }
 
@@ -88,19 +75,19 @@ class MetadataMap
      * Each definition may be an instance of Metadata, or an array
      * of options used to define a Metadata instance.
      *
-     * @param  array<class-string, array<string,string>|Metadata> $map
+     * @param array<class-string, array<string,string>|Metadata> $map
      * @return self
      * @throws Exception\InvalidArgumentException
      */
-    public function setMap(array $map)
+    public function setMap(array $map): static
     {
         foreach ($map as $class => $options) {
             $metadata = $options;
-            if (! is_array($metadata) && ! $metadata instanceof Metadata) {
-                throw new Exception\InvalidArgumentException(sprintf(
+            if (!is_array(value: $metadata) && !$metadata instanceof Metadata) {
+                throw new Exception\InvalidArgumentException(message: sprintf(
                     '%s expects each map to be an array or a Jield\ApiTools\Hal\Metadata instance; received "%s"',
                     __METHOD__,
-                    get_debug_type($metadata)
+                    get_debug_type(value: $metadata)
                 ));
             }
 
@@ -114,22 +101,17 @@ class MetadataMap
      * Does the map contain metadata for the given class?
      *
      * @psalm-param  object|class-string $class Object or class name to test
-     * @return bool
      */
-    public function has($class)
+    public function has($class): bool
     {
-        if (is_object($class)) {
-            $className = $class::class;
-        } else {
-            $className = $class;
-        }
+        $className = is_object(value: $class) ? $class::class : $class;
 
-        if (array_key_exists($className, $this->map)) {
+        if (array_key_exists(key: $className, array: $this->map)) {
             return true;
         }
 
-        if (get_parent_class($className)) {
-            return $this->has(get_parent_class($className));
+        if (get_parent_class(object_or_class: $className)) {
+            return $this->has(class: get_parent_class(object_or_class: $className));
         }
 
         return false;
@@ -141,22 +123,17 @@ class MetadataMap
      * Lazy-loads the Metadata instance if one is not present for a matching class.
      *
      * @psalm-param object|class-string $class Object or classname for which to retrieve metadata
-     * @return Metadata|false
      */
-    public function get($class)
+    public function get($class): Metadata|false
     {
-        if (is_object($class)) {
-            $className = $class::class;
-        } else {
-            $className = $class;
-        }
+        $className = is_object(value: $class) ? $class::class : $class;
 
         if (isset($this->map[$className])) {
-            return $this->getMetadataInstance($className);
+            return $this->getMetadataInstance(class: $className);
         }
 
-        if (get_parent_class($className)) {
-            return $this->get(get_parent_class($className));
+        if (get_parent_class(object_or_class: $className)) {
+            return $this->get(class: get_parent_class(object_or_class: $className));
         }
 
         return false;
@@ -166,15 +143,14 @@ class MetadataMap
      * Retrieve a metadata instance.
      *
      * @psalm-param class-string $class
-     * @return Metadata
      */
-    private function getMetadataInstance($class)
+    private function getMetadataInstance($class): Metadata
     {
         if ($this->map[$class] instanceof Metadata) {
             return $this->map[$class];
         }
 
-        $this->map[$class] = new Metadata($class, $this->map[$class], $this->getHydratorManager());
+        $this->map[$class] = new Metadata(class: $class, options: $this->map[$class], hydrators: $this->getHydratorManager());
         return $this->map[$class];
     }
 }

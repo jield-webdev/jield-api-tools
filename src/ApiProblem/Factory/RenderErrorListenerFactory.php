@@ -9,10 +9,7 @@ use Jield\ApiTools\ApiProblem\Listener\RenderErrorListener;
 
 class RenderErrorListenerFactory
 {
-    /**
-     * @return RenderErrorListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): RenderErrorListener
     {
         $config            = $container->get('config');
         $displayExceptions = false;
@@ -25,7 +22,7 @@ class RenderErrorListenerFactory
         }
 
         $listener = new RenderErrorListener();
-        $listener->setDisplayExceptions($displayExceptions);
+        $listener->setDisplayExceptions(flag: $displayExceptions);
 
         return $listener;
     }

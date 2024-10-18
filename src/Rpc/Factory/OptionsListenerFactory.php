@@ -9,20 +9,16 @@ use Psr\Container\ContainerInterface;
 
 class OptionsListenerFactory
 {
-    /**
-     * @return OptionsListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): OptionsListener
     {
-        return new OptionsListener($this->getConfig($container));
+        return new OptionsListener(config: $this->getConfig(container: $container));
     }
 
     /**
      * Attempt to marshal configuration from the "config" service.
      *
-     * @return array
      */
-    private function getConfig(ContainerInterface $container)
+    private function getConfig(ContainerInterface $container): array
     {
         if (! $container->has('config')) {
             return [];

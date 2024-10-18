@@ -10,7 +10,7 @@ use Laminas\Mvc\InjectApplicationEventInterface;
 class IdentityPlugin extends AbstractPlugin
 {
     /** @return GuestIdentity|IdentityInterface */
-    public function __invoke()
+    public function __invoke(): GuestIdentity|IdentityInterface
     {
         $controller = $this->getController();
         if (!$controller instanceof InjectApplicationEventInterface) {
@@ -18,7 +18,7 @@ class IdentityPlugin extends AbstractPlugin
         }
 
         $event    = $controller->getEvent();
-        $identity = $event->getParam(__NAMESPACE__);
+        $identity = $event->getParam(name: __NAMESPACE__);
 
         if (!$identity instanceof IdentityInterface) {
             return new GuestIdentity();

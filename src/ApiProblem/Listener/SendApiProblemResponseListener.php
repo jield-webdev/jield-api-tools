@@ -8,6 +8,7 @@ use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Laminas\Http\Response as HttpResponse;
 use Laminas\Mvc\ResponseSender\HttpResponseSender;
 use Laminas\Mvc\ResponseSender\SendResponseEvent;
+use Override;
 
 /**
  * Send ApiProblem responses.
@@ -20,10 +21,7 @@ class SendApiProblemResponseListener extends HttpResponseSender
     /** @var bool */
     protected $displayExceptions = false;
 
-    /**
-     * @return self
-     */
-    public function setApplicationResponse(HttpResponse $response)
+    public function setApplicationResponse(HttpResponse $response): static
     {
         $this->applicationResponse = $response;
 
@@ -36,7 +34,7 @@ class SendApiProblemResponseListener extends HttpResponseSender
      * @param bool $flag
      * @return self
      */
-    public function setDisplayExceptions($flag)
+    public function setDisplayExceptions(bool $flag): static
     {
         $this->displayExceptions = (bool) $flag;
 
@@ -48,7 +46,7 @@ class SendApiProblemResponseListener extends HttpResponseSender
      *
      * @return bool
      */
-    public function displayExceptions()
+    public function displayExceptions(): bool
     {
         return $this->displayExceptions;
     }
@@ -59,17 +57,18 @@ class SendApiProblemResponseListener extends HttpResponseSender
      * Sets the composed ApiProblem's flag for including the stack trace in the
      * detail based on the display exceptions flag, and then sends content.
      *
-     * @return self
      */
-    public function sendContent(SendResponseEvent $e)
+    #[Override]
+    public function sendContent(SendResponseEvent $e): SendApiProblemResponseListener|static
     {
         $response = $e->getResponse();
         if (! $response instanceof ApiProblemResponse) {
             return $this;
         }
-        $response->getApiProblem()->setDetailIncludesStackTrace($this->displayExceptions());
 
-        return parent::sendContent($e);
+        $response->getApiProblem()->setDetailIncludesStackTrace(flag: $this->displayExceptions());
+
+        return parent::sendContent(event: $e);
     }
 
     /**
@@ -78,9 +77,9 @@ class SendApiProblemResponseListener extends HttpResponseSender
      * If an application response is composed, and is an HTTP response, merges
      * its headers with the ApiProblemResponse headers prior to sending them.
      *
-     * @return self
      */
-    public function sendHeaders(SendResponseEvent $e)
+    #[Override]
+    public function sendHeaders(SendResponseEvent $e): SendApiProblemResponseListener|static
     {
         $response = $e->getResponse();
         if (! $response instanceof ApiProblemResponse) {
@@ -88,27 +87,27 @@ class SendApiProblemResponseListener extends HttpResponseSender
         }
 
         if ($this->applicationResponse instanceof HttpResponse) {
-            $this->mergeHeaders($this->applicationResponse, $response);
+            $this->mergeHeaders(applicationResponse: $this->applicationResponse, apiProblemResponse: $response);
         }
 
-        return parent::sendHeaders($e);
+        return parent::sendHeaders(event: $e);
     }
 
     /**
      * Send ApiProblem response.
      *
-     * @return self
      */
-    public function __invoke(SendResponseEvent $event)
+    #[Override]
+    public function __invoke(SendResponseEvent $event): static
     {
         $response = $event->getResponse();
         if (! $response instanceof ApiProblemResponse) {
             return $this;
         }
 
-        $this->sendHeaders($event)
-             ->sendContent($event);
-        $event->stopPropagation(true);
+        $this->sendHeaders(e: $event)
+             ->sendContent(e: $event);
+        $event->stopPropagation(flag: true);
 
         return $this;
     }
@@ -120,10 +119,11 @@ class SendApiProblemResponseListener extends HttpResponseSender
     {
         $apiProblemHeaders = $apiProblemResponse->getHeaders();
         foreach ($applicationResponse->getHeaders() as $header) {
-            if ($apiProblemHeaders->has($header->getFieldName())) {
+            if ($apiProblemHeaders->has(name: $header->getFieldName())) {
                 continue;
             }
-            $apiProblemHeaders->addHeader($header);
+
+            $apiProblemHeaders->addHeader(header: $header);
         }
     }
 }

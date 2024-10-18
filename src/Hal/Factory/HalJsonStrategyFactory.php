@@ -12,14 +12,11 @@ use Webmozart\Assert\Assert;
 
 class HalJsonStrategyFactory
 {
-    /**
-     * @return HalJsonStrategy
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): HalJsonStrategy
     {
         $renderer = $container->get(HalJsonRenderer::class);
-        Assert::isInstanceOf($renderer, HalJsonRenderer::class);
+        Assert::isInstanceOf(value: $renderer, class: HalJsonRenderer::class);
 
-        return new HalJsonStrategy($renderer);
+        return new HalJsonStrategy(renderer: $renderer);
     }
 }

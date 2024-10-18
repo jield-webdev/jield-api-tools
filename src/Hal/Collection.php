@@ -10,15 +10,10 @@ use Jield\ApiTools\Hal\Exception\InvalidCollectionException;
 use Laminas\Paginator\Paginator;
 use Laminas\Stdlib\ArrayUtils;
 use Traversable;
-
 use function get_debug_type;
-use function gettype;
 use function is_array;
-use function is_int;
-use function is_numeric;
 use function sprintf;
 use function trigger_error;
-
 use const E_USER_DEPRECATED;
 
 /**
@@ -95,20 +90,20 @@ class Collection implements Link\LinkCollectionAwareInterface
     protected $entityRouteParams = [];
 
     /**
-     * @param  Paginator|Traversable|array<array-key, mixed> $collection
-     * @param  string $entityRoute
-     * @param  array|Traversable $entityRouteParams
-     * @param  array|Traversable $entityRouteOptions
+     * @param Traversable|array<array-key, mixed>|Paginator $collection
+     * @param string|null $entityRoute
+     * @param Traversable|array|null $entityRouteParams
+     * @param Traversable|array|null $entityRouteOptions
      * @throws InvalidCollectionException
      */
-    public function __construct($collection, $entityRoute = null, $entityRouteParams = null, $entityRouteOptions = null)
+    public function __construct(array|Traversable|Paginator $collection, string $entityRoute = null, Traversable|array $entityRouteParams = null, Traversable|array $entityRouteOptions = null)
     {
         /** @psalm-suppress DocblockTypeContradiction */
-        if (! is_array($collection) && ! $collection instanceof Traversable && ! $collection instanceof Paginator) {
-            throw new InvalidCollectionException(sprintf(
+        if (!is_array(value: $collection) && !$collection instanceof Traversable) {
+            throw new InvalidCollectionException(message: sprintf(
                 '%s expects an array or Traversable; received "%s"',
                 __METHOD__,
-                get_debug_type($collection)
+                get_debug_type(value: $collection)
             ));
         }
 
@@ -116,35 +111,37 @@ class Collection implements Link\LinkCollectionAwareInterface
         $this->collection = $collection;
 
         if (null !== $entityRoute) {
-            $this->setEntityRoute($entityRoute);
+            $this->setEntityRoute(route: $entityRoute);
         }
+
         if (null !== $entityRouteParams) {
-            $this->setEntityRouteParams($entityRouteParams);
+            $this->setEntityRouteParams(params: $entityRouteParams);
         }
+
         if (null !== $entityRouteOptions) {
-            $this->setEntityRouteOptions($entityRouteOptions);
+            $this->setEntityRouteOptions(options: $entityRouteOptions);
         }
     }
 
     /**
      * Proxy to properties to allow read access
      *
-     * @param  string $name
+     * @param string $name
      * @return mixed
      * @throws Exception
      */
-    public function __get($name)
+    public function __get(string $name)
     {
-        throw new Exception('Direct query of values is deprecated.  Use getters.');
+        throw new Exception(message: 'Direct query of values is deprecated.  Use getters.');
     }
 
     /**
      * Set additional attributes to render as part of the collection
      *
-     * @param  array $attributes
+     * @param array $attributes
      * @return self
      */
-    public function setAttributes(array $attributes)
+    public function setAttributes(array $attributes): static
     {
         $this->attributes = $attributes;
         return $this;
@@ -153,46 +150,48 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set the collection name (for use within the _embedded object)
      *
-     * @param  string $name
+     * @param string $name
      * @return self
      */
-    public function setCollectionName($name)
+    public function setCollectionName(string $name): static
     {
-        $this->collectionName = (string) $name;
+        $this->collectionName = (string)$name;
         return $this;
     }
 
     /**
      * Set the collection route; used for generating pagination links
      *
-     * @param  string $route
+     * @param string $route
      * @return self
      */
-    public function setCollectionRoute($route)
+    public function setCollectionRoute(string $route): static
     {
-        $this->collectionRoute = (string) $route;
+        $this->collectionRoute = (string)$route;
         return $this;
     }
 
     /**
      * Set options to use with the collection route; used for generating pagination links
      *
-     * @param  array|Traversable $options
+     * @param Traversable|array $options
      * @return self
      * @throws InvalidArgumentException
      */
-    public function setCollectionRouteOptions($options)
+    public function setCollectionRouteOptions(Traversable|array $options): static
     {
         if ($options instanceof Traversable) {
-            $options = ArrayUtils::iteratorToArray($options);
+            $options = ArrayUtils::iteratorToArray(iterator: $options);
         }
-        if (! is_array($options)) {
-            throw new InvalidArgumentException(sprintf(
+
+        if (!is_array(value: $options)) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expects an array or Traversable; received "%s"',
                 __METHOD__,
-                get_debug_type($options)
+                get_debug_type(value: $options)
             ));
         }
+
         $this->collectionRouteOptions = $options;
         return $this;
     }
@@ -200,22 +199,24 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set parameters/substitutions to use with the collection route; used for generating pagination links
      *
-     * @param  array|Traversable $params
+     * @param Traversable|array $params
      * @return self
      * @throws InvalidArgumentException
      */
-    public function setCollectionRouteParams($params)
+    public function setCollectionRouteParams(Traversable|array $params): static
     {
         if ($params instanceof Traversable) {
-            $params = ArrayUtils::iteratorToArray($params);
+            $params = ArrayUtils::iteratorToArray(iterator: $params);
         }
-        if (! is_array($params)) {
-            throw new InvalidArgumentException(sprintf(
+
+        if (!is_array(value: $params)) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expects an array or Traversable; received "%s"',
                 __METHOD__,
-                get_debug_type($params)
+                get_debug_type(value: $params)
             ));
         }
+
         $this->collectionRouteParams = $params;
         return $this;
     }
@@ -223,10 +224,10 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set the route identifier name
      *
-     * @param  string $identifier
+     * @param string $identifier
      * @return self
      */
-    public function setRouteIdentifierName($identifier)
+    public function setRouteIdentifierName(string $identifier): static
     {
         $this->routeIdentifierName = $identifier;
         return $this;
@@ -235,10 +236,10 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set the entity identifier name
      *
-     * @param  string $identifier
+     * @param string $identifier
      * @return self
      */
-    public function setEntityIdentifierName($identifier)
+    public function setEntityIdentifierName(string $identifier): static
     {
         $this->entityIdentifierName = $identifier;
         return $this;
@@ -247,22 +248,16 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set current page
      *
-     * @param  int $page
+     * @param int $page
      * @return self
      * @throws InvalidArgumentException For non-positive and/or non-integer values.
      */
-    public function setPage($page)
+    public function setPage(int $page): static
     {
-        if (! is_int($page) && ! is_numeric($page)) {
-            throw new InvalidArgumentException(sprintf(
-                'Page must be an integer; received "%s"',
-                gettype($page)
-            ));
-        }
 
-        $page = (int) $page;
+        $page = (int)$page;
         if ($page < 1) {
-            throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(message: sprintf(
                 'Page must be a positive integer; received "%s"',
                 $page
             ));
@@ -275,22 +270,15 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set page size
      *
-     * @param  int $size
+     * @param int $size
      * @return self
      * @throws InvalidArgumentException For non-positive and/or non-integer values.
      */
-    public function setPageSize($size)
+    public function setPageSize(int $size): static
     {
-        if (! is_int($size) && ! is_numeric($size)) {
-            throw new InvalidArgumentException(sprintf(
-                'Page size must be an integer; received "%s"',
-                gettype($size)
-            ));
-        }
-
-        $size = (int) $size;
+        $size = (int)$size;
         if ($size < 1 && $size !== -1) {
-            throw new InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(message: sprintf(
                 'size must be a positive integer or -1 (to disable pagination); received "%s"',
                 $size
             ));
@@ -303,9 +291,8 @@ class Collection implements Link\LinkCollectionAwareInterface
     /**
      * Set default set of links to use for entities
      *
-     * @return self
      */
-    public function setEntityLinks(Link\LinkCollection $links)
+    public function setEntityLinks(Link\LinkCollection $links): static
     {
         $this->entityLinks = $links;
         return $this;
@@ -318,27 +305,26 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @deprecated
      *
-     * @return self
      */
-    public function setResourceLinks(Link\LinkCollection $links)
+    public function setResourceLinks(Link\LinkCollection $links): static
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityLinks',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
-        return $this->setEntityLinks($links);
+        ), error_level: E_USER_DEPRECATED);
+        return $this->setEntityLinks(links: $links);
     }
 
     /**
      * Set the entity route
      *
-     * @param  string $route
+     * @param string $route
      * @return self
      */
-    public function setEntityRoute($route)
+    public function setEntityRoute(string $route): static
     {
-        $this->entityRoute = (string) $route;
+        $this->entityRoute = (string)$route;
         return $this;
     }
 
@@ -347,40 +333,42 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use setEntityRoute().
      *
+     * @param string $route
+     * @return self
      * @deprecated
      *
-     * @param  string $route
-     * @return self
      */
-    public function setResourceRoute($route)
+    public function setResourceRoute(string $route): static
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityRoute',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
-        return $this->setEntityRoute($route);
+        ), error_level: E_USER_DEPRECATED);
+        return $this->setEntityRoute(route: $route);
     }
 
     /**
      * Set options to use with the entity route
      *
-     * @param  array|Traversable $options
+     * @param Traversable|array $options
      * @return self
      * @throws InvalidArgumentException
      */
-    public function setEntityRouteOptions($options)
+    public function setEntityRouteOptions(Traversable|array $options): static
     {
         if ($options instanceof Traversable) {
-            $options = ArrayUtils::iteratorToArray($options);
+            $options = ArrayUtils::iteratorToArray(iterator: $options);
         }
-        if (! is_array($options)) {
-            throw new InvalidArgumentException(sprintf(
+
+        if (!is_array(value: $options)) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expects an array or Traversable; received "%s"',
                 __METHOD__,
-                get_debug_type($options)
+                get_debug_type(value: $options)
             ));
         }
+
         $this->entityRouteOptions = $options;
         return $this;
     }
@@ -390,41 +378,43 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use setEntityRouteOptions().
      *
-     * @deprecated
-     *
-     * @param  array|Traversable $options
+     * @param Traversable|array $options
      * @return self
      * @throws InvalidArgumentException
+     * @deprecated
+     *
      */
-    public function setResourceRouteOptions($options)
+    public function setResourceRouteOptions(Traversable|array $options): static
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityRouteOptions',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
-        return $this->setEntityRouteOptions($options);
+        ), error_level: E_USER_DEPRECATED);
+        return $this->setEntityRouteOptions(options: $options);
     }
 
     /**
      * Set parameters/substitutions to use with the entity route
      *
-     * @param  array|Traversable $params
+     * @param Traversable|array $params
      * @return self
      * @throws InvalidArgumentException
      */
-    public function setEntityRouteParams($params)
+    public function setEntityRouteParams(Traversable|array $params): static
     {
         if ($params instanceof Traversable) {
-            $params = ArrayUtils::iteratorToArray($params);
+            $params = ArrayUtils::iteratorToArray(iterator: $params);
         }
-        if (! is_array($params)) {
-            throw new InvalidArgumentException(sprintf(
+
+        if (!is_array(value: $params)) {
+            throw new InvalidArgumentException(message: sprintf(
                 '%s expects an array or Traversable; received "%s"',
                 __METHOD__,
-                get_debug_type($params)
+                get_debug_type(value: $params)
             ));
         }
+
         $this->entityRouteParams = $params;
         return $this;
     }
@@ -434,20 +424,20 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use setEntityRouteParams().
      *
-     * @deprecated
-     *
-     * @param  array|Traversable $params
+     * @param Traversable|array $params
      * @return self
      * @throws InvalidArgumentException
+     * @deprecated
+     *
      */
-    public function setResourceRouteParams($params)
+    public function setResourceRouteParams(Traversable|array $params): static
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityRouteParams',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
-        return $this->setEntityRouteParams($params);
+        ), error_level: E_USER_DEPRECATED);
+        return $this->setEntityRouteParams(params: $params);
     }
 
     /**
@@ -455,7 +445,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return null|Link\LinkCollection
      */
-    public function getEntityLinks()
+    public function getEntityLinks(): ?Link\LinkCollection
     {
         return $this->entityLinks;
     }
@@ -465,17 +455,17 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use getEntityLinks().
      *
+     * @return null|Link\LinkCollection
      * @deprecated
      *
-     * @return null|Link\LinkCollection
      */
-    public function getResourceLinks()
+    public function getResourceLinks(): ?Link\LinkCollection
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::getEntityLinks',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
+        ), error_level: E_USER_DEPRECATED);
         return $this->getEntityLinks();
     }
 
@@ -484,7 +474,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array
      */
-    public function getAttributes()
+    public function getAttributes(): array
     {
         return $this->attributes;
     }
@@ -494,7 +484,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array|Traversable|Paginator
      */
-    public function getCollection()
+    public function getCollection(): array|Traversable|Paginator
     {
         return $this->collection;
     }
@@ -504,7 +494,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return string
      */
-    public function getCollectionName()
+    public function getCollectionName(): string
     {
         return $this->collectionName;
     }
@@ -514,7 +504,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return string
      */
-    public function getCollectionRoute()
+    public function getCollectionRoute(): string
     {
         return $this->collectionRoute;
     }
@@ -524,7 +514,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array
      */
-    public function getCollectionRouteOptions()
+    public function getCollectionRouteOptions(): array
     {
         return $this->collectionRouteOptions;
     }
@@ -534,7 +524,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array
      */
-    public function getCollectionRouteParams()
+    public function getCollectionRouteParams(): array
     {
         return $this->collectionRouteParams;
     }
@@ -544,7 +534,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return string
      */
-    public function getRouteIdentifierName()
+    public function getRouteIdentifierName(): string
     {
         return $this->routeIdentifierName;
     }
@@ -554,7 +544,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return string
      */
-    public function getEntityIdentifierName()
+    public function getEntityIdentifierName(): string
     {
         return $this->entityIdentifierName;
     }
@@ -564,7 +554,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return string
      */
-    public function getEntityRoute()
+    public function getEntityRoute(): string
     {
         return $this->entityRoute;
     }
@@ -574,17 +564,17 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use getEntityRoute().
      *
+     * @return string
      * @deprecated
      *
-     * @return string
      */
-    public function getResourceRoute()
+    public function getResourceRoute(): string
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::getEntityRoute',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
+        ), error_level: E_USER_DEPRECATED);
         return $this->getEntityRoute();
     }
 
@@ -593,7 +583,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array
      */
-    public function getEntityRouteOptions()
+    public function getEntityRouteOptions(): array
     {
         return $this->entityRouteOptions;
     }
@@ -603,17 +593,17 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use getEntityRouteOptions().
      *
+     * @return array
      * @deprecated
      *
-     * @return array
      */
-    public function getResourceRouteOptions()
+    public function getResourceRouteOptions(): array
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::getEntityRouteOptions',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
+        ), error_level: E_USER_DEPRECATED);
         return $this->getEntityRouteOptions();
     }
 
@@ -622,7 +612,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return array
      */
-    public function getEntityRouteParams()
+    public function getEntityRouteParams(): array
     {
         return $this->entityRouteParams;
     }
@@ -632,17 +622,17 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * Deprecated; please use getEntityRouteParams().
      *
+     * @return array
      * @deprecated
      *
-     * @return array
      */
-    public function getResourceRouteParams()
+    public function getResourceRouteParams(): array
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::getEntityRouteParams',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
+        ), error_level: E_USER_DEPRECATED);
         return $this->getEntityRouteParams();
     }
 
@@ -651,7 +641,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return int
      */
-    public function getPage()
+    public function getPage(): int
     {
         return $this->page;
     }
@@ -661,7 +651,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @return int
      */
-    public function getPageSize()
+    public function getPageSize(): int
     {
         return $this->pageSize;
     }

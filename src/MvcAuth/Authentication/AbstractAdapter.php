@@ -6,6 +6,7 @@ namespace Jield\ApiTools\MvcAuth\Authentication;
 
 use Laminas\Http\Request;
 
+use Override;
 use function in_array;
 use function preg_split;
 use function strpos;
@@ -25,20 +26,20 @@ abstract class AbstractAdapter implements AdapterInterface
      * Determine if the incoming request provides either basic or digest
      * credentials
      *
-     * @return false|string
      */
-    public function getTypeFromRequest(Request $request)
+    #[Override]
+    public function getTypeFromRequest(Request $request): false|string
     {
         $request->getHeaders();
-        $authorization = $request->getHeader('Authorization');
+        $authorization = $request->getHeader(name: 'Authorization');
         if (! $authorization) {
             return false;
         }
 
-        $authorization = trim($authorization->getFieldValue());
-        $type          = $this->getTypeFromAuthorizationHeader($authorization);
+        $authorization = trim(string: $authorization->getFieldValue());
+        $type          = $this->getTypeFromAuthorizationHeader(header: $authorization);
 
-        if (! in_array($type, $this->authorizationTokenTypes)) {
+        if (! in_array(needle: $type, haystack: $this->authorizationTokenTypes)) {
             return false;
         }
 
@@ -51,15 +52,15 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param string $header
      * @return false|string
      */
-    private function getTypeFromAuthorizationHeader($header)
+    private function getTypeFromAuthorizationHeader(string $header): false|string
     {
         // we only support headers in the format: Authorization: xxx yyyyy
-        if (strpos($header, ' ') === false) {
+        if (!str_contains(haystack: $header, needle: ' ')) {
             return false;
         }
 
-        [$type, $credential] = preg_split('# #', $header, 2);
+        [$type, $credential] = preg_split(pattern: '# #', subject: $header, limit: 2);
 
-        return strtolower($type);
+        return strtolower(string: $type);
     }
 }

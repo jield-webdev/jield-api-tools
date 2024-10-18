@@ -44,18 +44,18 @@ class ParameterMatcher
      * @return array
      * @throws ReflectionException
      */
-    public function getMatchedParameters($callable, $parameters): array
+    public function getMatchedParameters(callable $callable, array $parameters): array
     {
-        if (is_string($callable) || $callable instanceof Closure) {
-            $reflection       = new ReflectionFunction($callable);
+        if (is_string(value: $callable) || $callable instanceof Closure) {
+            $reflection       = new ReflectionFunction(function: $callable);
             $reflMethodParams = $reflection->getParameters();
-        } elseif (is_array($callable) && count($callable) === 2) {
+        } elseif (is_array(value: $callable) && count(value: $callable) === 2) {
             $object           = $callable[0];
             $method           = $callable[1];
-            $reflection       = new ReflectionObject($object);
-            $reflMethodParams = $reflection->getMethod($method)->getParameters();
+            $reflection       = new ReflectionObject(object: $object);
+            $reflMethodParams = $reflection->getMethod(name: $method)->getParameters();
         } else {
-            throw new Exception('Unknown callable');
+            throw new Exception(message: 'Unknown callable');
         }
 
         $dispatchParams = [];
@@ -63,12 +63,12 @@ class ParameterMatcher
         // normalize names to that they can match potential php variables
         $normalParams = [];
         foreach ($parameters as $pn => $pv) {
-            $normalParams[str_replace(['-', '_'], '', strtolower($pn))] = $pv;
+            $normalParams[str_replace(search: ['-', '_'], replace: '', subject: strtolower(string: $pn))] = $pv;
         }
 
         foreach ($reflMethodParams as $reflMethodParam) {
             $paramName             = $reflMethodParam->getName();
-            $normalMethodParamName = str_replace(['-', '_'], '', strtolower($paramName));
+            $normalMethodParamName = str_replace(search: ['-', '_'], replace: '', subject: strtolower(string: $paramName));
             $reflectionType        = $reflMethodParam->getType();
             if ($reflectionType instanceof ReflectionNamedType && ! $reflectionType->isBuiltin()) {
                 $typehint = $reflectionType->getName();
@@ -77,7 +77,7 @@ class ParameterMatcher
                     $typehint === PhpEnvironmentRequest::class
                     || $typehint === Request::class
                     || $typehint === RequestInterface::class
-                    || is_subclass_of($typehint, RequestInterface::class)
+                    || is_subclass_of(object_or_class: $typehint, class: RequestInterface::class)
                 ) {
                     $dispatchParams[] = $this->mvcEvent->getRequest();
                     continue;
@@ -87,7 +87,7 @@ class ParameterMatcher
                     $typehint === PhpEnvironmentResponse::class
                     || $typehint === Response::class
                     || $typehint === ResponseInterface::class
-                    || is_subclass_of($typehint, ResponseInterface::class)
+                    || is_subclass_of(object_or_class: $typehint, class: ResponseInterface::class)
                 ) {
                     $dispatchParams[] = $this->mvcEvent->getResponse();
                     continue;
@@ -96,7 +96,7 @@ class ParameterMatcher
                 if (
                     $typehint === ApplicationInterface::class
                     || $typehint === Application::class
-                    || is_subclass_of($typehint, ApplicationInterface::class)
+                    || is_subclass_of(object_or_class: $typehint, class: ApplicationInterface::class)
                 ) {
                     $dispatchParams[] = $this->mvcEvent->getApplication();
                     continue;
@@ -104,13 +104,13 @@ class ParameterMatcher
 
                 if (
                     $typehint === MvcEvent::class
-                    || is_subclass_of($typehint, MvcEvent::class)
+                    || is_subclass_of(object_or_class: $typehint, class: MvcEvent::class)
                 ) {
                     $dispatchParams[] = $this->mvcEvent;
                     continue;
                 }
 
-                throw new Exception(sprintf(
+                throw new Exception(message: sprintf(
                     '%s was requested, but could not be auto-bound',
                     $typehint
                 ));
@@ -123,6 +123,7 @@ class ParameterMatcher
                     $dispatchParams[] = $reflMethodParam->getDefaultValue();
                     continue;
                 }
+
                 $dispatchParams[] = null;
             }
         }

@@ -11,6 +11,7 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Stdlib\ArrayUtils;
 
+use Override;
 use function method_exists;
 
 class ContentTypeFilterListener extends AbstractListenerAggregate
@@ -25,9 +26,10 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
     /**
      * @param int                    $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_ROUTE, [$this, 'onRoute'], -625);
+        $this->listeners[] = $events->attach(eventName: MvcEvent::EVENT_ROUTE, listener: $this->onRoute(...), priority: -625);
     }
 
     /**
@@ -36,46 +38,45 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
      * @param  array $config
      * @return self
      */
-    public function setConfig(array $config)
+    public function setConfig(array $config): static
     {
-        $this->config = ArrayUtils::merge($this->config, $config);
+        $this->config = ArrayUtils::merge(a: $this->config, b: $config);
         return $this;
     }
 
     /**
      * Test if the content-type received is allowable.
      *
-     * @return null|ApiProblemResponse
      */
-    public function onRoute(MvcEvent $e)
+    public function onRoute(MvcEvent $e): ?ApiProblemResponse
     {
         if (empty($this->config)) {
-            return;
+            return null;
         }
 
-        $controllerName = $e->getRouteMatch()->getParam('controller');
+        $controllerName = $e->getRouteMatch()->getParam(name: 'controller');
         if (! isset($this->config[$controllerName])) {
-            return;
+            return null;
         }
 
         // Only worry about content types on HTTP methods that submit content
         // via the request body.
         $request = $e->getRequest();
-        if (! method_exists($request, 'getHeaders')) {
+        if (! method_exists(object_or_class: $request, method: 'getHeaders')) {
             // Not an HTTP request; nothing to do
-            return;
+            return null;
         }
 
         $requestBody = (string) $request->getContent();
 
-        if (empty($requestBody)) {
-            return;
+        if ($requestBody === '' || $requestBody === '0') {
+            return null;
         }
 
         $headers = $request->getHeaders();
         if (! $headers->has('content-type')) {
             return new ApiProblemResponse(
-                new ApiProblem(415, 'Invalid content-type specified')
+                apiProblem: new ApiProblem(status: 415, detail: 'Invalid content-type specified')
             );
         }
 
@@ -85,8 +86,9 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
 
         if (false === $matched) {
             return new ApiProblemResponse(
-                new ApiProblem(415, 'Invalid content-type specified')
+                apiProblem: new ApiProblem(status: 415, detail: 'Invalid content-type specified')
             );
         }
+        return null;
     }
 }

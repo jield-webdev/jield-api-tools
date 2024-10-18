@@ -46,14 +46,15 @@ class AuthController extends AbstractActionController
      *
      * @param callable $serverFactory
      */
-    public function __construct($serverFactory, UserIdProviderInterface $userIdProvider)
+    public function __construct(callable $serverFactory, UserIdProviderInterface $userIdProvider)
     {
-        if (! is_callable($serverFactory)) {
-            throw new InvalidArgumentException(sprintf(
+        if (! is_callable(value: $serverFactory)) {
+            throw new InvalidArgumentException(message: sprintf(
                 'OAuth2 Server factory must be a PHP callable; received %s',
-                is_object($serverFactory) ? $serverFactory::class : gettype($serverFactory)
+                get_debug_type(value: $serverFactory)
             ));
         }
+
         $this->serverFactory  = $serverFactory;
         $this->userIdProvider = $userIdProvider;
     }
@@ -63,7 +64,7 @@ class AuthController extends AbstractActionController
      *
      * @return bool
      */
-    public function isApiProblemErrorResponse()
+    public function isApiProblemErrorResponse(): bool
     {
         return $this->apiProblemErrorResponse;
     }
@@ -78,7 +79,7 @@ class AuthController extends AbstractActionController
      * @param bool $apiProblemErrorResponse
      * @return void
      */
-    public function setApiProblemErrorResponse($apiProblemErrorResponse)
+    public function setApiProblemErrorResponse(bool $apiProblemErrorResponse): void
     {
         $this->apiProblemErrorResponse = (bool) $apiProblemErrorResponse;
     }
@@ -101,23 +102,23 @@ class AuthController extends AbstractActionController
         }
 
         $oauth2request = $this->getOAuth2Request();
-        $oauth2server  = $this->getOAuth2Server($this->params('oauth'));
+        $oauth2server  = $this->getOAuth2Server(type: $this->params('oauth'));
         try {
-            $response = $oauth2server->handleTokenRequest($oauth2request);
-        } catch (ProblemExceptionInterface $ex) {
-            $status = $ex->getCode() ?: 401;
+            $response = $oauth2server->handleTokenRequest(request: $oauth2request);
+        } catch (ProblemExceptionInterface $problemException) {
+            $status = $problemException->getCode() ?: 401;
             $status = $status >= 400 && $status < 600 ? $status : 401;
 
             return new ApiProblemResponse(
-                new ApiProblem($status, $ex)
+                apiProblem: new ApiProblem(status: $status, detail: $problemException)
             );
         }
 
         if ($response->isClientError()) {
-            return $this->getErrorResponse($response);
+            return $this->getErrorResponse(response: $response);
         }
 
-        return $this->setHttpResponse($response);
+        return $this->setHttpResponse(response: $response);
     }
 
     /**
@@ -138,13 +139,13 @@ class AuthController extends AbstractActionController
         }
 
         $oauth2request = $this->getOAuth2Request();
-        $response      = $this->getOAuth2Server($this->params('oauth'))->handleRevokeRequest($oauth2request);
+        $response      = $this->getOAuth2Server(type: $this->params('oauth'))->handleRevokeRequest(request: $oauth2request);
 
         if ($response->isClientError()) {
-            return $this->getErrorResponse($response);
+            return $this->getErrorResponse(response: $response);
         }
 
-        return $this->setHttpResponse($response);
+        return $this->setHttpResponse(response: $response);
     }
 
     /**
@@ -152,24 +153,24 @@ class AuthController extends AbstractActionController
      */
     public function resourceAction(): Response
     {
-        $server = $this->getOAuth2Server($this->params('oauth'));
+        $server = $this->getOAuth2Server(type: $this->params('oauth'));
 
         // Handle a request for an OAuth2.0 Access Token and send the response to the client
-        if (! $server->verifyResourceRequest($this->getOAuth2Request())) {
+        if (! $server->verifyResourceRequest(request: $this->getOAuth2Request())) {
             $response = $server->getResponse();
             Assert::isInstanceOf(
-                $response,
-                OAuth2Response::class,
-                'Did not receive valid OAuth2 response instance from OAuth2 Server'
+                value: $response,
+                class: OAuth2Response::class,
+                message: 'Did not receive valid OAuth2 response instance from OAuth2 Server'
             );
-            return $this->getApiProblemResponse($response);
+            return $this->getApiProblemResponse(response: $response);
         }
 
         $httpResponse = $this->getResponse();
-        $httpResponse->setStatusCode(200);
-        $httpResponse->getHeaders()->addHeaders(['Content-type' => 'application/json']);
+        $httpResponse->setStatusCode(code: 200);
+        $httpResponse->getHeaders()->addHeaders(headers: ['Content-type' => 'application/json']);
         $httpResponse->setContent(
-            json_encode(['success' => true, 'message' => 'You accessed my APIs!'])
+            json_encode(value: ['success' => true, 'message' => 'You accessed my APIs!'])
         );
         return $httpResponse;
     }
@@ -179,27 +180,27 @@ class AuthController extends AbstractActionController
      *
      * @return Response|ViewModel
      */
-    public function authorizeAction()
+    public function authorizeAction(): Response|ViewModel|ResponseInterface|ApiProblemResponse
     {
         $serverType = $this->params('oauth');
-        Assert::nullOrStringNotEmpty($serverType);
+        Assert::nullOrStringNotEmpty(value: $serverType);
 
-        $this->getOAuth2Server($serverType);
+        $this->getOAuth2Server(type: $serverType);
         $request  = $this->getOAuth2Request();
         $response = new OAuth2Response();
 
         // validate the authorize request
-        $isValid = $this->server->validateAuthorizeRequest($request, $response);
+        $isValid = $this->server->validateAuthorizeRequest(request: $request, response: $response);
 
         if (! $isValid) {
-            return $this->getErrorResponse($response);
+            return $this->getErrorResponse(response: $response);
         }
 
-        $authorized = $request->request('authorized', false);
+        $authorized = $request->request(name: 'authorized', default: false);
         if (empty($authorized)) {
-            $clientId = $request->query('client_id', false);
-            $view     = new ViewModel(['clientId' => $clientId]);
-            $view->setTemplate('oauth/authorize');
+            $clientId = $request->query(name: 'client_id', default: false);
+            $view     = new ViewModel(variables: ['clientId' => $clientId]);
+            $view->setTemplate(template: 'oauth/authorize');
             return $view;
         }
 
@@ -207,18 +208,18 @@ class AuthController extends AbstractActionController
         $userIdProvider = $this->userIdProvider;
 
         $this->server->handleAuthorizeRequest(
-            $request,
-            $response,
-            $isAuthorized,
-            $userIdProvider($this->getRequest())
+            request: $request,
+            response: $response,
+            is_authorized: $isAuthorized,
+            user_id: $userIdProvider(request: $this->getRequest())
         );
 
-        $redirect = $response->getHttpHeader('Location');
+        $redirect = $response->getHttpHeader(name: 'Location');
         if (! empty($redirect)) {
-            return $this->redirect()->toUrl($redirect);
+            return $this->redirect()->toUrl(url: $redirect);
         }
 
-        return $this->getErrorResponse($response);
+        return $this->getErrorResponse(response: $response);
     }
 
     /**
@@ -226,32 +227,31 @@ class AuthController extends AbstractActionController
      */
     public function receiveCodeAction(): ViewModel
     {
-        $code = $this->params()->fromQuery('code', false);
-        $view = new ViewModel([
+        $code = $this->params()->fromQuery(param: 'code', default: false);
+        $view = new ViewModel(variables: [
             'code' => $code,
         ]);
-        $view->setTemplate('oauth/receive-code');
+        $view->setTemplate(template: 'oauth/receive-code');
         return $view;
     }
 
     /**
      * @return ApiProblemResponse|ResponseInterface
      */
-    protected function getErrorResponse(OAuth2Response $response)
+    protected function getErrorResponse(OAuth2Response $response): Response|ResponseInterface|ApiProblemResponse
     {
         if ($this->isApiProblemErrorResponse()) {
-            return $this->getApiProblemResponse($response);
+            return $this->getApiProblemResponse(response: $response);
         }
 
-        return $this->setHttpResponse($response);
+        return $this->setHttpResponse(response: $response);
     }
 
     /**
      * Map OAuth2Response to ApiProblemResponse
      *
-     * @return ApiProblemResponse
      */
-    protected function getApiProblemResponse(OAuth2Response $response)
+    protected function getApiProblemResponse(OAuth2Response $response): ApiProblemResponse
     {
         $parameters       = $response->getParameters();
         $errorUri         = $parameters['error_uri'] ?? null;
@@ -259,11 +259,11 @@ class AuthController extends AbstractActionController
         $errorDescription = $parameters['error_description'] ?? null;
 
         return new ApiProblemResponse(
-            new ApiProblem(
-                $response->getStatusCode(),
-                $errorDescription,
-                $errorUri,
-                $error
+            apiProblem: new ApiProblem(
+                status: $response->getStatusCode(),
+                detail: $errorDescription,
+                type: $errorUri,
+                title: $error
             )
         );
     }
@@ -284,23 +284,24 @@ class AuthController extends AbstractActionController
      *
      * @return OAuth2Request
      */
-    protected function getOAuth2Request()
+    protected function getOAuth2Request(): OAuth2Request
     {
         $laminasRequest = $this->getRequest();
         $headers        = $laminasRequest->getHeaders();
 
         // Marshal content type, so we can seed it into the $_SERVER array
-        if ($headers->has('Content-Type')) {
-            $headers->get('Content-Type')->getFieldValue();
+        if ($headers->has(name: 'Content-Type')) {
+            $headers->get(name: 'Content-Type')->getFieldValue();
         }
 
         // Get $_SERVER superglobal
         $server = [];
         if ($laminasRequest instanceof PhpEnvironmentRequest) {
             $server = $laminasRequest->getServer()->toArray();
-        } elseif (! empty($_SERVER)) {
+        } elseif ($_SERVER !== []) {
             $server = $_SERVER;
         }
+
         $server['REQUEST_METHOD'] = $laminasRequest->getMethod();
 
         // Seed headers with HTTP auth information
@@ -308,6 +309,7 @@ class AuthController extends AbstractActionController
         if (isset($server['PHP_AUTH_USER'])) {
             $headers['PHP_AUTH_USER'] = $server['PHP_AUTH_USER'];
         }
+
         if (isset($server['PHP_AUTH_PW'])) {
             $headers['PHP_AUTH_PW'] = $server['PHP_AUTH_PW'];
         }
@@ -316,14 +318,14 @@ class AuthController extends AbstractActionController
         $bodyParams = $this->bodyParams() ?: [];
 
         return new OAuth2Request(
-            $laminasRequest->getQuery()->toArray(),
-            $bodyParams,
-            [], // attributes
-            [], // cookies
-            [], // files
-            $server,
-            $laminasRequest->getContent(),
-            $headers
+            query: $laminasRequest->getQuery()->toArray(),
+            request: $bodyParams,
+            attributes: [], // attributes
+            cookies: [], // cookies
+            files: [], // files
+            server: $server,
+            content: $laminasRequest->getContent(),
+            headers: $headers
         );
     }
 
@@ -333,13 +335,13 @@ class AuthController extends AbstractActionController
     private function setHttpResponse(OAuth2Response $response): Response
     {
         $httpResponse = $this->getResponse();
-        Assert::isInstanceOf($httpResponse, Response::class, 'Cannot convert OAuth2Response to HTTP response');
+        Assert::isInstanceOf(value: $httpResponse, class: Response::class, message: 'Cannot convert OAuth2Response to HTTP response');
 
-        $httpResponse->setStatusCode($response->getStatusCode());
+        $httpResponse->setStatusCode(code: $response->getStatusCode());
 
         $headers = $httpResponse->getHeaders();
-        $headers->addHeaders($response->getHttpHeaders());
-        $headers->addHeaderLine('Content-type', 'application/json');
+        $headers->addHeaders(headers: $response->getHttpHeaders());
+        $headers->addHeaderLine(headerFieldNameOrLine: 'Content-type', fieldValue: 'application/json');
 
         $httpResponse->setContent($response->getResponseBody());
         return $httpResponse;
@@ -352,11 +354,11 @@ class AuthController extends AbstractActionController
      * is invoked with the provided $type as an argument, and the value
      * returned.
      *
-     * @param null|string $type
+     * @param string|null $type
      * @return OAuth2Server
      * @throws RuntimeException If the factory does not return an OAuth2Server instance.
      */
-    private function getOAuth2Server($type)
+    private function getOAuth2Server(?string $type): OAuth2Server
     {
         if ($this->server instanceof OAuth2Server) {
             return $this->server;
@@ -364,11 +366,12 @@ class AuthController extends AbstractActionController
 
         $server = ($this->serverFactory)($type);
         if (! $server instanceof OAuth2Server) {
-            throw new RuntimeException(sprintf(
+            throw new RuntimeException(message: sprintf(
                 'OAuth2\Server factory did not return a valid instance; received %s',
-                is_object($server) ? $server::class : gettype($server)
+                get_debug_type(value: $server)
             ));
         }
+
         $this->server = $server;
         return $server;
     }

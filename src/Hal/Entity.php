@@ -21,54 +21,50 @@ class Entity implements Link\LinkCollectionAwareInterface
     /** @var object|array */
     protected $entity;
 
-    /** @var mixed */
-    protected $id;
-
     /**
-     * @param  object|array $entity
-     * @param  mixed $id
+     * @param object|array $entity
      * @throws Exception\InvalidEntityException If entity is not an object or array.
      */
-    public function __construct($entity, $id = null)
+    public function __construct(object|array $entity, protected mixed $id = null)
     {
-        if (! is_object($entity) && ! is_array($entity)) {
+        if (! is_object(value: $entity) && ! is_array(value: $entity)) {
             throw new Exception\InvalidEntityException();
         }
 
         $this->entity = $entity;
-        $this->id     = $id;
     }
 
     /**
      * Retrieve properties
      *
+     * @param  string $name
+     * @return mixed
+     *@throws Exception\InvalidArgumentException
      * @deprecated
      *
-     * @param  string $name
-     * @throws Exception\InvalidArgumentException
-     * @return mixed
      */
-    public function &__get($name)
+    public function &__get(string $name)
     {
         trigger_error(
-            sprintf(
+            message: sprintf(
                 'Direct property access to %s::$%s is deprecated, use getters instead.',
                 self::class,
                 $name
             ),
-            E_USER_DEPRECATED
+            error_level: E_USER_DEPRECATED
         );
         $names = [
             'entity' => 'entity',
             'id'     => 'id',
         ];
-        $name  = strtolower($name);
-        if (! in_array($name, array_keys($names))) {
-            throw new Exception\InvalidArgumentException(sprintf(
+        $name  = strtolower(string: $name);
+        if (! in_array(needle: $name, haystack: array_keys(array: $names))) {
+            throw new Exception\InvalidArgumentException(message: sprintf(
                 'Invalid property name "%s"',
                 $name
             ));
         }
+
         $prop = $names[$name];
         return $this->{$prop};
     }
@@ -76,7 +72,7 @@ class Entity implements Link\LinkCollectionAwareInterface
     /**
      * @return mixed
      */
-    public function getId()
+    public function getId(): mixed
     {
         return $this->id;
     }
@@ -86,7 +82,7 @@ class Entity implements Link\LinkCollectionAwareInterface
      *
      * @return object|array
      */
-    public function &getEntity()
+    public function &getEntity(): object|array
     {
         return $this->entity;
     }

@@ -12,17 +12,16 @@ class UnauthorizedListener
     /**
      * Determine if we have an authorization failure, and, if so, return a 403 response
      *
-     * @return null|ApiProblemResponse
      */
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): ?ApiProblemResponse
     {
         if ($mvcAuthEvent->isAuthorized()) {
-            return;
+            return null;
         }
 
-        $response = new ApiProblemResponse(new ApiProblem(403, 'Forbidden'));
+        $response = new ApiProblemResponse(apiProblem: new ApiProblem(status: 403, detail: 'Forbidden'));
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
-        $mvcEvent->setResponse($response);
+        $mvcEvent->setResponse(response: $response);
 
         return $response;
     }

@@ -10,11 +10,8 @@ use Jield\ApiTools\ApiProblem\View\ApiProblemStrategy;
 
 class ApiProblemStrategyFactory
 {
-    /**
-     * @return ApiProblemStrategy
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ApiProblemStrategy
     {
-        return new ApiProblemStrategy($container->get(ApiProblemRenderer::class));
+        return new ApiProblemStrategy(renderer: $container->get(ApiProblemRenderer::class));
     }
 }

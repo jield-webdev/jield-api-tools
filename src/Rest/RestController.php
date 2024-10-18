@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Rest;
 
-use ArrayAccess;
 use Exception;
+use InvalidArgumentException;
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Jield\ApiTools\ApiProblem\Exception\DomainException;
@@ -13,6 +13,7 @@ use Jield\ApiTools\ContentNegotiation\ViewModel as ContentNegotiationViewModel;
 use Jield\ApiTools\Hal\Collection as HalCollection;
 use Jield\ApiTools\Hal\Entity as HalEntity;
 use Jield\ApiTools\Hal\Exception\InvalidArgumentException as HalInvalidArgumentException;
+use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Laminas\Http\Header\Allow;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
@@ -20,6 +21,7 @@ use Laminas\Mvc\Controller\AbstractRestfulController;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Router\Http\RouteMatch;
 use Laminas\Stdlib\RequestInterface;
+use Override;
 use Throwable;
 use Traversable;
 use function array_keys;
@@ -138,9 +140,9 @@ class RestController extends AbstractRestfulController
      * Allows you to set the event identifier, which can be useful to allow multiple
      * instances of this controller to react to different sets of shared events.
      *
-     * @param null|string $eventIdentifier
+     * @param string|null $eventIdentifier
      */
-    public function __construct($eventIdentifier = null)
+    public function __construct(string $eventIdentifier = null)
     {
         if (null !== $eventIdentifier) {
             $this->eventIdentifier = $eventIdentifier;
@@ -152,7 +154,7 @@ class RestController extends AbstractRestfulController
      *
      * @param array $methods
      */
-    public function setCollectionHttpMethods(array $methods)
+    public function setCollectionHttpMethods(array $methods): void
     {
         $this->collectionHttpMethods = $methods;
     }
@@ -162,7 +164,7 @@ class RestController extends AbstractRestfulController
      *
      * @param string $name
      */
-    public function setCollectionName($name)
+    public function setCollectionName(string $name): void
     {
         $this->collectionName = (string)$name;
     }
@@ -172,7 +174,7 @@ class RestController extends AbstractRestfulController
      *
      * @param int $count
      */
-    public function setMinPageSize($count)
+    public function setMinPageSize(int $count): void
     {
         $this->minPageSize = (int)$count;
     }
@@ -182,7 +184,7 @@ class RestController extends AbstractRestfulController
      *
      * @return int
      */
-    public function getMinPageSize()
+    public function getMinPageSize(): int
     {
         return $this->minPageSize;
     }
@@ -192,7 +194,7 @@ class RestController extends AbstractRestfulController
      *
      * @param int $count
      */
-    public function setPageSize($count)
+    public function setPageSize(int $count): void
     {
         $this->pageSize = (int)$count;
     }
@@ -202,7 +204,7 @@ class RestController extends AbstractRestfulController
      *
      * @return int
      */
-    public function getPageSize()
+    public function getPageSize(): int
     {
         return $this->pageSize;
     }
@@ -212,7 +214,7 @@ class RestController extends AbstractRestfulController
      *
      * @param int $count
      */
-    public function setMaxPageSize($count)
+    public function setMaxPageSize(int $count): void
     {
         $this->maxPageSize = (int)$count;
     }
@@ -222,7 +224,7 @@ class RestController extends AbstractRestfulController
      *
      * @return int
      */
-    public function getMaxPageSize()
+    public function getMaxPageSize(): int
     {
         return $this->maxPageSize;
     }
@@ -232,7 +234,7 @@ class RestController extends AbstractRestfulController
      *
      * @param string $param
      */
-    public function setPageSizeParam($param)
+    public function setPageSizeParam(string $param): void
     {
         $this->pageSizeParam = (string)$param;
     }
@@ -244,7 +246,7 @@ class RestController extends AbstractRestfulController
      *
      * @return string
      */
-    public function getRouteIdentifierName()
+    public function getRouteIdentifierName(): string
     {
         return $this->getIdentifierName();
     }
@@ -252,7 +254,7 @@ class RestController extends AbstractRestfulController
     /**
      * Inject the resource with which this controller will communicate.
      */
-    public function setResource(ResourceInterface $resource)
+    public function setResource(ResourceInterface $resource): void
     {
         $this->resource = $resource;
     }
@@ -263,10 +265,10 @@ class RestController extends AbstractRestfulController
      * @return ResourceInterface
      * @throws DomainException If no resource has been set.
      */
-    public function getResource()
+    public function getResource(): ResourceInterface
     {
         if ($this->resource === null) {
-            throw new DomainException('No resource has been set.');
+            throw new DomainException(message: 'No resource has been set.');
         }
 
         $this->injectEventIdentityIntoResource();
@@ -280,7 +282,7 @@ class RestController extends AbstractRestfulController
      *
      * @param array $methods
      */
-    public function setEntityHttpMethods(array $methods)
+    public function setEntityHttpMethods(array $methods): void
     {
         $this->entityHttpMethods = $methods;
     }
@@ -290,7 +292,7 @@ class RestController extends AbstractRestfulController
      *
      * @param string $route
      */
-    public function setRoute($route)
+    public function setRoute(string $route): void
     {
         $this->route = $route;
     }
@@ -308,13 +310,13 @@ class RestController extends AbstractRestfulController
      * returned; if so, it will cast it to a view model using the
      * AcceptableViewModelSelector plugin, and the $acceptCriteria property.
      *
-     * @return mixed
      * @throws DomainException
      */
-    public function onDispatch(MvcEvent $e)
+    #[Override]
+    public function onDispatch(MvcEvent $e): mixed
     {
         if (!$this->getResource()) {
-            throw new DomainException(sprintf(
+            throw new DomainException(message: sprintf(
                 '%s requires that a %s\ResourceInterface object is composed; none provided',
                 self::class,
                 __NAMESPACE__
@@ -322,18 +324,18 @@ class RestController extends AbstractRestfulController
         }
 
         if (!$this->route) {
-            throw new DomainException(sprintf(
+            throw new DomainException(message: sprintf(
                 '%s requires that a route name for the resource is composed; none provided',
                 self::class
             ));
         }
 
         // Check for an API-Problem in the event
-        $return = $e->getParam('api-problem', false);
+        $return = $e->getParam(name: 'api-problem', default: false);
 
         // If no return value dispatch the parent event
         if (!$return) {
-            $return = parent::onDispatch($e);
+            $return = parent::onDispatch(e: $e);
         }
 
         if (
@@ -345,15 +347,15 @@ class RestController extends AbstractRestfulController
         }
 
         if ($return instanceof ApiProblem) {
-            return new ApiProblemResponse($return);
+            return new ApiProblemResponse(apiProblem: $return);
         }
 
         // Set the fallback content negotiation to use HalJson.
-        $e->setParam('LaminasContentNegotiationFallback', 'HalJson');
+        $e->setParam(name: 'LaminasContentNegotiationFallback', value: 'HalJson');
 
         // Use content negotiation for creating the view model
-        $viewModel = new ContentNegotiationViewModel(['payload' => $return]);
-        $e->setResult($viewModel);
+        $viewModel = new ContentNegotiationViewModel(variables: ['payload' => $return]);
+        $e->setResult(result: $viewModel);
 
         return $viewModel;
     }
@@ -365,25 +367,26 @@ class RestController extends AbstractRestfulController
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
      * @todo   Remove 'resource' from the create.post event parameters for 1.0.0
      */
-    public function create($data)
+    #[Override]
+    public function create($data): HalEntity|Response|HalCollection|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('create.pre', $this, ['data' => $data]);
+        $events->trigger(eventName: 'create.pre', target: $this, argv: ['data' => $data]);
 
         try {
-            $value = $this->getResource()->create($data);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $value = $this->getResource()->create(data: $data);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        if ($this->isPreparedResponse($value)) {
+        if ($this->isPreparedResponse(object: $value)) {
             return $value;
         }
 
         if ($value instanceof HalCollection) {
-            $halCollection = $this->prepareHalCollection($value);
+            $halCollection = $this->prepareHalCollection(collection: $value);
 
-            $events->trigger('create.post', $this, [
+            $events->trigger(eventName: 'create.post', target: $this, argv: [
                 'data'       => $data,
                 'entity'     => $halCollection,
                 'collection' => $halCollection,
@@ -393,21 +396,21 @@ class RestController extends AbstractRestfulController
             return $halCollection;
         }
 
-        $halEntity = $this->createHalEntity($value);
+        $halEntity = $this->createHalEntity(entity: $value);
 
-        if ($halEntity->getLinks()->has('self')) {
-            $plugin = $this->plugin('Hal');
-            $link   = $halEntity->getLinks()->get('self');
+        if ($halEntity->getLinks()->has(relation: 'self')) {
+            $plugin = $this->plugin(name: 'Hal');
+            $link   = $halEntity->getLinks()->get(relation: 'self');
             $self   = $plugin->fromLink($link);
             $url    = $self['href'];
 
             $response = $this->getResponse();
-            $response->setStatusCode(201);
-            $response->getHeaders()->addHeaderLine('Location', $url);
-            $response->getHeaders()->addHeaderLine('Content-Location', $url);
+            $response->setStatusCode(code: 201);
+            $response->getHeaders()->addHeaderLine(headerFieldNameOrLine: 'Location', fieldValue: $url);
+            $response->getHeaders()->addHeaderLine(headerFieldNameOrLine: 'Content-Location', fieldValue: $url);
         }
 
-        $events->trigger('create.post', $this, [
+        $events->trigger(eventName: 'create.post', target: $this, argv: [
             'data'     => $data,
             'entity'   => $halEntity,
             'resource' => $halEntity,
@@ -422,27 +425,28 @@ class RestController extends AbstractRestfulController
      * @param int|string $id
      * @return Response|ApiProblem|ApiProblemResponse
      */
-    public function delete($id)
+    #[Override]
+    public function delete($id): Response|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('delete.pre', $this, ['id' => $id]);
+        $events->trigger(eventName: 'delete.pre', target: $this, argv: ['id' => $id]);
 
         try {
-            $result = $this->getResource()->delete($id);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $result = $this->getResource()->delete(id: $id);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        $result = $result ?: new ApiProblem(422, 'Unable to delete entity.');
+        $result = $result ?: new ApiProblem(status: 422, detail: 'Unable to delete entity.');
 
-        if ($this->isPreparedResponse($result)) {
+        if ($this->isPreparedResponse(object: $result)) {
             return $result;
         }
 
         $response = $this->getResponse();
-        $response->setStatusCode(204);
+        $response->setStatusCode(code: 204);
 
-        $events->trigger('delete.post', $this, ['id' => $id]);
+        $events->trigger(eventName: 'delete.post', target: $this, argv: ['id' => $id]);
 
         return $response;
     }
@@ -453,27 +457,28 @@ class RestController extends AbstractRestfulController
      * @param mixed $data Typically an array
      * @return Response|ApiProblem|ApiProblemResponse
      */
-    public function deleteList($data)
+    #[Override]
+    public function deleteList($data): Response|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('deleteList.pre', $this, []);
+        $events->trigger(eventName: 'deleteList.pre', target: $this, argv: []);
 
         try {
-            $result = $this->getResource()->deleteList($data);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $result = $this->getResource()->deleteList(data: $data);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        $result = $result ?: new ApiProblem(422, 'Unable to delete collection.');
+        $result = $result ?: new ApiProblem(status: 422, detail: 'Unable to delete collection.');
 
-        if ($this->isPreparedResponse($result)) {
+        if ($this->isPreparedResponse(object: $result)) {
             return $result;
         }
 
         $response = $this->getResponse();
-        $response->setStatusCode(204);
+        $response->setStatusCode(code: 204);
 
-        $events->trigger('deleteList.post', $this, []);
+        $events->trigger(eventName: 'deleteList.post', target: $this, argv: []);
 
         return $response;
     }
@@ -485,26 +490,27 @@ class RestController extends AbstractRestfulController
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
      * @todo   Remove 'resource' from get.post event for 1.0.0
      */
-    public function get($id)
+    #[Override]
+    public function get($id): HalEntity|Response|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('get.pre', $this, ['id' => $id]);
+        $events->trigger(eventName: 'get.pre', target: $this, argv: ['id' => $id]);
 
         try {
-            $entity = $this->getResource()->fetch($id);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $entity = $this->getResource()->fetch(id: $id);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        $entity = $entity ?: new ApiProblem(404, 'Entity not found.');
+        $entity = $entity ?: new ApiProblem(status: 404, detail: 'Entity not found.');
 
-        if ($this->isPreparedResponse($entity)) {
+        if ($this->isPreparedResponse(object: $entity)) {
             return $entity;
         }
 
-        $halEntity = $this->createHalEntity($entity);
+        $halEntity = $this->createHalEntity(entity: $entity);
 
-        $events->trigger('get.post', $this, [
+        $events->trigger(eventName: 'get.post', target: $this, argv: [
             'id'       => $id,
             'entity'   => $halEntity,
             'resource' => $halEntity,
@@ -518,59 +524,60 @@ class RestController extends AbstractRestfulController
      *
      * @return Response|HalCollection|ApiProblem
      */
-    public function getList()
+    #[Override]
+    public function getList(): HalEntity|Response|ApiProblem|HalCollection
     {
         $events = $this->getEventManager();
-        $events->trigger('getList.pre', $this, []);
+        $events->trigger(eventName: 'getList.pre', target: $this, argv: []);
 
         try {
             $collection = $this->getResource()->fetchAll();
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        if ($this->isPreparedResponse($collection)) {
+        if ($this->isPreparedResponse(object: $collection)) {
             return $collection;
         }
 
         if (
-            !is_array($collection)
+            !is_array(value: $collection)
             && !$collection instanceof Traversable
             && !$collection instanceof HalCollection
-            && is_object($collection)
+            && is_object(value: $collection)
         ) {
-            $halEntity = $this->createHalEntity($collection);
-            $events->trigger('getList.post', $this, ['collection' => $halEntity]);
+            $halEntity = $this->createHalEntity(entity: $collection);
+            $events->trigger(eventName: 'getList.post', target: $this, argv: ['collection' => $halEntity]);
             return $halEntity;
         }
 
         $pageSize = $this->pageSizeParam
-            ? $this->getRequest()->getQuery($this->pageSizeParam, $this->pageSize)
+            ? $this->getRequest()->getQuery(name: $this->pageSizeParam, default: $this->pageSize)
             : $this->pageSize;
 
-        if (isset($this->minPageSize) && $pageSize < $this->minPageSize) {
+        if ($this->minPageSize !== null && $pageSize < $this->minPageSize) {
             return new ApiProblem(
-                416,
-                sprintf("Page size is out of range, minimum page size is %s", $this->minPageSize)
+                status: 416,
+                detail: sprintf("Page size is out of range, minimum page size is %s", $this->minPageSize)
             );
         }
 
-        if (isset($this->maxPageSize) && $pageSize > $this->maxPageSize) {
+        if ($this->maxPageSize !== null && $pageSize > $this->maxPageSize) {
             return new ApiProblem(
-                416,
-                sprintf("Page size is out of range, maximum page size is %s", $this->maxPageSize)
+                status: 416,
+                detail: sprintf("Page size is out of range, maximum page size is %s", $this->maxPageSize)
             );
         }
 
-        $this->setPageSize($pageSize);
+        $this->setPageSize(count: $pageSize);
 
-        $halCollection = $this->createHalCollection($collection);
+        $halCollection = $this->createHalCollection(collection: $collection);
 
-        if ($this->isPreparedResponse($halCollection)) {
+        if ($this->isPreparedResponse(object: $halCollection)) {
             return $halCollection;
         }
 
-        $events->trigger('getList.post', $this, [
+        $events->trigger(eventName: 'getList.post', target: $this, argv: [
             'collection' => $halCollection,
         ]);
 
@@ -583,11 +590,13 @@ class RestController extends AbstractRestfulController
      * @param null|mixed $id
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity|HalCollection
      */
-    public function head($id = null)
+    #[Override]
+    public function head($id = null): HalEntity|Response|ApiProblem|HalCollection|ApiProblemResponse
     {
         if ($id) {
-            return $this->get($id);
+            return $this->get(id: $id);
         }
+
         return $this->getList();
     }
 
@@ -598,26 +607,24 @@ class RestController extends AbstractRestfulController
      *
      * @return Response
      */
-    public function options()
+    #[Override]
+    public function options(): Response
     {
         $e  = $this->getEvent();
-        $id = $this->getIdentifier($e->getRouteMatch(), $e->getRequest());
+        $id = $this->getIdentifier(routeMatch: $e->getRouteMatch(), request: $e->getRequest());
 
-        if ($id) {
-            $options = $this->entityHttpMethods;
-        } else {
-            $options = $this->collectionHttpMethods;
-        }
+        $options = $id ? $this->entityHttpMethods : $this->collectionHttpMethods;
 
         $events = $this->getEventManager();
-        $events->trigger('options.pre', $this, ['options' => $options]);
+        $events->trigger(eventName: 'options.pre', target: $this, argv: ['options' => $options]);
 
         $response = $this->getResponse();
-        $response->setStatusCode(204);
-        $headers = $response->getHeaders();
-        $headers->addHeader($this->createAllowHeaderWithAllowedMethods($options));
+        $response->setStatusCode(code: 204);
 
-        $events->trigger('options.post', $this, ['options' => $options]);
+        $headers = $response->getHeaders();
+        $headers->addHeader(header: $this->createAllowHeaderWithAllowedMethods(methods: $options));
+
+        $events->trigger(eventName: 'options.post', target: $this, argv: ['options' => $options]);
 
         return $response;
     }
@@ -630,24 +637,25 @@ class RestController extends AbstractRestfulController
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
      * @todo   Remove 'resource' from patch.post event for 1.0.0
      */
-    public function patch($id, $data)
+    #[Override]
+    public function patch($id, $data): HalEntity|Response|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('patch.pre', $this, ['id' => $id, 'data' => $data]);
+        $events->trigger(eventName: 'patch.pre', target: $this, argv: ['id' => $id, 'data' => $data]);
 
         try {
-            $entity = $this->getResource()->patch($id, $data);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $entity = $this->getResource()->patch(id: $id, data: $data);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        if ($this->isPreparedResponse($entity)) {
+        if ($this->isPreparedResponse(object: $entity)) {
             return $entity;
         }
 
-        $halEntity = $this->createHalEntity($entity);
+        $halEntity = $this->createHalEntity(entity: $entity);
 
-        $events->trigger('patch.post', $this, [
+        $events->trigger(eventName: 'patch.post', target: $this, argv: [
             'id'       => $id,
             'data'     => $data,
             'entity'   => $halEntity,
@@ -665,24 +673,25 @@ class RestController extends AbstractRestfulController
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
      * @todo   Remove 'resource' from update.post event for 1.0.0
      */
-    public function update($id, $data)
+    #[Override]
+    public function update($id, $data): HalEntity|Response|ApiProblem|ApiProblemResponse
     {
         $events = $this->getEventManager();
-        $events->trigger('update.pre', $this, ['id' => $id, 'data' => $data]);
+        $events->trigger(eventName: 'update.pre', target: $this, argv: ['id' => $id, 'data' => $data]);
 
         try {
-            $entity = $this->getResource()->update($id, $data);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $entity = $this->getResource()->update(id: $id, data: $data);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        if ($this->isPreparedResponse($entity)) {
+        if ($this->isPreparedResponse(object: $entity)) {
             return $entity;
         }
 
-        $halEntity = $this->createHalEntity($entity);
+        $halEntity = $this->createHalEntity(entity: $entity);
 
-        $events->trigger('update.post', $this, [
+        $events->trigger(eventName: 'update.post', target: $this, argv: [
             'id'       => $id,
             'data'     => $data,
             'entity'   => $halEntity,
@@ -699,24 +708,25 @@ class RestController extends AbstractRestfulController
      * @param array $data
      * @return array|ApiProblem
      */
-    public function patchList($data)
+    #[Override]
+    public function patchList($data): array|HalCollection|ApiProblem
     {
         $events = $this->getEventManager();
-        $events->trigger('patchList.pre', $this, ['data' => $data]);
+        $events->trigger(eventName: 'patchList.pre', target: $this, argv: ['data' => $data]);
 
         try {
-            $collection = $this->getResource()->patchList($data);
-        } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            $collection = $this->getResource()->patchList(data: $data);
+        } catch (Throwable $throwable) {
+            return $this->createApiProblemFromException(e: $throwable);
         }
 
-        if ($this->isPreparedResponse($collection)) {
+        if ($this->isPreparedResponse(object: $collection)) {
             return $collection;
         }
 
-        $halCollection = $this->createHalCollection($collection);
+        $halCollection = $this->createHalCollection(collection: $collection);
 
-        $events->trigger('patchList.post', $this, [
+        $events->trigger(eventName: 'patchList.post', target: $this, argv: [
             'data'       => $data,
             'collection' => $halCollection,
         ]);
@@ -730,26 +740,27 @@ class RestController extends AbstractRestfulController
      * @param array $data
      * @return array|ApiProblem
      */
-    public function replaceList($data)
+    #[Override]
+    public function replaceList($data): array|HalCollection|ApiProblem
     {
         $events = $this->getEventManager();
-        $events->trigger('replaceList.pre', $this, ['data' => $data]);
+        $events->trigger(eventName: 'replaceList.pre', target: $this, argv: ['data' => $data]);
 
         try {
-            $collection = $this->getResource()->replaceList($data);
-        } catch (\InvalidArgumentException $e) {
-            return new ApiProblem(400, $e->getMessage());
+            $collection = $this->getResource()->replaceList(data: $data);
+        } catch (InvalidArgumentException $e) {
+            return new ApiProblem(status: 400, detail: $e->getMessage());
         } catch (Throwable $e) {
-            return $this->createApiProblemFromException($e);
+            return $this->createApiProblemFromException(e: $e);
         }
 
-        if ($this->isPreparedResponse($collection)) {
+        if ($this->isPreparedResponse(object: $collection)) {
             return $collection;
         }
 
-        $halCollection = $this->createHalCollection($collection);
+        $halCollection = $this->createHalCollection(collection: $collection);
 
-        $events->trigger('replaceList.post', $this, [
+        $events->trigger(eventName: 'replaceList.post', target: $this, argv: [
             'data'       => $data,
             'collection' => $halCollection,
         ]);
@@ -767,10 +778,11 @@ class RestController extends AbstractRestfulController
      * @param Request $request
      * @return false|mixed
      */
-    protected function getIdentifier($routeMatch, $request)
+    #[Override]
+    protected function getIdentifier($routeMatch, $request): mixed
     {
         $identifier = $this->getIdentifierName();
-        $id         = $routeMatch->getParam($identifier, false);
+        $id         = $routeMatch->getParam(name: $identifier, default: false);
         if ($id !== null) {
             return $id;
         }
@@ -784,50 +796,51 @@ class RestController extends AbstractRestfulController
      * @param array $methods
      * @return Allow
      */
-    protected function createAllowHeaderWithAllowedMethods(array $methods)
+    protected function createAllowHeaderWithAllowedMethods(array $methods): Allow
     {
         // Need to create an Allow header. It has several defaults, and the only
         // way to start with a clean slate is to retrieve all methods, disallow
         // them all, and then set the ones we want to allow.
         $allow      = new Allow();
         $allMethods = $allow->getAllMethods();
-        $allow->disallowMethods(array_keys($allMethods));
-        $allow->allowMethods($methods);
+        $allow->disallowMethods(disallowedMethods: array_keys(array: $allMethods));
+        $allow->allowMethods(allowedMethods: $methods);
         return $allow;
     }
 
     /**
-     * @param Exception|Throwable $e
+     * @param Throwable|Exception $e
      * @return ApiProblem
      */
-    protected function createApiProblemFromException($e)
+    protected function createApiProblemFromException(Throwable|Exception $e): ApiProblem
     {
-        return new ApiProblem($this->getHttpStatusCodeFromException($e), $e);
+        return new ApiProblem(status: $this->getHttpStatusCodeFromException(e: $e), detail: $e);
     }
 
     /**
      * Ensure we have a valid HTTP status code for an ApiProblem
      *
-     * @param Exception|Throwable $e
+     * @param Throwable|Exception $e
      * @return int
      */
-    protected function getHttpStatusCodeFromException($e)
+    protected function getHttpStatusCodeFromException(Throwable|Exception $e): int
     {
         $code = $e->getCode();
         if (
-            !is_int($code)
+            !is_int(value: $code)
             || $code < 100
             || $code >= 600
         ) {
             return 500;
         }
+
         return $code;
     }
 
     /**
      * Injects the resource with the identity composed in the event, if present
      */
-    protected function injectEventIdentityIntoResource()
+    protected function injectEventIdentityIntoResource(): void
     {
         if ($this->resource->getIdentity()) {
             return;
@@ -838,18 +851,18 @@ class RestController extends AbstractRestfulController
             return;
         }
 
-        $identity = $event->getParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class);
+        $identity = $event->getParam(name: AuthenticatedIdentity::class);
         if (!$identity) {
             return;
         }
 
-        $this->resource->setIdentity($identity);
+        $this->resource->setIdentity(identity: $identity);
     }
 
     /**
      * Injects the resource with the input filter composed in the event, if present
      */
-    protected function injectEventInputFilterIntoResource()
+    protected function injectEventInputFilterIntoResource(): void
     {
         if ($this->resource->getInputFilter()) {
             return;
@@ -860,15 +873,15 @@ class RestController extends AbstractRestfulController
             return;
         }
 
-        $inputFilter = $event->getParam('Jield\ApiTools\ContentValidation\InputFilter');
+        $inputFilter = $event->getParam(name: 'Jield\ApiTools\ContentValidation\InputFilter');
         if (!$inputFilter) {
             return;
         }
 
-        $this->resource->setInputFilter($inputFilter);
+        $this->resource->setInputFilter(inputFilter: $inputFilter);
     }
 
-    protected function injectRequestIntoResourceEventParams()
+    protected function injectRequestIntoResourceEventParams(): void
     {
         $request = $this->getRequest();
         if (!$request) {
@@ -877,13 +890,8 @@ class RestController extends AbstractRestfulController
 
         $params = $this->resource->getEventParams();
 
-        if (!is_array($params) && !$params instanceof ArrayAccess) {
-            // If not array-like, no clear path for setting event parameters
-            return;
-        }
-
         $params['request'] = $request;
-        $this->resource->setEventParams($params);
+        $this->resource->setEventParams(params: $params);
     }
 
     /**
@@ -891,9 +899,10 @@ class RestController extends AbstractRestfulController
      *
      * @return null|array|Traversable
      */
-    public function processPostData(RequestInterface $request)
+    #[Override]
+    public function processPostData(RequestInterface $request): HalEntity|Response|Traversable|array|HalCollection|ApiProblem|ApiProblemResponse|null
     {
-        return $this->create($this->bodyParams());
+        return $this->create(data: $this->bodyParams());
     }
 
     /**
@@ -902,83 +911,68 @@ class RestController extends AbstractRestfulController
      * @param Request $request
      * @return null|array|Traversable
      */
-    protected function processBodyContent($request)
+    #[Override]
+    protected function processBodyContent($request): Traversable|array|null
     {
         return $this->bodyParams();
     }
 
-    /**
-     * @param mixed $object
-     * @return bool
-     */
-    protected function isPreparedResponse($object)
+    protected function isPreparedResponse(mixed $object): bool
     {
-        if (
-            $object instanceof ApiProblem
+        return $object instanceof ApiProblem
             || $object instanceof ApiProblemResponse
-            || $object instanceof Response
-        ) {
-            return true;
-        }
-
-        return false;
+            || $object instanceof Response;
     }
 
     /**
-     * @param mixed $collection
      * @return HalCollection
      */
-    protected function createHalCollection($collection)
+    protected function createHalCollection(mixed $collection): HalCollection|ApiProblem
     {
         if (!$collection instanceof HalCollection) {
-            $halPlugin  = $this->plugin('Hal');
+            $halPlugin  = $this->plugin(name: 'Hal');
             $collection = $halPlugin->createCollection($collection, $this->route);
         }
 
-        return $this->prepareHalCollection($collection);
+        return $this->prepareHalCollection(collection: $collection);
     }
 
     /**
      * Prepare a HAL collection with the metadata for the current instance.
      *
-     * @return HalCollection|ApiProblem
      */
-    protected function prepareHalCollection(HalCollection $collection)
+    protected function prepareHalCollection(HalCollection $collection): HalCollection|ApiProblem
     {
-        if (!$collection->getLinks()->has('self')) {
-            $plugin = $this->plugin('Hal');
+        if (!$collection->getLinks()->has(relation: 'self')) {
+            $plugin = $this->plugin(name: 'Hal');
             $plugin->injectSelfLink($collection, $this->route);
         }
 
-        $collection->setCollectionRoute($this->route);
-        $collection->setRouteIdentifierName($this->getRouteIdentifierName());
-        $collection->setEntityRoute($this->route);
-        $collection->setCollectionName($this->collectionName);
+        $collection->setCollectionRoute(route: $this->route);
+        $collection->setRouteIdentifierName(identifier: $this->getRouteIdentifierName());
+        $collection->setEntityRoute(route: $this->route);
+        $collection->setCollectionName(name: $this->collectionName);
 
         try {
-            $collection->setPageSize($this->getPageSize());
-            $collection->setPage($this->getRequest()->getQuery('page', 1));
-        } catch (HalInvalidArgumentException $e) {
-            return new ApiProblem(400, $e->getMessage());
+            $collection->setPageSize(size: $this->getPageSize());
+            $collection->setPage(page: $this->getRequest()->getQuery(name: 'page', default: 1));
+        } catch (HalInvalidArgumentException $halInvalidArgumentException) {
+            return new ApiProblem(status: 400, detail: $halInvalidArgumentException->getMessage());
         }
 
         return $collection;
     }
 
-    /**
-     * @param mixed $entity
-     * @return HalEntity
-     */
-    protected function createHalEntity($entity)
+    protected function createHalEntity(mixed $entity): HalEntity
     {
         if (
             $entity instanceof HalEntity
-            && ($entity->getLinks()->has('self') || !$entity->getId())
+            && ($entity->getLinks()->has(relation: 'self') || !$entity->getId())
         ) {
             return $entity;
         }
 
-        $plugin = $this->plugin('Hal');
+        $plugin = $this->plugin(name: 'Hal');
 
         return $plugin->createEntity(
             $entity,

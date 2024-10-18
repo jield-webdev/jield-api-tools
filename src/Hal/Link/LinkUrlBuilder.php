@@ -25,13 +25,13 @@ class LinkUrlBuilder
     }
 
     /**
-     * @param  string $route
-     * @param  array $params
-     * @param  array $options
-     * @param  bool $reUseMatchedParams
+     * @param string $route
+     * @param array $params
+     * @param array $options
+     * @param bool $reUseMatchedParams
      * @return string
      */
-    public function buildLinkUrl($route, $params = [], $options = [], $reUseMatchedParams = false)
+    public function buildLinkUrl(string $route, array $params = [], array $options = [], bool $reUseMatchedParams = false): string
     {
         $path = call_user_func(
             $this->urlHelper,
@@ -41,7 +41,7 @@ class LinkUrlBuilder
             $reUseMatchedParams
         );
 
-        if (substr($path, 0, 4) === 'http') {
+        if (str_starts_with(haystack: $path, needle: 'http')) {
             return $path;
         }
 

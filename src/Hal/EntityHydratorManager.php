@@ -8,10 +8,7 @@ use Jield\ApiTools\Hal\Metadata\MetadataMap;
 use Laminas\Hydrator\ExtractionInterface;
 use Laminas\Hydrator\HydratorPluginManager;
 use Laminas\Hydrator\HydratorPluginManagerInterface;
-
-use function get_debug_type;
 use function is_string;
-use function sprintf;
 use function strtolower;
 
 class EntityHydratorManager
@@ -40,21 +37,8 @@ class EntityHydratorManager
      * @param HydratorPluginManager|HydratorPluginManagerInterface $hydrators
      * @throws Exception\InvalidArgumentException If $hydrators is of invalid type.
      */
-    public function __construct($hydrators, MetadataMap $map)
+    public function __construct(HydratorPluginManager|HydratorPluginManagerInterface $hydrators, MetadataMap $map)
     {
-        if ($hydrators instanceof HydratorPluginManagerInterface) {
-            $this->hydrators = $hydrators;
-        } elseif ($hydrators instanceof HydratorPluginManager) {
-            $this->hydrators = $hydrators;
-        } else {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '$hydrators argument to %s must be an instance of either %s or %s; received %s',
-                self::class,
-                HydratorPluginManagerInterface::class,
-                HydratorPluginManager::class,
-                get_debug_type($hydrators)
-            ));
-        }
         $this->hydrators   = $hydrators;
         $this->metadataMap = $map;
     }
@@ -62,7 +46,7 @@ class EntityHydratorManager
     /**
      * @return HydratorPluginManager|HydratorPluginManagerInterface
      */
-    public function getHydratorManager()
+    public function getHydratorManager(): HydratorPluginManager|HydratorPluginManagerInterface
     {
         return $this->hydrators;
     }
@@ -70,19 +54,19 @@ class EntityHydratorManager
     /**
      * Map an entity class to a specific hydrator instance
      *
-     * @param  string $class
-     * @param  ExtractionInterface|string $hydrator
+     * @param string $class
+     * @param string|ExtractionInterface $hydrator
      * @return self
      */
-    public function addHydrator($class, $hydrator)
+    public function addHydrator(string $class, ExtractionInterface|string $hydrator): static
     {
-        if (is_string($hydrator)) {
+        if (is_string(value: $hydrator)) {
             /** @var ExtractionInterface $hydratorInstance */
             $hydratorInstance = $this->hydrators->get($hydrator);
             $hydrator         = $hydratorInstance;
         }
 
-        $filteredClass                     = strtolower($class);
+        $filteredClass                     = strtolower(string: $class);
         $this->hydratorMap[$filteredClass] = $hydrator;
         return $this;
     }
@@ -90,9 +74,8 @@ class EntityHydratorManager
     /**
      * Set the default hydrator to use if none specified for a class.
      *
-     * @return self
      */
-    public function setDefaultHydrator(ExtractionInterface $hydrator)
+    public function setDefaultHydrator(ExtractionInterface $hydrator): static
     {
         $this->defaultHydrator = $hydrator;
         return $this;
@@ -105,24 +88,24 @@ class EntityHydratorManager
      * a default hydrator is present, the default hydrator is returned.
      * Otherwise, a boolean false is returned.
      *
-     * @param  object $entity
+     * @param object $entity
      * @return ExtractionInterface|false
      */
-    public function getHydratorForEntity($entity)
+    public function getHydratorForEntity(object $entity): false|ExtractionInterface
     {
         $class      = $entity::class;
-        $classLower = strtolower($class);
+        $classLower = strtolower(string: $class);
 
         if (isset($this->hydratorMap[$classLower])) {
             return $this->hydratorMap[$classLower];
         }
 
-        if ($this->metadataMap->has($entity)) {
-            $metadata = $this->metadataMap->get($class);
+        if ($this->metadataMap->has(class: $entity)) {
+            $metadata = $this->metadataMap->get(class: $class);
             /** @psalm-suppress PossiblyFalseReference */
             $hydrator = $metadata->getHydrator();
             if ($hydrator instanceof ExtractionInterface) {
-                $this->addHydrator($class, $hydrator);
+                $this->addHydrator(class: $class, hydrator: $hydrator);
                 return $hydrator;
             }
         }

@@ -9,6 +9,7 @@ use Jield\ApiTools\MvcAuth\Authentication\HttpAdapter;
 use Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter;
 use Laminas\ServiceManager\DelegatorFactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 use function is_array;
@@ -22,23 +23,22 @@ class AuthenticationAdapterDelegatorFactory implements DelegatorFactoryInterface
      * Attaches adapters as listeners if present in configuration.
      *
      * @param  string             $name
-     * @param  null|array         $options
-     * @return DefaultAuthenticationListener
      */
-    public function __invoke(ContainerInterface $container, $name, callable $callback, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $name, callable $callback, ?array $options = null): DefaultAuthenticationListener
     {
         $listener = $callback();
 
         $config = $container->get('config');
         if (
             ! isset($config['api-tools-mvc-auth']['authentication']['adapters'])
-            || ! is_array($config['api-tools-mvc-auth']['authentication']['adapters'])
+            || ! is_array(value: $config['api-tools-mvc-auth']['authentication']['adapters'])
         ) {
             return $listener;
         }
 
         foreach ($config['api-tools-mvc-auth']['authentication']['adapters'] as $type => $data) {
-            $this->attachAdapterOfType($type, $data, $container, $listener);
+            $this->attachAdapterOfType(type: $type, adapterConfig: $data, container: $container, listener: $listener);
         }
 
         return $listener;
@@ -52,11 +52,11 @@ class AuthenticationAdapterDelegatorFactory implements DelegatorFactoryInterface
      * @param string $name
      * @param string $requestedName
      * @param callable $callback
-     * @return DefaultAuthenticationListener
      */
-    public function createDelegatorWithName(ServiceLocatorInterface $container, $name, $requestedName, $callback)
+    #[Override]
+    public function createDelegatorWithName(ServiceLocatorInterface $container, $name, $requestedName, $callback): DefaultAuthenticationListener
     {
-        return $this($container, $requestedName, $callback);
+        return $this(container: $container, name: $requestedName, callback: $callback);
     }
 
     /**
@@ -70,17 +70,17 @@ class AuthenticationAdapterDelegatorFactory implements DelegatorFactoryInterface
     ): void {
         if (
             ! isset($adapterConfig['adapter'])
-            || ! is_string($adapterConfig['adapter'])
+            || ! is_string(value: $adapterConfig['adapter'])
         ) {
             return;
         }
 
         switch ($adapterConfig['adapter']) {
             case HttpAdapter::class:
-                $adapter = AuthenticationHttpAdapterFactory::factory($type, $adapterConfig, $container);
+                $adapter = AuthenticationHttpAdapterFactory::factory(type: $type, config: $adapterConfig, container: $container);
                 break;
             case OAuth2Adapter::class:
-                $adapter = AuthenticationOAuth2AdapterFactory::factory($type, $adapterConfig, $container);
+                $adapter = AuthenticationOAuth2AdapterFactory::factory(type: $type, config: $adapterConfig, container: $container);
                 break;
             default:
                 $adapter = false;
@@ -91,6 +91,6 @@ class AuthenticationAdapterDelegatorFactory implements DelegatorFactoryInterface
             return;
         }
 
-        $listener->attach($adapter);
+        $listener->attach(adapter: $adapter);
     }
 }

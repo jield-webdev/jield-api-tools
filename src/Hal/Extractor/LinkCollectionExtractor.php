@@ -8,6 +8,7 @@ use Jield\ApiTools\ApiProblem\Exception\DomainException;
 use Jield\ApiTools\Hal\Link\Link;
 use Jield\ApiTools\Hal\Link\LinkCollection;
 
+use Override;
 use function is_array;
 use function sprintf;
 
@@ -18,21 +19,19 @@ class LinkCollectionExtractor implements LinkCollectionExtractorInterface
 
     public function __construct(LinkExtractorInterface $linkExtractor)
     {
-        $this->setLinkExtractor($linkExtractor);
+        $this->setLinkExtractor(linkExtractor: $linkExtractor);
     }
 
     /**
      * @return LinkExtractorInterface
      */
-    public function getLinkExtractor()
+    #[Override]
+    public function getLinkExtractor(): LinkExtractorInterface
     {
         return $this->linkExtractor;
     }
 
-    /**
-     * @return void
-     */
-    public function setLinkExtractor(LinkExtractorInterface $linkExtractor)
+    public function setLinkExtractor(LinkExtractorInterface $linkExtractor): void
     {
         $this->linkExtractor = $linkExtractor;
     }
@@ -40,17 +39,18 @@ class LinkCollectionExtractor implements LinkCollectionExtractorInterface
     /**
      * @inheritDoc
      */
-    public function extract(LinkCollection $collection)
+    #[Override]
+    public function extract(LinkCollection $collection): array
     {
         $links = [];
         foreach ($collection as $rel => $linkDefinition) {
             if ($linkDefinition instanceof Link) {
-                $links[$rel] = $this->linkExtractor->extract($linkDefinition);
+                $links[$rel] = $this->linkExtractor->extract(link: $linkDefinition);
                 continue;
             }
 
-            if (! is_array($linkDefinition)) {
-                throw new DomainException(sprintf(
+            if (! is_array(value: $linkDefinition)) {
+                throw new DomainException(message: sprintf(
                     'Link object for relation "%s" in resource was malformed; cannot generate link',
                     $rel
                 ));
@@ -60,13 +60,13 @@ class LinkCollectionExtractor implements LinkCollectionExtractorInterface
             /** @var mixed $subLink */
             foreach ($linkDefinition as $subLink) {
                 if (! $subLink instanceof Link) {
-                    throw new DomainException(sprintf(
+                    throw new DomainException(message: sprintf(
                         'Link object aggregated for relation "%s" in resource was malformed; cannot generate link',
                         $rel
                     ));
                 }
 
-                $aggregate[] = $this->linkExtractor->extract($subLink);
+                $aggregate[] = $this->linkExtractor->extract(link: $subLink);
             }
 
             $links[$rel] = $aggregate;

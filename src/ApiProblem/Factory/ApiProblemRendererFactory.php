@@ -9,10 +9,7 @@ use Jield\ApiTools\ApiProblem\View\ApiProblemRenderer;
 
 class ApiProblemRendererFactory
 {
-    /**
-     * @return ApiProblemRenderer
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ApiProblemRenderer
     {
         $config            = $container->get('config');
         $displayExceptions = isset($config['view_manager'])
@@ -20,7 +17,7 @@ class ApiProblemRendererFactory
             && $config['view_manager']['display_exceptions'];
 
         $renderer = new ApiProblemRenderer();
-        $renderer->setDisplayExceptions($displayExceptions);
+        $renderer->setDisplayExceptions(flag: $displayExceptions);
 
         return $renderer;
     }

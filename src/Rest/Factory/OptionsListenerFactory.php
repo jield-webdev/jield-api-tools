@@ -7,6 +7,7 @@ namespace Jield\ApiTools\Rest\Factory;
 use Jield\ApiTools\Rest\Listener\OptionsListener;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 use function array_key_exists;
@@ -18,20 +19,18 @@ class OptionsListenerFactory implements FactoryInterface
      * Create and return an OptionsListener instance.
      *
      * @param string $requestedName
-     * @param null|array $options
-     * @return OptionsListener
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): OptionsListener
     {
-        return new OptionsListener($this->getConfig($container));
+        return new OptionsListener(config: $this->getConfig(container: $container));
     }
 
     /**
      * Retrieve api-tools-rest config from the container, if available.
      *
-     * @return array
      */
-    private function getConfig(ContainerInterface $container)
+    private function getConfig(ContainerInterface $container): array
     {
         if (! $container->has('config')) {
             return [];
@@ -40,8 +39,8 @@ class OptionsListenerFactory implements FactoryInterface
         $config = $container->get('config');
 
         if (
-            ! array_key_exists('api-tools-rest', $config)
-            || ! is_array($config['api-tools-rest'])
+            ! array_key_exists(key: 'api-tools-rest', array: $config)
+            || ! is_array(value: $config['api-tools-rest'])
         ) {
             return [];
         }

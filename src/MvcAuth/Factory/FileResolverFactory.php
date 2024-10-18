@@ -7,6 +7,7 @@ namespace Jield\ApiTools\MvcAuth\Factory;
 use Laminas\Authentication\Adapter\Http\FileResolver;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\ServiceManager\ServiceLocatorInterface;
+use Override;
 use Psr\Container\ContainerInterface;
 
 class FileResolverFactory implements FactoryInterface
@@ -15,10 +16,9 @@ class FileResolverFactory implements FactoryInterface
      * Create and return a FileResolver instance, if configured.
      *
      * @param string             $requestedName
-     * @param null|array         $options
-     * @return false|FileResolver
      */
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    #[Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): false|FileResolver
     {
         if (! $container->has('config')) {
             return false;
@@ -32,6 +32,6 @@ class FileResolverFactory implements FactoryInterface
 
         $htdigest = $config['api-tools-mvc-auth']['authentication']['http']['htdigest'];
 
-        return new FileResolver($htdigest);
+        return new FileResolver(path: $htdigest);
     }
 }

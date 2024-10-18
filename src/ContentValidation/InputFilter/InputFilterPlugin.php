@@ -11,7 +11,7 @@ use Laminas\Mvc\InjectApplicationEventInterface;
 class InputFilterPlugin extends AbstractPlugin
 {
     /** @return null|InputFilterInterface */
-    public function __invoke()
+    public function __invoke(): ?InputFilterInterface
     {
         $controller = $this->getController();
         if (!$controller instanceof InjectApplicationEventInterface) {
@@ -19,7 +19,7 @@ class InputFilterPlugin extends AbstractPlugin
         }
 
         $event       = $controller->getEvent();
-        $inputFilter = $event->getParam(__NAMESPACE__);
+        $inputFilter = $event->getParam(name: __NAMESPACE__);
 
         if (!$inputFilter instanceof InputFilterInterface) {
             return null;

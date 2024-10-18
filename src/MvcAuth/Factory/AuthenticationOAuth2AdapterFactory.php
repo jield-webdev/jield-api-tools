@@ -22,20 +22,20 @@ final class AuthenticationOAuth2AdapterFactory
     /**
      * Create and return an OAuth2Adapter instance.
      *
-     * @param string|array $type
+     * @param array|string $type
      * @param array $config
      * @param ContainerInterface $services
      * @return OAuth2Adapter
      */
-    public static function factory($type, array $config, ContainerInterface $container)
+    public static function factory(array|string $type, array $config, ContainerInterface $container): OAuth2Adapter
     {
-        if (! isset($config['storage']) || ! is_array($config['storage'])) {
-            throw new ServiceNotCreatedException('Missing storage details for OAuth2 server');
+        if (! isset($config['storage']) || ! is_array(value: $config['storage'])) {
+            throw new ServiceNotCreatedException(message: 'Missing storage details for OAuth2 server');
         }
 
         return new OAuth2Adapter(
-            OAuth2ServerFactory::factory($config['storage'], $container),
-            $type
+            oauth2Server: OAuth2ServerFactory::factory(config: $config['storage'], container: $container),
+            types: $type
         );
     }
 }

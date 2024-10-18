@@ -9,10 +9,7 @@ use Jield\ApiTools\ApiProblem\Listener\ApiProblemListener;
 
 class ApiProblemListenerFactory
 {
-    /**
-     * @return ApiProblemListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ApiProblemListener
     {
         $filters = null;
         $config  = [];
@@ -25,6 +22,6 @@ class ApiProblemListenerFactory
             $filters = $config['api-tools-api-problem']['accept_filters'];
         }
 
-        return new ApiProblemListener($filters);
+        return new ApiProblemListener(filters: $filters);
     }
 }

@@ -8,6 +8,7 @@ use ArrayObject;
 use JsonSerializable;
 use Jield\ApiTools\Hal\EntityHydratorManager;
 use Laminas\Hydrator\ExtractionInterface;
+use Override;
 use SplObjectStorage;
 
 use function get_object_vars;
@@ -36,6 +37,7 @@ class EntityExtractor implements ExtractionInterface
     /**
      * @inheritDoc
      */
+    #[Override]
     public function extract(object $object): array
     {
         if (isset($this->serializedEntities[$object])) {
@@ -43,7 +45,7 @@ class EntityExtractor implements ExtractionInterface
             return $this->serializedEntities[$object];
         }
 
-        $this->serializedEntities[$object] = $this->extractEntity($object);
+        $this->serializedEntities[$object] = $this->extractEntity(entity: $object);
 
         /** @psalm-var array<array-key, mixed> */
         return $this->serializedEntities[$object];
@@ -51,10 +53,10 @@ class EntityExtractor implements ExtractionInterface
 
     private function extractEntity(object $entity): array
     {
-        $hydrator = $this->entityHydratorManager->getHydratorForEntity($entity);
+        $hydrator = $this->entityHydratorManager->getHydratorForEntity(entity: $entity);
 
         if ($hydrator) {
-            return $hydrator->extract($entity);
+            return $hydrator->extract(object: $entity);
         }
 
         if ($entity instanceof JsonSerializable) {
@@ -66,6 +68,6 @@ class EntityExtractor implements ExtractionInterface
             return $entity->getArrayCopy();
         }
 
-        return get_object_vars($entity);
+        return get_object_vars(object: $entity);
     }
 }

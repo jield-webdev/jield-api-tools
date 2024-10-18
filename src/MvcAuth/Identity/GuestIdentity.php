@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\MvcAuth\Identity;
 
 use Laminas\Permissions\Rbac\Role;
+use Override;
 
 class GuestIdentity extends Role implements IdentityInterface
 {
@@ -13,17 +14,18 @@ class GuestIdentity extends Role implements IdentityInterface
 
     public function __construct()
     {
-        parent::__construct(static::$identity);
+        parent::__construct(name: static::$identity);
     }
 
     /** @return string */
-    public function getRoleId()
+    public function getRoleId(): string
     {
         return static::$identity;
     }
 
     /** @return null */
-    public function getAuthenticationIdentity()
+    #[Override]
+    public function getAuthenticationIdentity(): null
     {
         return null;
     }

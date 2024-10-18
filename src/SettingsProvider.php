@@ -5,6 +5,7 @@ namespace Jield\ApiTools;
 use Jield\ApiTools\ContentNegotiation\JsonModel;
 use Jield\ApiTools\Hal\View\HalJsonModel;
 use Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter;
+use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
 use Laminas\View\Model\ViewModel;
 
 final class SettingsProvider
@@ -24,7 +25,7 @@ final class SettingsProvider
                 ],
             ],
             'api-tools-oauth2'              => [
-                'storage'                    => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class,
+                'storage'                    => PdoAdapter::class,
 
                 /**
                  * These special OAuth2Server options are parsed outside the options array
@@ -82,7 +83,7 @@ final class SettingsProvider
                         'jield_oauth2_pdo_adapter' => [
                             'adapter' => OAuth2Adapter::class,
                             'storage' => [
-                                'storage' => \Jield\ApiTools\OAuth2\Adapter\PdoAdapter::class
+                                'storage' => PdoAdapter::class
                             ]
                         ],
                     ],

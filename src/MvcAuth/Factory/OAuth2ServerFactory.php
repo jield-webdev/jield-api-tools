@@ -36,79 +36,70 @@ final class OAuth2ServerFactory
     /**
      * Create and return a fully configured OAuth2 server instance.
      *
-     * @param array $config
-     * @return OAuth2Server
      */
-    public static function factory(array $config, ContainerInterface $container)
+    public static function factory(array $config, ContainerInterface $container): OAuth2Server
     {
         $allConfig    = $container->get('config');
         $oauth2Config = $allConfig['api-tools-oauth2'] ?? [];
-        $options      = self::marshalOptions($oauth2Config);
+        $options      = self::marshalOptions(config: $oauth2Config);
 
         $oauth2Server = new OAuth2Server(
-            self::createStorage(array_merge($oauth2Config, $config), $container),
-            $options
+            storage: self::createStorage(config: array_merge($oauth2Config, $config), container: $container),
+            config: $options
         );
 
-        return self::injectGrantTypes($oauth2Server, $oauth2Config['grant_types'], $options);
+        return self::injectGrantTypes(server: $oauth2Server, availableGrantTypes: $oauth2Config['grant_types'], options: $options);
     }
 
     /**
      * Create and return an OAuth2 storage adapter instance.
      *
-     * @param array $config
      * @return array|MongoAdapter|PdoAdapter A PdoAdapter, MongoAdapter, or array of storage instances.
      */
-    private static function createStorage(array $config, ContainerInterface $container)
+    private static function createStorage(array $config, ContainerInterface $container): MongoAdapter|PdoAdapter|array
     {
-        if (isset($config['adapter']) && is_string($config['adapter'])) {
-            return self::createStorageFromAdapter($config['adapter'], $config, $container);
+        if (isset($config['adapter']) && is_string(value: $config['adapter'])) {
+            return self::createStorageFromAdapter(adapter: $config['adapter'], config: $config, container: $container);
         }
 
         if (
             isset($config['storage'])
-            && (is_string($config['storage']) || is_array($config['storage']))
+            && (is_string(value: $config['storage']) || is_array(value: $config['storage']))
         ) {
-            return self::createStorageFromServices($config['storage'], $container);
+            return self::createStorageFromServices(storage: $config['storage'], container: $container);
         }
 
-        throw new ServiceNotCreatedException('Missing or invalid storage adapter information for OAuth2');
+        throw new ServiceNotCreatedException(message: 'Missing or invalid storage adapter information for OAuth2');
     }
 
     /**
      * Create an OAuth2 storage instance based on the adapter specified.
      *
      * @param string $adapter One of "pdo" or "mongo".
-     * @param array $config
-     * @return MongoAdapter|PdoAdapter
      */
-    private static function createStorageFromAdapter($adapter, array $config, ContainerInterface $container)
+    private static function createStorageFromAdapter(string $adapter, array $config, ContainerInterface $container): MongoAdapter|PdoAdapter
     {
-        switch (strtolower($adapter)) {
-            case 'pdo':
-                return self::createPdoAdapter($config);
-            case 'mongo':
-                return self::createMongoAdapter($config, $container);
-            default:
-                throw new ServiceNotCreatedException('Invalid storage adapter type for OAuth2');
-        }
+        return match (strtolower(string: $adapter)) {
+            'pdo' => self::createPdoAdapter(config: $config),
+            'mongo' => self::createMongoAdapter(config: $config, container: $container),
+            default => throw new ServiceNotCreatedException(message: 'Invalid storage adapter type for OAuth2'),
+        };
     }
 
     /**
      * Creates the OAuth2 storage from services.
      *
      * @param string|string[] $storage A string or an array of strings; each MUST be a valid service.
-     * @return array
      */
-    private static function createStorageFromServices($storage, ContainerInterface $container)
+    private static function createStorageFromServices(array|string $storage, ContainerInterface $container): array
     {
         $storageServices = [];
 
-        if (is_string($storage)) {
+        if (is_string(value: $storage)) {
             $storageServices[] = $storage;
         }
 
-        if (is_array($storage)) {
+        if (is_array(value: $storage)) {
             $storageServices = $storage;
         }
 
@@ -116,6 +107,7 @@ final class OAuth2ServerFactory
         foreach ($storageServices as $key => $service) {
             $storage[$key] = $container->get($service);
         }
+
         return $storage;
     }
 
@@ -125,25 +117,23 @@ final class OAuth2ServerFactory
      * @param array $config
      * @return PdoAdapter
      */
-    private static function createPdoAdapter(array $config)
+    private static function createPdoAdapter(array $config): PdoAdapter
     {
         return new PdoAdapter(
-            self::createPdoConfig($config),
-            self::getOAuth2ServerConfig($config)
+            connection: self::createPdoConfig(config: $config),
+            config: self::getOAuth2ServerConfig(config: $config)
         );
     }
 
     /**
      * Create and return an OAuth2 Mongo adapter.
      *
-     * @param array $config
-     * @return MongoAdapter
      */
-    private static function createMongoAdapter(array $config, ContainerInterface $container)
+    private static function createMongoAdapter(array $config, ContainerInterface $container): MongoAdapter
     {
         return new MongoAdapter(
-            self::createMongoDatabase($config, $container),
-            self::getOAuth2ServerConfig($config)
+            self::createMongoDatabase(config: $config, container: $container),
+            self::getOAuth2ServerConfig(config: $config)
         );
     }
 
@@ -153,11 +143,11 @@ final class OAuth2ServerFactory
      * @param array $config
      * @return array
      */
-    private static function createPdoConfig(array $config)
+    private static function createPdoConfig(array $config): array
     {
         if (! isset($config['dsn'])) {
             throw new ServiceNotCreatedException(
-                'Missing DSN for OAuth2 PDO adapter creation'
+                message: 'Missing DSN for OAuth2 PDO adapter creation'
             );
         }
 
@@ -176,10 +166,8 @@ final class OAuth2ServerFactory
     /**
      * Create and return a Mongo database instance.
      *
-     * @param array $config
-     * @return MongoDB
      */
-    private static function createMongoDatabase(array $config, ContainerInterface $container)
+    private static function createMongoDatabase(array $config, ContainerInterface $container): MongoDB
     {
         $dbLocatorName = $config['locator_name'] ?? 'MongoDB';
 
@@ -189,14 +177,14 @@ final class OAuth2ServerFactory
 
         if (! isset($config['database'])) {
             throw new ServiceNotCreatedException(
-                'Missing OAuth2 Mongo database configuration'
+                message: 'Missing OAuth2 Mongo database configuration'
             );
         }
 
         $options            = $config['options'] ?? [];
         $options['connect'] = false;
         $server             = $config['dsn'] ?? null;
-        $mongo              = new MongoClient($server, $options);
+        $mongo              = new MongoClient(server: $server, options: $options);
         return $mongo->{$config['database']};
     }
 
@@ -205,10 +193,10 @@ final class OAuth2ServerFactory
      *
      * @param array|ArrayAccess $config
      */
-    private static function getOAuth2ServerConfig($config): array
+    private static function getOAuth2ServerConfig(ArrayAccess|array $config): array
     {
         $oauth2ServerConfig = [];
-        if (isset($config['storage_settings']) && is_array($config['storage_settings'])) {
+        if (isset($config['storage_settings']) && is_array(value: $config['storage_settings'])) {
             $oauth2ServerConfig = $config['storage_settings'];
         }
 
@@ -221,9 +209,9 @@ final class OAuth2ServerFactory
      * @param array $config
      * @return array
      */
-    private static function marshalOptions(array $config)
+    private static function marshalOptions(array $config): array
     {
-        $enforceState   = array_key_exists('enforce_state', $config)
+        $enforceState   = array_key_exists(key: 'enforce_state', array: $config)
             ? $config['enforce_state']
             : true;
         $allowImplicit  = $config['allow_implicit'] ?? false;
@@ -243,14 +231,11 @@ final class OAuth2ServerFactory
      * Inject grant types into the OAuth2\Server instance, based on api-tools-oauth2
      * configuration.
      *
-     * @param array $availableGrantTypes
-     * @param array $options
-     * @return OAuth2Server
      */
-    private static function injectGrantTypes(OAuth2Server $server, array $availableGrantTypes, array $options)
+    private static function injectGrantTypes(OAuth2Server $server, array $availableGrantTypes, array $options): OAuth2Server
     {
         if (
-            array_key_exists('client_credentials', $availableGrantTypes)
+            array_key_exists(key: 'client_credentials', array: $availableGrantTypes)
             && $availableGrantTypes['client_credentials'] === true
         ) {
             $clientOptions = [];
@@ -259,45 +244,47 @@ final class OAuth2ServerFactory
             }
 
             // Add the "Client Credentials" grant type (it is the simplest of the grant types)
-            $server->addGrantType(new ClientCredentials($server->getStorage('client_credentials'), $clientOptions));
+            $server->addGrantType(grantType: new ClientCredentials(storage: $server->getStorage(name: 'client_credentials'), config: $clientOptions));
         }
 
         if (
-            array_key_exists('authorization_code', $availableGrantTypes)
+            array_key_exists(key: 'authorization_code', array: $availableGrantTypes)
             && $availableGrantTypes['authorization_code'] === true
         ) {
-            $authCodeClass = array_key_exists('use_openid_connect', $options) && $options['use_openid_connect'] === true
+            $authCodeClass = array_key_exists(key: 'use_openid_connect', array: $options) && $options['use_openid_connect'] === true
                 ? OpenIDAuthorizationCodeGrantType::class
                 : AuthorizationCode::class;
 
             // Add the "Authorization Code" grant type (this is where the oauth magic happens)
-            $server->addGrantType(new $authCodeClass($server->getStorage('authorization_code')));
+            $server->addGrantType(grantType: new $authCodeClass($server->getStorage(name: 'authorization_code')));
         }
 
-        if (array_key_exists('password', $availableGrantTypes) && $availableGrantTypes['password'] === true) {
+        if (array_key_exists(key: 'password', array: $availableGrantTypes) && $availableGrantTypes['password'] === true) {
             // Add the "User Credentials" grant type
-            $server->addGrantType(new UserCredentials($server->getStorage('user_credentials')));
+            $server->addGrantType(grantType: new UserCredentials(storage: $server->getStorage(name: 'user_credentials')));
         }
 
-        if (array_key_exists('jwt', $availableGrantTypes) && $availableGrantTypes['jwt'] === true) {
+        if (array_key_exists(key: 'jwt', array: $availableGrantTypes) && $availableGrantTypes['jwt'] === true) {
             // Add the "JWT Bearer" grant type
-            $server->addGrantType(new JwtBearer($server->getStorage('jwt_bearer'), $options['audience']));
+            $server->addGrantType(grantType: new JwtBearer(storage: $server->getStorage(name: 'jwt_bearer'), audience: $options['audience']));
         }
 
-        if (array_key_exists('refresh_token', $availableGrantTypes) && $availableGrantTypes['refresh_token'] === true) {
+        if (array_key_exists(key: 'refresh_token', array: $availableGrantTypes) && $availableGrantTypes['refresh_token'] === true) {
             $refreshOptions = [];
             if (isset($options['always_issue_new_refresh_token'])) {
                 $refreshOptions['always_issue_new_refresh_token'] = $options['always_issue_new_refresh_token'];
             }
+
             if (isset($options['refresh_token_lifetime'])) {
                 $refreshOptions['refresh_token_lifetime'] = $options['refresh_token_lifetime'];
             }
+
             if (isset($options['unset_refresh_token_after_use'])) {
                 $refreshOptions['unset_refresh_token_after_use'] = $options['unset_refresh_token_after_use'];
             }
 
             // Add the "Refresh Token" grant type
-            $server->addGrantType(new RefreshToken($server->getStorage('refresh_token'), $refreshOptions));
+            $server->addGrantType(grantType: new RefreshToken(storage: $server->getStorage(name: 'refresh_token'), config: $refreshOptions));
         }
 
         return $server;

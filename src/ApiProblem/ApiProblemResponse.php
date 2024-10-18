@@ -7,6 +7,7 @@ namespace Jield\ApiTools\ApiProblem;
 use Laminas\Http\Headers;
 use Laminas\Http\Response;
 
+use Override;
 use function json_encode;
 
 use const JSON_PARTIAL_OUTPUT_ON_ERROR;
@@ -30,10 +31,10 @@ class ApiProblemResponse extends Response
     public function __construct(ApiProblem $apiProblem)
     {
         $this->apiProblem = $apiProblem;
-        $this->setCustomStatusCode($apiProblem->status);
+        $this->setCustomStatusCode(code: $apiProblem->status);
 
         if ($apiProblem->title !== null) {
-            $this->setReasonPhrase($apiProblem->title);
+            $this->setReasonPhrase(reasonPhrase: $apiProblem->title);
         }
 
         $this->jsonFlags = JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR;
@@ -42,7 +43,7 @@ class ApiProblemResponse extends Response
     /**
      * @return ApiProblem
      */
-    public function getApiProblem()
+    public function getApiProblem(): ApiProblem
     {
         return $this->apiProblem;
     }
@@ -54,9 +55,10 @@ class ApiProblemResponse extends Response
      *
      * @return string
      */
-    public function getContent()
+    #[Override]
+    public function getContent(): string
     {
-        return json_encode($this->apiProblem->toArray(), $this->jsonFlags);
+        return json_encode(value: $this->apiProblem->toArray(), flags: $this->jsonFlags);
     }
 
     /**
@@ -67,11 +69,12 @@ class ApiProblemResponse extends Response
      *
      * @return Headers
      */
-    public function getHeaders()
+    #[Override]
+    public function getHeaders(): Headers
     {
         $headers = parent::getHeaders();
-        if (! $headers->has('content-type')) {
-            $headers->addHeaderLine('content-type', ApiProblem::CONTENT_TYPE);
+        if (! $headers->has(name: 'content-type')) {
+            $headers->addHeaderLine(headerFieldNameOrLine: 'content-type', fieldValue: ApiProblem::CONTENT_TYPE);
         }
 
         return $headers;
@@ -85,16 +88,13 @@ class ApiProblemResponse extends Response
      *
      * @return string
      */
-    public function getReasonPhrase()
+    #[Override]
+    public function getReasonPhrase(): string
     {
         if (! empty($this->reasonPhrase)) {
             return $this->reasonPhrase;
         }
 
-        if (isset($this->recommendedReasonPhrases[$this->statusCode])) {
-            return $this->recommendedReasonPhrases[$this->statusCode];
-        }
-
-        return 'Unknown Error';
+        return $this->recommendedReasonPhrases[$this->statusCode] ?? 'Unknown Error';
     }
 }

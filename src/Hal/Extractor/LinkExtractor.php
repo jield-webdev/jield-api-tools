@@ -8,6 +8,7 @@ use Jield\ApiTools\ApiProblem\Exception\DomainException;
 use Jield\ApiTools\Hal\Link\Link;
 use Jield\ApiTools\Hal\Link\LinkUrlBuilder;
 
+use Override;
 use function sprintf;
 
 class LinkExtractor implements LinkExtractorInterface
@@ -23,10 +24,11 @@ class LinkExtractor implements LinkExtractorInterface
     /**
      * @inheritDoc
      */
-    public function extract(Link $link)
+    #[Override]
+    public function extract(Link $link): array
     {
         if (! $link->isComplete()) {
-            throw new DomainException(sprintf(
+            throw new DomainException(message: sprintf(
                 'Link from resource provided to %s was incomplete; must contain a URL or a route',
                 __METHOD__
             ));
@@ -48,10 +50,10 @@ class LinkExtractor implements LinkExtractorInterface
         }
 
         $representation['href'] = $this->linkUrlBuilder->buildLinkUrl(
-            $link->getRoute(),
-            $link->getRouteParams(),
-            $options,
-            $reuseMatchedParams
+            route: $link->getRoute(),
+            params: $link->getRouteParams(),
+            options: $options,
+            reUseMatchedParams: $reuseMatchedParams
         );
 
         return $representation;

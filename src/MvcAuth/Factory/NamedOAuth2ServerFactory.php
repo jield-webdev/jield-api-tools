@@ -17,10 +17,7 @@ use Psr\Container\ContainerInterface;
  */
 class NamedOAuth2ServerFactory
 {
-    /**
-     * @return callable
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): callable
     {
         $config = $container->get('config');
 
@@ -34,7 +31,8 @@ class NamedOAuth2ServerFactory
                 if (null !== $servers->application) {
                     return $servers->application;
                 }
-                $factory                     = new OAuth2ServerInstanceFactory($oauth2Config, $container);
+
+                $factory                     = new OAuth2ServerInstanceFactory(config: $oauth2Config, services: $container);
                 return $servers->application = $factory();
             }
 
@@ -54,8 +52,8 @@ class NamedOAuth2ServerFactory
 
                 // Found!
                 return $servers->api[$type] = OAuth2ServerFactory::factory(
-                    $adapterConfig['storage'],
-                    $container
+                    config: $adapterConfig['storage'],
+                    container: $container
                 );
             }
 
@@ -65,7 +63,8 @@ class NamedOAuth2ServerFactory
             if (null !== $servers->application) {
                 return $servers->application;
             }
-            $factory                     = new OAuth2ServerInstanceFactory($oauth2Config, $container);
+
+            $factory                     = new OAuth2ServerInstanceFactory(config: $oauth2Config, services: $container);
             return $servers->application = $factory();
         };
     }

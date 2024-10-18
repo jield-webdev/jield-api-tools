@@ -13,20 +13,20 @@ class BodyParam extends AbstractPlugin
     /**
      * Grabs a param from body match after content-negotiation
      *
-     * @param  null|string $param
-     * @param  null|mixed $default
+     * @param string|null $param
+     * @param mixed|null $default
      * @return mixed
      */
-    public function __invoke($param = null, $default = null)
+    public function __invoke(string $param = null, mixed $default = null): mixed
     {
         $controller = $this->getController();
         if ($controller instanceof AbstractController) {
-            $parameterData = $controller->getEvent()->getParam('LaminasContentNegotiationParameterData');
+            $parameterData = $controller->getEvent()->getParam(name: 'LaminasContentNegotiationParameterData');
             if ($parameterData instanceof ParameterDataContainer) {
-                return $parameterData->getBodyParam($param, $default);
+                return $parameterData->getBodyParam(name: $param, default: $default);
             }
         }
 
-        return $controller->getRequest()->getPost($param, $default);
+        return $controller->getRequest()->getPost(name: $param, default: $default);
     }
 }

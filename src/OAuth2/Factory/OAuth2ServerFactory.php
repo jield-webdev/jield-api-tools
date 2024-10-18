@@ -8,13 +8,10 @@ use Psr\Container\ContainerInterface;
 
 class OAuth2ServerFactory
 {
-    /**
-     * @return OAuth2ServerInstanceFactory
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): OAuth2ServerInstanceFactory
     {
         $config = $container->get('config');
         $config = $config['api-tools-oauth2'] ?? [];
-        return new OAuth2ServerInstanceFactory($config, $container);
+        return new OAuth2ServerInstanceFactory(config: $config, services: $container);
     }
 }

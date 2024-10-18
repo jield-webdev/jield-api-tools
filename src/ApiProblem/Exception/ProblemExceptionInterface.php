@@ -14,15 +14,15 @@ interface ProblemExceptionInterface
     /**
      * @return null|array|Traversable
      */
-    public function getAdditionalDetails();
+    public function getAdditionalDetails(): Traversable|array|null;
 
     /**
      * @return string
      */
-    public function getType();
+    public function getType(): string;
 
     /**
      * @return string
      */
-    public function getTitle();
+    public function getTitle(): string;
 }

@@ -9,6 +9,7 @@ use Laminas\Filter\File\RenameUpload as BaseFilter;
 use Laminas\Stdlib\ErrorHandler;
 use Laminas\Stdlib\RequestInterface;
 
+use Override;
 use function method_exists;
 use function rename;
 use function sprintf;
@@ -18,8 +19,7 @@ class RenameUpload extends BaseFilter
     /** @var RequestInterface */
     protected $request;
 
-    /** @return void */
-    public function setRequest(RequestInterface $request)
+    public function setRequest(RequestInterface $request): void
     {
         $this->request = $request;
     }
@@ -38,27 +38,29 @@ class RenameUpload extends BaseFilter
      * @return bool
      * @throws FilterRuntimeException In the event of a warning.
      */
-    protected function moveUploadedFile($sourceFile, $targetFile)
+    #[Override]
+    protected function moveUploadedFile($sourceFile, $targetFile): bool
     {
         if (
             null === $this->request
-            || ! method_exists($this->request, 'isPut')
+            || ! method_exists(object_or_class: $this->request, method: 'isPut')
             || (! $this->request->isPut() && ! $this->request->isPatch())
         ) {
-            return parent::moveUploadedFile($sourceFile, $targetFile);
+            return parent::moveUploadedFile(sourceFile: $sourceFile, targetFile: $targetFile);
         }
 
         ErrorHandler::start();
-        $result           = rename($sourceFile, $targetFile);
+        $result           = rename(from: $sourceFile, to: $targetFile);
         $warningException = ErrorHandler::stop();
 
         if (false === $result || null !== $warningException) {
             throw new FilterRuntimeException(
-                sprintf('File "%s" could not be renamed. An error occurred while processing the file.', $sourceFile),
-                0,
-                $warningException
+                message: sprintf('File "%s" could not be renamed. An error occurred while processing the file.', $sourceFile),
+                code: 0,
+                previous: $warningException
             );
         }
-        return $result;
+
+        return true;
     }
 }

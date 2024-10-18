@@ -10,15 +10,12 @@ use Jield\ApiTools\ContentNegotiation\ContentTypeFilterListener;
 
 class ContentTypeFilterListenerFactory
 {
-    /**
-     * @return ContentTypeFilterListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): ContentTypeFilterListener
     {
         $listener = new ContentTypeFilterListener();
 
         $options = $container->get(ContentNegotiationOptions::class);
-        $listener->setConfig($options->getContentTypeWhitelist());
+        $listener->setConfig(config: $options->getContentTypeWhitelist());
 
         return $listener;
     }

@@ -12,28 +12,26 @@ class DefaultAuthorizationPostListener
     /**
      * Determine if we have an authorization failure, and, if so, return a 403 response
      *
-     * @return null|HttpResponse
      */
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): ?HttpResponse
     {
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
         $response = $mvcEvent->getResponse();
 
         if ($mvcAuthEvent->isAuthorized()) {
-            if ($response instanceof HttpResponse) {
-                if ($response->getStatusCode() !== 200) {
-                    $response->setStatusCode(200);
-                }
+            if ($response instanceof HttpResponse && $response->getStatusCode() !== 200) {
+                $response->setStatusCode(code: 200);
             }
-            return;
+
+            return null;
         }
 
         if (! $response instanceof HttpResponse) {
             return $response;
         }
 
-        $response->setStatusCode(403);
-        $response->setReasonPhrase('Forbidden');
+        $response->setStatusCode(code: 403);
+        $response->setReasonPhrase(reasonPhrase: 'Forbidden');
         return $response;
     }
 }

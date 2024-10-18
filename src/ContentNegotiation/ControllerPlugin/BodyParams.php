@@ -15,11 +15,11 @@ class BodyParams extends AbstractPlugin
      *
      * @return array|ArrayAccess
      */
-    public function __invoke()
+    public function __invoke(): ArrayAccess|array
     {
         $controller = $this->getController();
         if ($controller instanceof AbstractController) {
-            $parameterData = $controller->getEvent()->getParam('LaminasContentNegotiationParameterData');
+            $parameterData = $controller->getEvent()->getParam(name: 'LaminasContentNegotiationParameterData');
             if ($parameterData instanceof ParameterDataContainer) {
                 return $parameterData->getBodyParams();
             }

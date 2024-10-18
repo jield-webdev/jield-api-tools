@@ -12,21 +12,18 @@ use Laminas\Mvc\MvcEvent;
 class MvcAuthEvent extends Event
 {
     public const EVENT_AUTHENTICATION      = 'authentication';
+
     public const EVENT_AUTHENTICATION_POST = 'authentication.post';
+
     public const EVENT_AUTHORIZATION       = 'authorization';
+
     public const EVENT_AUTHORIZATION_POST  = 'authorization.post';
 
     /** @var MvcEvent */
     protected $mvcEvent;
 
-    /** @var mixed */
-    protected $authentication;
-
     /** @var Result */
     protected $authenticationResult;
-
-    /** @var mixed */
-    protected $authorization;
 
     /**
      * Whether or not authorization has completed/succeeded
@@ -46,17 +43,15 @@ class MvcAuthEvent extends Event
      * @param mixed    $authentication
      * @param mixed    $authorization
      */
-    public function __construct(MvcEvent $mvcEvent, $authentication, $authorization)
+    public function __construct(MvcEvent $mvcEvent, protected $authentication, protected $authorization)
     {
         $this->mvcEvent       = $mvcEvent;
-        $this->authentication = $authentication;
-        $this->authorization  = $authorization;
     }
 
     /**
      * @return mixed
      */
-    public function getAuthenticationService()
+    public function getAuthenticationService(): mixed
     {
         return $this->authentication;
     }
@@ -64,15 +59,12 @@ class MvcAuthEvent extends Event
     /**
      * @return bool
      */
-    public function hasAuthenticationResult()
+    public function hasAuthenticationResult(): bool
     {
         return $this->authenticationResult !== null;
     }
 
-    /**
-     * @return self
-     */
-    public function setAuthenticationResult(Result $result)
+    public function setAuthenticationResult(Result $result): static
     {
         $this->authenticationResult = $result;
         return $this;
@@ -81,7 +73,7 @@ class MvcAuthEvent extends Event
     /**
      * @return null|Result
      */
-    public function getAuthenticationResult()
+    public function getAuthenticationResult(): ?Result
     {
         return $this->authenticationResult;
     }
@@ -89,7 +81,7 @@ class MvcAuthEvent extends Event
     /**
      * @return mixed
      */
-    public function getAuthorizationService()
+    public function getAuthorizationService(): mixed
     {
         return $this->authorization;
     }
@@ -97,7 +89,7 @@ class MvcAuthEvent extends Event
     /**
      * @return MvcEvent
      */
-    public function getMvcEvent()
+    public function getMvcEvent(): MvcEvent
     {
         return $this->mvcEvent;
     }
@@ -105,7 +97,7 @@ class MvcAuthEvent extends Event
     /**
      * @return mixed|null
      */
-    public function getIdentity()
+    public function getIdentity(): mixed
     {
         return $this->authentication->getIdentity();
     }
@@ -113,7 +105,7 @@ class MvcAuthEvent extends Event
     /**
      * @return $this
      */
-    public function setIdentity(IdentityInterface $identity)
+    public function setIdentity(IdentityInterface $identity): static
     {
         $this->authentication->getStorage()->write($identity);
         return $this;
@@ -122,16 +114,12 @@ class MvcAuthEvent extends Event
     /**
      * @return mixed
      */
-    public function getResource()
+    public function getResource(): mixed
     {
         return $this->resource;
     }
 
-    /**
-     * @param  mixed $resource
-     * @return self
-     */
-    public function setResource($resource)
+    public function setResource(mixed $resource): static
     {
         $this->resource = $resource;
         return $this;
@@ -140,16 +128,16 @@ class MvcAuthEvent extends Event
     /**
      * @return bool
      */
-    public function isAuthorized()
+    public function isAuthorized(): bool
     {
         return $this->authorized;
     }
 
     /**
-     * @param  bool $flag
+     * @param bool $flag
      * @return self
      */
-    public function setIsAuthorized($flag)
+    public function setIsAuthorized(bool $flag): static
     {
         $this->authorized = (bool) $flag;
         return $this;

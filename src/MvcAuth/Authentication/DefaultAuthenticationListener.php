@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\MvcAuth\Authentication;
 
 use Jield\ApiTools\MvcAuth\Identity;
+use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\Http\Response as HttpResponse;
@@ -46,12 +47,11 @@ class DefaultAuthenticationListener
      * Adds the authentication adapter, and updates the list of supported
      * authentication types based on what the adapter provides.
      *
-     * @return void
      */
-    public function attach(AdapterInterface $adapter)
+    public function attach(AdapterInterface $adapter): void
     {
         $this->adapters[]          = $adapter;
-        $this->authenticationTypes = array_unique(array_merge($this->authenticationTypes, $adapter->provides()));
+        $this->authenticationTypes = array_unique(array: array_merge($this->authenticationTypes, $adapter->provides()));
     }
 
     /**
@@ -64,10 +64,10 @@ class DefaultAuthenticationListener
      * @param array $types
      * @return void
      */
-    public function addAuthenticationTypes(array $types)
+    public function addAuthenticationTypes(array $types): void
     {
         $this->authenticationTypes = array_unique(
-            array_merge(
+            array: array_merge(
                 $this->authenticationTypes,
                 $types
             )
@@ -79,7 +79,7 @@ class DefaultAuthenticationListener
      *
      * @return array
      */
-    public function getAuthenticationTypes()
+    public function getAuthenticationTypes(): array
     {
         return $this->authenticationTypes;
     }
@@ -89,13 +89,12 @@ class DefaultAuthenticationListener
      *
      * This method is deprecated; create and attach an OAuth2Adapter instead.
      *
-     * @return self
      * @deprecated
      *
      */
-    public function setOauth2Server(OAuth2Server $oauth2Server)
+    public function setOauth2Server(OAuth2Server $oauth2Server): static
     {
-        $this->attach(new OAuth2Adapter($oauth2Server));
+        $this->attach(adapter: new OAuth2Adapter(oauth2Server: $oauth2Server));
         return $this;
     }
 
@@ -105,12 +104,12 @@ class DefaultAuthenticationListener
      * @param array $map
      * @return void
      */
-    public function setAuthMap(array $map)
+    public function setAuthMap(array $map): void
     {
         $this->authMap = $map;
     }
 
-    public function __invoke(MvcAuthEvent $mvcAuthEvent)
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): HttpResponse|Identity\GuestIdentity|false|Identity\IdentityInterface|null
     {
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
         $request  = $mvcEvent->getRequest();
@@ -120,30 +119,30 @@ class DefaultAuthenticationListener
             !$request instanceof HttpRequest
             || $request->isOptions()
         ) {
-            return;
+            return null;
         }
 
-        $type = $this->getTypeFromMap($mvcEvent->getRouteMatch());
-        if (false === $type && count($this->adapters) > 1) {
+        $type = $this->getTypeFromMap(routeMatch: $mvcEvent->getRouteMatch());
+        if (false === $type && count(value: $this->adapters) > 1) {
             // Ambiguous situation; no matching type in map, but multiple
             // authentication adapters; return a guest identity.
             $identity = new Identity\GuestIdentity();
-            $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class, $identity);
+            $mvcEvent->setParam(name: AuthenticatedIdentity::class, value: $identity);
             return $identity;
         }
 
-        $type = $type ?: $this->getTypeFromRequest($request);
+        $type = $type ?: $this->getTypeFromRequest(request: $request);
         if (false === $type) {
             // No authentication type known; trigger any pre-flight actions,
             // and return a guest identity.
-            $this->triggerAdapterPreAuth($request, $response);
+            $this->triggerAdapterPreAuth(request: $request, response: $response);
             $identity = new Identity\GuestIdentity();
-            $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class, $identity);
+            $mvcEvent->setParam(name: AuthenticatedIdentity::class, value: $identity);
             return $identity;
         }
 
         // Authenticate against first matching adapter
-        $identity = $this->authenticate($type, $request, $response, $mvcAuthEvent);
+        $identity = $this->authenticate(type: $type, request: $request, response: $response, mvcAuthEvent: $mvcAuthEvent);
 
         // If the adapter returns a response instance, return it directly.
         if ($identity instanceof HttpResponse) {
@@ -155,7 +154,7 @@ class DefaultAuthenticationListener
             $identity = new Identity\GuestIdentity();
         }
 
-        $mvcEvent->setParam(\Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity::class, $identity);
+        $mvcEvent->setParam(name: AuthenticatedIdentity::class, value: $identity);
         return $identity;
     }
 
@@ -163,27 +162,27 @@ class DefaultAuthenticationListener
      * Match the controller to an authentication type, based on the API to
      * which the controller belongs.
      *
-     * @param null|RouteMatch $routeMatch
+     * @param RouteMatch|null $routeMatch
      * @return string|false
      */
-    private function getTypeFromMap($routeMatch = null)
+    private function getTypeFromMap(RouteMatch $routeMatch = null): false|string
     {
         if (null === $routeMatch) {
             return false;
         }
 
-        $controller = $routeMatch->getParam('controller', false);
+        $controller = $routeMatch->getParam(name: 'controller', default: false);
         if (false === $controller) {
             return false;
         }
 
         foreach ($this->authMap as $api => $type) {
-            $api = rtrim($api, '\\') . '\\';
-            if (strlen($api) > strlen($controller)) {
+            $api = rtrim(string: $api, characters: '\\') . '\\';
+            if (strlen(string: $api) > strlen(string: (string) $controller)) {
                 continue;
             }
 
-            if (0 === strpos($controller, $api)) {
+            if (str_starts_with(haystack: (string) $controller, needle: $api)) {
                 return $type;
             }
         }
@@ -194,16 +193,16 @@ class DefaultAuthenticationListener
     /**
      * Determine the authentication type based on request information
      *
-     * @return false|string
      */
-    private function getTypeFromRequest(HttpRequest $request)
+    private function getTypeFromRequest(HttpRequest $request): false|string
     {
         foreach ($this->adapters as $adapter) {
-            $type = $adapter->getTypeFromRequest($request);
+            $type = $adapter->getTypeFromRequest(request: $request);
             if (false !== $type) {
                 return $type;
             }
         }
+
         return false;
     }
 
@@ -216,7 +215,7 @@ class DefaultAuthenticationListener
     private function triggerAdapterPreAuth(HttpRequest $request, HttpResponse $response): void
     {
         foreach ($this->adapters as $adapter) {
-            $adapter->preAuth($request, $response);
+            $adapter->preAuth(request: $request, response: $response);
         }
     }
 
@@ -224,16 +223,15 @@ class DefaultAuthenticationListener
      * Invoke the adapter matching the given $type in order to peform authentication
      *
      * @param string $type
-     * @return false|Identity\IdentityInterface
      */
-    private function authenticate($type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent)
+    private function authenticate(string $type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent): false|Identity\IdentityInterface
     {
         foreach ($this->adapters as $adapter) {
-            if (!$adapter->matches($type)) {
+            if (!$adapter->matches(type: $type)) {
                 continue;
             }
 
-            return $adapter->authenticate($request, $response, $mvcAuthEvent);
+            return $adapter->authenticate(request: $request, response: $response, mvcAuthEvent: $mvcAuthEvent);
         }
 
         return false;

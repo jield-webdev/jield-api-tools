@@ -16,11 +16,11 @@ abstract class AclAuthorizationFactory
      * @param array $config
      * @return AclAuthorization
      */
-    public static function factory(array $config)
+    public static function factory(array $config): AclAuthorization
     {
         // Determine whether we are whitelisting or blacklisting
         $denyByDefault = false;
-        if (array_key_exists('deny_by_default', $config)) {
+        if (array_key_exists(key: 'deny_by_default', array: $config)) {
             $denyByDefault = (bool) $config['deny_by_default'];
             unset($config['deny_by_default']);
         }
@@ -36,8 +36,8 @@ abstract class AclAuthorizationFactory
             $grant = 'allow';
         }
 
-        if (! empty($config)) {
-            return self::injectGrants($acl, $grant, $config);
+        if ($config !== []) {
+            return self::injectGrants(acl: $acl, grantType: $grant, rules: $config);
         }
 
         return $acl;
@@ -47,17 +47,15 @@ abstract class AclAuthorizationFactory
      * Inject the ACL with the grants specified in the collection of rules.
      *
      * @param string $grantType Either "allow" or "deny".
-     * @param array $rules
-     * @return AclAuthorization
      */
-    private static function injectGrants(AclAuthorization $acl, $grantType, array $rules)
+    private static function injectGrants(AclAuthorization $acl, string $grantType, array $rules): AclAuthorization
     {
         foreach ($rules as $set) {
-            if (! is_array($set) || ! isset($set['resource'])) {
+            if (! is_array(value: $set) || ! isset($set['resource'])) {
                 continue;
             }
 
-            self::injectGrant($acl, $grantType, $set);
+            self::injectGrant(acl: $acl, grantType: $grantType, ruleSet: $set);
         }
 
         return $acl;
@@ -67,10 +65,8 @@ abstract class AclAuthorizationFactory
      * Inject the ACL with the grant specified by a single rule set.
      *
      * @param string $grantType
-     * @param array $ruleSet
-     * @return void
      */
-    private static function injectGrant(AclAuthorization $acl, $grantType, array $ruleSet)
+    private static function injectGrant(AclAuthorization $acl, string $grantType, array $ruleSet): void
     {
         // Add new resource to ACL
         $resource = $ruleSet['resource'];

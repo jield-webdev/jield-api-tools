@@ -9,18 +9,16 @@ use Psr\Container\ContainerInterface;
 
 class AcceptListenerFactory
 {
-    /**
-     * @return AcceptListener
-     */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): AcceptListener
     {
         $config = $container->has('config') ? $container->get('config') : [];
         $config = $config['api-tools-versioning']['content-type'] ?? [];
 
         $listener = new AcceptListener();
         foreach ($config as $regexp) {
-            $listener->addRegexp($regexp);
+            $listener->addRegexp(regex: $regexp);
         }
+
         return $listener;
     }
 }

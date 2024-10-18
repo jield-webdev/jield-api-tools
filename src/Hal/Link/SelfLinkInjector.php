@@ -7,6 +7,7 @@ namespace Jield\ApiTools\Hal\Link;
 use Jield\ApiTools\Hal\Collection;
 use Jield\ApiTools\Hal\Entity;
 
+use Override;
 use function is_array;
 
 class SelfLinkInjector implements SelfLinkInjectorInterface
@@ -14,38 +15,40 @@ class SelfLinkInjector implements SelfLinkInjectorInterface
     /**
      * {@inheritDoc}
      */
-    public function injectSelfLink(LinkCollectionAwareInterface $resource, $route, $routeIdentifier = 'id')
+    #[Override]
+    public function injectSelfLink(LinkCollectionAwareInterface $resource, string $route, string $routeIdentifier = 'id'): void
     {
         $links = $resource->getLinks();
-        if ($links->has('self')) {
+        if ($links->has(relation: 'self')) {
             return;
         }
 
-        $selfLink = $this->createSelfLink($resource, $route, $routeIdentifier);
+        $selfLink = $this->createSelfLink(resource: $resource, route: $route, routeIdentifier: $routeIdentifier);
 
-        $links->add($selfLink, true);
+        $links->add(link: $selfLink, overwrite: true);
     }
 
     /**
-     * @param null|array|Entity|Collection|LinkCollectionAwareInterface $resource
+     * @param array|Collection|Entity|LinkCollectionAwareInterface|null $resource
      * @psalm-param string|array{
      *     name:string,params:string|array<array-key,mixed>,options:string|array<array-key,mixed>
      * } $route
      * @param string $routeIdentifier
-     * @return Link
      */
-    private function createSelfLink($resource, $route, $routeIdentifier)
+    private function createSelfLink(Entity|array|Collection|LinkCollectionAwareInterface|null $resource, $route, string $routeIdentifier): Link
     {
         /** @psalm-var array|Collection|Entity|null $resource */
         // build route
-        if (! is_array($route)) {
+        if (! is_array(value: $route)) {
             $route = ['name' => (string) $route];
         }
-        $routeParams = $this->getRouteParams($resource, $routeIdentifier);
+
+        $routeParams = $this->getRouteParams(resource: $resource, routeIdentifier: $routeIdentifier);
         if (! empty($routeParams)) {
             $route['params'] = $routeParams;
         }
-        $routeOptions = $this->getRouteOptions($resource);
+
+        $routeOptions = $this->getRouteOptions(resource: $resource);
         if (! empty($routeOptions)) {
             $route['options'] = $routeOptions;
         }
@@ -62,16 +65,16 @@ class SelfLinkInjector implements SelfLinkInjectorInterface
             'route' => $route,
         ];
 
-        return Link::factory($spec);
+        return Link::factory(spec: $spec);
     }
 
     /**
-     * @param null|array|Entity|Collection $resource
+     * @param array|Collection|Entity|null $resource
      * @param string $routeIdentifier
      * @return array|string
      * @psalm-return array<empty, empty>|array<array-key, mixed>|string
      */
-    private function getRouteParams($resource, $routeIdentifier)
+    private function getRouteParams(Entity|array|Collection|null $resource, string $routeIdentifier): array|string
     {
         if ($resource instanceof Collection) {
             return $resource->getCollectionRouteParams();
@@ -92,11 +95,11 @@ class SelfLinkInjector implements SelfLinkInjectorInterface
     }
 
     /**
-     * @param null|array|Entity|Collection $resource
+     * @param array|Collection|Entity|null $resource
      * @return array|string
      * @psalm-return array<empty, empty>|array<array-key, mixed>|string
      */
-    private function getRouteOptions($resource)
+    private function getRouteOptions(Entity|array|Collection|null $resource): array|string
     {
         if ($resource instanceof Collection) {
             return $resource->getCollectionRouteOptions();

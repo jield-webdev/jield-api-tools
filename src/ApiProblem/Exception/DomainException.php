@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ApiProblem\Exception;
 
+use Override;
+
 class DomainException extends \DomainException implements
     ExceptionInterface,
     ProblemExceptionInterface
@@ -21,7 +23,7 @@ class DomainException extends \DomainException implements
      * @param array $details
      * @return self
      */
-    public function setAdditionalDetails(array $details)
+    public function setAdditionalDetails(array $details): static
     {
         $this->details = $details;
         return $this;
@@ -31,7 +33,7 @@ class DomainException extends \DomainException implements
      * @param string $uri
      * @return self
      */
-    public function setType($uri)
+    public function setType(string $uri): static
     {
         $this->type = (string) $uri;
         return $this;
@@ -41,7 +43,7 @@ class DomainException extends \DomainException implements
      * @param string $title
      * @return self
      */
-    public function setTitle($title)
+    public function setTitle(string $title): static
     {
         $this->title = (string) $title;
         return $this;
@@ -50,7 +52,8 @@ class DomainException extends \DomainException implements
     /**
      * @return array
      */
-    public function getAdditionalDetails()
+    #[Override]
+    public function getAdditionalDetails(): array
     {
         return $this->details;
     }
@@ -58,7 +61,8 @@ class DomainException extends \DomainException implements
     /**
      * @return string
      */
-    public function getType()
+    #[Override]
+    public function getType(): string
     {
         return $this->type;
     }
@@ -66,7 +70,8 @@ class DomainException extends \DomainException implements
     /**
      * @return string
      */
-    public function getTitle()
+    #[Override]
+    public function getTitle(): string
     {
         return $this->title;
     }

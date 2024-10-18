@@ -10,16 +10,13 @@ use Laminas\Filter\FilterChain;
 use Laminas\Hydrator\ExtractionInterface;
 use Laminas\Hydrator\HydratorPluginManager;
 use Laminas\Hydrator\HydratorPluginManagerInterface;
-
 use function class_exists;
-use function get_debug_type;
 use function gettype;
 use function is_object;
 use function is_string;
 use function method_exists;
 use function sprintf;
 use function trigger_error;
-
 use const E_USER_DEPRECATED;
 
 class Metadata
@@ -143,27 +140,28 @@ class Metadata
      *
      * @param string $class
      * @param array<string,string> $options
-     * @param null|HydratorPluginManager|HydratorPluginManagerInterface $hydrators
+     * @param HydratorPluginManager|HydratorPluginManagerInterface|null $hydrators
      * @throws Exception\InvalidArgumentException
      * @throws ExceptionInterface
      */
-    public function __construct($class, array $options = [], $hydrators = null)
+    public function __construct(string $class, array $options = [], HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
     {
         $filter = new FilterChain();
-        $filter->attachByName('WordUnderscoreToCamelCase')
-               ->attachByName('StringToLower');
+        $filter->attachByName(name: 'WordUnderscoreToCamelCase')
+            ->attachByName(name: 'StringToLower');
 
-        if (! class_exists($class)) {
-            throw new Exception\InvalidArgumentException(sprintf(
+        if (!class_exists(class: $class)) {
+            throw new Exception\InvalidArgumentException(message: sprintf(
                 'Class provided to %s must exist; received "%s"',
                 self::class,
                 $class
             ));
         }
+
         $this->class = $class;
 
         if (null !== $hydrators) {
-            $this->setHydrators($hydrators);
+            $this->setHydrators(hydrators: $hydrators);
         }
 
         /** @var string|bool $legacyIdentifierName */
@@ -171,7 +169,7 @@ class Metadata
 
         foreach ($options as $key => $value) {
             /** @var string $filteredKey */
-            $filteredKey = $filter($key);
+            $filteredKey = $filter(value: $key);
 
             if ($filteredKey === 'class') {
                 continue;
@@ -183,9 +181,11 @@ class Metadata
             if ($filteredKey === 'routename') {
                 $filteredKey = 'route';
             }
+
             if ($filteredKey === 'resourceroutename' || $filteredKey === 'resourceroute') {
                 $filteredKey = 'entityroute';
             }
+
             if ($filteredKey === 'entityroutename') {
                 $filteredKey = 'entityroute';
             }
@@ -195,11 +195,12 @@ class Metadata
                 $legacyIdentifierName = $value;
                 continue;
             }
+
             $method = 'set' . $filteredKey;
-            if (method_exists($this, $method)) {
+            if (method_exists(object_or_class: $this, method: $method)) {
                 $this->$method($value);
             } else {
-                throw new Exception\InvalidArgumentException(sprintf(
+                throw new Exception\InvalidArgumentException(message: sprintf(
                     'Unhandled option passed to Metadata constructor: %s %s',
                     $method,
                     $key
@@ -207,13 +208,13 @@ class Metadata
             }
         }
 
-        if (is_string($legacyIdentifierName)) {
-            if (! isset($this->routeIdentifierName) || ! $this->routeIdentifierName) {
-                $this->setRouteIdentifierName($legacyIdentifierName);
+        if (is_string(value: $legacyIdentifierName)) {
+            if ($this->routeIdentifierName === null || !$this->routeIdentifierName) {
+                $this->setRouteIdentifierName(identifier: $legacyIdentifierName);
             }
 
-            if (! isset($this->entityIdentifierName) || ! $this->entityIdentifierName) {
-                $this->setEntityIdentifierName($legacyIdentifierName);
+            if ($this->entityIdentifierName === null || !$this->entityIdentifierName) {
+                $this->setEntityIdentifierName(identifier: $legacyIdentifierName);
             }
         }
     }
@@ -223,7 +224,7 @@ class Metadata
      *
      * @return string
      */
-    public function getClass()
+    public function getClass(): string
     {
         return $this->class;
     }
@@ -233,7 +234,7 @@ class Metadata
      *
      * @return string
      */
-    public function getCollectionName()
+    public function getCollectionName(): string
     {
         return $this->collectionName;
     }
@@ -243,7 +244,7 @@ class Metadata
      *
      * @return null|ExtractionInterface
      */
-    public function getHydrator()
+    public function getHydrator(): ?ExtractionInterface
     {
         return $this->hydrator;
     }
@@ -253,7 +254,7 @@ class Metadata
      *
      * @return string
      */
-    public function getEntityIdentifierName()
+    public function getEntityIdentifierName(): string
     {
         return $this->entityIdentifierName;
     }
@@ -263,7 +264,7 @@ class Metadata
      *
      * @return string
      */
-    public function getRouteIdentifierName()
+    public function getRouteIdentifierName(): string
     {
         return $this->routeIdentifierName;
     }
@@ -279,7 +280,7 @@ class Metadata
      *     url?: string
      * }>
      */
-    public function getLinks()
+    public function getLinks(): array
     {
         return $this->links;
     }
@@ -291,15 +292,16 @@ class Metadata
      *
      * @return null|string
      */
-    public function getEntityRoute()
+    public function getEntityRoute(): ?string
     {
         if (null === $this->entityRoute) {
             if ($this->hasRoute()) {
-                $this->setEntityRoute($this->getRoute());
+                $this->setEntityRoute(route: $this->getRoute());
             } else {
-                $this->setEntityRoute($this->getUrl());
+                $this->setEntityRoute(route: $this->getUrl());
             }
         }
+
         return $this->entityRoute;
     }
 
@@ -308,16 +310,16 @@ class Metadata
      *
      * Deprecated; please use getEntityRoute()
      *
+     * @return null|string
      * @deprecated
      *
-     * @return null|string
      */
-    public function getResourceRoute()
+    public function getResourceRoute(): ?string
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
+        ), error_level: E_USER_DEPRECATED);
         return $this->getEntityRoute();
     }
 
@@ -326,7 +328,7 @@ class Metadata
      *
      * @return null|string
      */
-    public function getRoute()
+    public function getRoute(): ?string
     {
         return $this->route;
     }
@@ -336,7 +338,7 @@ class Metadata
      *
      * @return array
      */
-    public function getRouteOptions()
+    public function getRouteOptions(): array
     {
         return $this->routeOptions;
     }
@@ -346,7 +348,7 @@ class Metadata
      *
      * @return array<string,mixed>
      */
-    public function getRouteParams()
+    public function getRouteParams(): array
     {
         return $this->routeParams;
     }
@@ -356,7 +358,7 @@ class Metadata
      *
      * @return null|string
      */
-    public function getUrl()
+    public function getUrl(): ?string
     {
         return $this->url;
     }
@@ -366,7 +368,7 @@ class Metadata
      *
      * @return int
      */
-    public function getMaxDepth()
+    public function getMaxDepth(): int
     {
         return $this->maxDepth;
     }
@@ -376,7 +378,7 @@ class Metadata
      *
      * @return bool
      */
-    public function hasHydrator()
+    public function hasHydrator(): bool
     {
         return null !== $this->hydrator;
     }
@@ -386,7 +388,7 @@ class Metadata
      *
      * @return bool
      */
-    public function hasRoute()
+    public function hasRoute(): bool
     {
         return null !== $this->route;
     }
@@ -396,7 +398,7 @@ class Metadata
      *
      * @return bool
      */
-    public function hasUrl()
+    public function hasUrl(): bool
     {
         return null !== $this->url;
     }
@@ -406,7 +408,7 @@ class Metadata
      *
      * @return bool
      */
-    public function isCollection()
+    public function isCollection(): bool
     {
         return $this->isCollection;
     }
@@ -414,48 +416,51 @@ class Metadata
     /**
      * Set the collection name
      *
-     * @param  string $collectionName
+     * @param string $collectionName
      * @return self
      */
-    public function setCollectionName($collectionName)
+    public function setCollectionName(string $collectionName): static
     {
-        $this->collectionName = (string) $collectionName;
+        $this->collectionName = (string)$collectionName;
         return $this;
     }
 
     /**
      * Set the hydrator to use with this class
      *
-     * @param  string|ExtractionInterface $hydrator
+     * @param string|ExtractionInterface $hydrator
      * @return self
      * @throws Exception\InvalidArgumentException If the class or hydrator does not implement ExtractionInterface.
      */
-    public function setHydrator($hydrator)
+    public function setHydrator(ExtractionInterface|string $hydrator): static
     {
-        if (is_string($hydrator)) {
+        if (is_string(value: $hydrator)) {
             if (
                 null !== $this->hydrators
                 && $this->hydrators->has($hydrator)
             ) {
                 $hydrator = $this->hydrators->get($hydrator);
-            } elseif (class_exists($hydrator)) {
+            } elseif (class_exists(class: $hydrator)) {
                 /** @var ExtractionInterface $hydrator */
                 $hydrator = new $hydrator();
             }
         }
-        if (! $hydrator instanceof ExtractionInterface) {
-            if (is_object($hydrator)) {
+
+        if (!$hydrator instanceof ExtractionInterface) {
+            if (is_object(value: $hydrator)) {
                 $type = $hydrator::class;
-            } elseif (is_string($hydrator)) {
+            } elseif (is_string(value: $hydrator)) {
                 $type = $hydrator;
             } else {
-                $type = gettype($hydrator);
+                $type = gettype(value: $hydrator);
             }
-            throw new Exception\InvalidArgumentException(sprintf(
+
+            throw new Exception\InvalidArgumentException(message: sprintf(
                 'Hydrator class must implement Laminas\Hydrator\ExtractionInterface; received "%s"',
                 $type
             ));
         }
+
         $this->hydrator = $hydrator;
         return $this;
     }
@@ -463,10 +468,10 @@ class Metadata
     /**
      * Set the entity identifier name
      *
-     * @param  string $identifier
+     * @param string $identifier
      * @return self
      */
-    public function setEntityIdentifierName($identifier)
+    public function setEntityIdentifierName(string $identifier): static
     {
         $this->entityIdentifierName = $identifier;
         return $this;
@@ -475,10 +480,10 @@ class Metadata
     /**
      * Set the route identifier name
      *
-     * @param  string $identifier
+     * @param string $identifier
      * @return self
      */
-    public function setRouteIdentifierName($identifier)
+    public function setRouteIdentifierName(string $identifier): static
     {
         $this->routeIdentifierName = $identifier;
         return $this;
@@ -490,9 +495,9 @@ class Metadata
      * @param bool $flag
      * @return self
      */
-    public function setIsCollection($flag)
+    public function setIsCollection(bool $flag): static
     {
-        $this->isCollection = (bool) $flag;
+        $this->isCollection = (bool)$flag;
         return $this;
     }
 
@@ -516,9 +521,8 @@ class Metadata
      *     route?: string|array{name:string,params:string|array<array-key,mixed>,options:string|array<array-key,mixed>},
      *     url?: string
      * }> $links
-     * @return self
      */
-    public function setLinks(array $links)
+    public function setLinks(array $links): static
     {
         $this->links = $links;
         return $this;
@@ -527,10 +531,10 @@ class Metadata
     /**
      * Set the entity route (for embedded entities in collections)
      *
-     * @param  string $route
+     * @param string $route
      * @return self
      */
-    public function setEntityRoute($route)
+    public function setEntityRoute(string $route): static
     {
         $this->entityRoute = $route;
         return $this;
@@ -541,28 +545,28 @@ class Metadata
      *
      * Deprecated; please use setEntityRoute().
      *
+     * @param string $route
+     * @return self
      * @deprecated
      *
-     * @param  string $route
-     * @return self
      */
-    public function setResourceRoute($route)
+    public function setResourceRoute(string $route): static
     {
-        trigger_error(sprintf(
+        trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityRoute',
             __METHOD__,
             self::class
-        ), E_USER_DEPRECATED);
-        return $this->setEntityRoute($route);
+        ), error_level: E_USER_DEPRECATED);
+        return $this->setEntityRoute(route: $route);
     }
 
     /**
      * Set the route for URL generation
      *
-     * @param  string $route
+     * @param string $route
      * @return self
      */
-    public function setRoute($route)
+    public function setRoute(string $route): static
     {
         $this->route = $route;
         return $this;
@@ -571,10 +575,10 @@ class Metadata
     /**
      * Set route options for URL generation
      *
-     * @param  array $options
+     * @param array $options
      * @return self
      */
-    public function setRouteOptions(array $options)
+    public function setRouteOptions(array $options): static
     {
         $this->routeOptions = $options;
         return $this;
@@ -583,10 +587,10 @@ class Metadata
     /**
      * Set route parameters for URL generation
      *
-     * @param  array<string,mixed> $params
+     * @param array<string,mixed> $params
      * @return self
      */
-    public function setRouteParams(array $params)
+    public function setRouteParams(array $params): static
     {
         $this->routeParams = $params;
         return $this;
@@ -595,10 +599,10 @@ class Metadata
     /**
      * Set the URL to use with this entity
      *
-     * @param  string $url
+     * @param string $url
      * @return self
      */
-    public function setUrl($url)
+    public function setUrl(string $url): static
     {
         $this->url = $url;
         return $this;
@@ -607,10 +611,10 @@ class Metadata
     /**
      * Set the maximum number of nesting levels
      *
-     * @param  int  $maxDepth
+     * @param int $maxDepth
      * @return self
      */
-    public function setMaxDepth($maxDepth)
+    public function setMaxDepth(int $maxDepth): static
     {
         $this->maxDepth = $maxDepth;
         return $this;
@@ -621,7 +625,7 @@ class Metadata
      *
      * @return bool
      */
-    public function getForceSelfLink()
+    public function getForceSelfLink(): bool
     {
         return $this->forceSelfLink;
     }
@@ -632,7 +636,7 @@ class Metadata
      * @param bool $forceSelfLink A truthy value
      * @return $this
      */
-    public function setForceSelfLink($forceSelfLink)
+    public function setForceSelfLink(bool $forceSelfLink): static
     {
         $this->forceSelfLink = $forceSelfLink;
         return $this;
@@ -642,20 +646,8 @@ class Metadata
      * @param HydratorPluginManager|HydratorPluginManagerInterface $hydrators
      * @throws Exception\InvalidArgumentException If $hydrators is an invaild type.
      */
-    private function setHydrators($hydrators): void
+    private function setHydrators(HydratorPluginManager|HydratorPluginManagerInterface $hydrators): void
     {
-        if ($hydrators instanceof HydratorPluginManagerInterface) {
-            $this->hydrators = $hydrators;
-        } elseif ($hydrators instanceof HydratorPluginManager) {
-            $this->hydrators = $hydrators;
-        } else {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '$hydrators argument to %s must be an instance of either %s or %s; received %s',
-                self::class,
-                HydratorPluginManagerInterface::class,
-                HydratorPluginManager::class,
-                get_debug_type($hydrators)
-            ));
-        }
+        $this->hydrators = $hydrators;
     }
 }

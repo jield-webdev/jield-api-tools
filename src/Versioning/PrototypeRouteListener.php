@@ -11,6 +11,7 @@ use Laminas\ModuleManager\Listener\ConfigListener;
 use Laminas\ModuleManager\ModuleEvent;
 use Laminas\Stdlib\ArrayUtils;
 
+use Override;
 use function array_shift;
 use function explode;
 use function in_array;
@@ -49,9 +50,10 @@ class PrototypeRouteListener implements ListenerAggregateInterface
      *
      * @param int $priority
      */
-    public function attach(EventManagerInterface $events, $priority = 1)
+    #[Override]
+    public function attach(EventManagerInterface $events, $priority = 1): void
     {
-        $this->listeners[] = $events->attach(ModuleEvent::EVENT_MERGE_CONFIG, [$this, 'onMergeConfig']);
+        $this->listeners[] = $events->attach(eventName: ModuleEvent::EVENT_MERGE_CONFIG, listener: $this->onMergeConfig(...));
     }
 
     /**
@@ -61,16 +63,15 @@ class PrototypeRouteListener implements ListenerAggregateInterface
      * injects the route prototype and adds a chain route to each route listed
      * in the api-tools-versioning.url array.
      *
-     * @return void
      */
-    public function onMergeConfig(ModuleEvent $e)
+    public function onMergeConfig(ModuleEvent $e): void
     {
         $configListener = $e->getConfigListener();
         if (! $configListener instanceof ConfigListener) {
             return;
         }
 
-        $config = $configListener->getMergedConfig(false);
+        $config = $configListener->getMergedConfig(returnConfigAsObject: false);
 
         // Check for config keys
         if (
@@ -83,7 +84,7 @@ class PrototypeRouteListener implements ListenerAggregateInterface
         // Do we need to inject a prototype?
         if (
             ! isset($config['api-tools-versioning']['uri'])
-            || ! is_array($config['api-tools-versioning']['uri'])
+            || ! is_array(value: $config['api-tools-versioning']['uri'])
             || empty($config['api-tools-versioning']['uri'])
         ) {
             return;
@@ -92,7 +93,7 @@ class PrototypeRouteListener implements ListenerAggregateInterface
         // Override default version of 1 with user-specified config value, if available.
         if (
             isset($config['api-tools-versioning']['default_version'])
-            && is_scalar($config['api-tools-versioning']['default_version'])
+            && is_scalar(value: $config['api-tools-versioning']['default_version'])
         ) {
             $this->versionRouteOptions['defaults']['version'] = $config['api-tools-versioning']['default_version'];
         }
@@ -102,15 +103,18 @@ class PrototypeRouteListener implements ListenerAggregateInterface
         $routes   = $config['api-tools-versioning']['uri'];
         $filtered = [];
         foreach ($routes as $index => $route) {
-            if (strstr($route, '/')) {
-                $temp  = explode('/', $route, 2);
-                $route = array_shift($temp);
+            if (strstr(haystack: (string) $route, needle: '/')) {
+                $temp  = explode(separator: '/', string: (string) $route, limit: 2);
+                $route = array_shift(array: $temp);
             }
-            if (in_array($route, $filtered)) {
+
+            if (in_array(needle: $route, haystack: $filtered)) {
                 continue;
             }
+
             $filtered[] = $route;
         }
+
         $routes = $filtered;
 
         // Inject chained routes
@@ -120,9 +124,9 @@ class PrototypeRouteListener implements ListenerAggregateInterface
             }
 
             if (
-                false === strpos(
-                    $config['router']['routes'][$routeName]['options']['route'],
-                    $this->versionRoutePrefix
+                !str_contains(
+                    haystack: (string)$config['router']['routes'][$routeName]['options']['route'],
+                    needle: $this->versionRoutePrefix
                 )
             ) {
                 $config['router']['routes'][$routeName]['options']['route'] = $this->versionRoutePrefix
@@ -135,12 +139,12 @@ class PrototypeRouteListener implements ListenerAggregateInterface
             }
 
             $config['router']['routes'][$routeName]['options'] = ArrayUtils::merge(
-                $config['router']['routes'][$routeName]['options'],
-                $routeVersion
+                a: $config['router']['routes'][$routeName]['options'],
+                b: $routeVersion
             );
         }
 
         // Reset merged config
-        $configListener->setMergedConfig($config);
+        $configListener->setMergedConfig(config: $config);
     }
 }

@@ -15,22 +15,21 @@ use function is_array;
 class MetadataMapFactory
 {
     /**
-     * @return Metadata\MetadataMap
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    public function __invoke(ContainerInterface $container)
+    public function __invoke(ContainerInterface $container): Metadata\MetadataMap
     {
         $config = $container->get('Jield\ApiTools\Hal\HalConfig');
 
         $hydrators = $container->has('HydratorManager')
             ? $container->get('HydratorManager')
-            : new HydratorPluginManager($container);
+            : new HydratorPluginManager(configInstanceOrParentLocator: $container);
 
-        $map = isset($config['metadata_map']) && is_array($config['metadata_map'])
+        $map = isset($config['metadata_map']) && is_array(value: $config['metadata_map'])
             ? $config['metadata_map']
             : [];
 
-        return new Metadata\MetadataMap($map, $hydrators);
+        return new Metadata\MetadataMap(map: $map, hydrators: $hydrators);
     }
 }
