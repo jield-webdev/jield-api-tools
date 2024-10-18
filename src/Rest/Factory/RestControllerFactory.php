@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Rest\Factory;
 
 use Jield\ApiTools\Hal\Collection;
+use Jield\ApiTools\Rest\AbstractResourceListener;
 use Jield\ApiTools\Rest\Resource;
 use Jield\ApiTools\Rest\RestController;
 use Laminas\EventManager\Event;
-use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Laminas\Stdlib\Parameters;
 use Override;
 use Psr\Container\ContainerInterface;
+use Webmozart\Assert\Assert;
 use function array_key_exists;
 use function array_keys;
 use function array_merge;
@@ -30,18 +31,9 @@ class RestControllerFactory implements AbstractFactoryInterface
 {
     /**
      * Cache of canCreateServiceWithName lookups
-     *
-     * @var array
      */
     protected array $lookupCache = [];
 
-    /**
-     * Determine if we can create a service with name (v2).
-     *
-     * Provided for backwards compatibility; proxies to canCreate().
-     *
-     * @param string $requestedName
-     */
     #[Override]
     public function canCreate(ContainerInterface $container, $requestedName): bool
     {
@@ -95,9 +87,6 @@ class RestControllerFactory implements AbstractFactoryInterface
 
     /**
      * Create named controller instance
-     *
-     * @param string $requestedName
-     * @throws ServiceNotCreatedException If listener specified is not a ListenerAggregate.
      */
     #[Override]
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): RestController
@@ -105,16 +94,10 @@ class RestControllerFactory implements AbstractFactoryInterface
         $config = $container->get('config');
         $config = $config['api-tools-rest'][$requestedName];
 
+        /** @var AbstractResourceListener $listener */
         $listener = $container->has($config['listener']) ? $container->get($config['listener']) : new $config['listener']();
 
-        if (!$listener instanceof ListenerAggregateInterface) {
-            throw new ServiceNotCreatedException(message: sprintf(
-                '%s expects that the "listener" reference a service that implements '
-                . 'Laminas\EventManager\ListenerAggregateInterface; received %s',
-                __METHOD__,
-                get_debug_type(value: $listener)
-            ));
-        }
+        Assert::isInstanceOf(value: $listener, class: AbstractResourceListener::class);
 
         $resourceIdentifiers = [$listener::class];
         if (isset($config['resource_identifiers'])) {
