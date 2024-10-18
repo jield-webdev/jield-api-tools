@@ -77,7 +77,9 @@ class PdoAdapter extends OAuth2Pdo
     {
         $userInfo = parent::getUser($username);
 
-        // Bshaffer expects the user_id to be set in the array,we want the it self
-        return array_merge(['user_id' => $userInfo['id']], $userInfo);
+        //Save the ID in the user_id field
+        $userInfo['id'] = $userInfo['user_id'];
+
+        return $userInfo;
     }
 }
