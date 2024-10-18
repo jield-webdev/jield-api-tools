@@ -35,7 +35,7 @@ class RestControllerFactory implements AbstractFactoryInterface
      *
      * @var array
      */
-    protected $lookupCache = [];
+    protected array $lookupCache = [];
 
     /**
      * Determine if we can create a service with name (v2).
@@ -150,7 +150,7 @@ class RestControllerFactory implements AbstractFactoryInterface
             ));
         }
 
-        $controller->setEventManager(events: $container->get('EventManager'));
+        $controller->setEventManager(eventManager: $container->get('EventManager'));
         $controller->setResource(resource: $resource);
         $this->setControllerOptions(config: $config, controller: $controller);
 

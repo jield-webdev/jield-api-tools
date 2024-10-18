@@ -12,7 +12,6 @@ use Laminas\Uri\UriFactory;
 use Override;
 use Psr\Link\LinkInterface;
 use Traversable;
-
 use function get_debug_type;
 use function is_array;
 use function is_string;
@@ -25,33 +24,32 @@ use function sprintf;
 class Link implements LinkInterface
 {
     /** @var array<string,mixed> */
-    protected $attributes = [];
+    protected array $attributes = [];
 
     /** @var string[] */
-    protected $rels;
+    protected string|array $rels;
 
     /** @var string */
-    protected $route;
+    protected string $route;
 
     /** @var array */
-    protected $routeOptions = [];
+    protected array $routeOptions = [];
 
     /** @var array<string,mixed> */
-    protected $routeParams = [];
+    protected array $routeParams = [];
 
     /** @var string|null */
-    protected $href;
+    protected ?string $href;
 
     /**
      * Create a link relation
      *
      * @param string|array<array-key, string> $relation
-     *@todo  filtering and/or validation of relation string
      */
     public function __construct(array|string $relation)
     {
-        if (! is_array(value: $relation)) {
-            $relation = [(string) $relation];
+        if (!is_array(value: $relation)) {
+            $relation = [(string)$relation];
         }
 
         $this->rels = $relation;
@@ -72,14 +70,14 @@ class Link implements LinkInterface
      */
     public static function factory(array $spec): Link
     {
-        if (! isset($spec['rel'])) {
+        if (!isset($spec['rel'])) {
             throw new Exception\InvalidArgumentException(message: sprintf(
                 '%s requires that the specification array contain a "rel" element; none found',
                 __METHOD__
             ));
         }
 
-        $link = new static(relation: $spec['rel']);
+        $link = new self(relation: $spec['rel']);
         /** @psalm-suppress RedundantConditionGivenDocblockType */
         if (
             isset($spec['props'])
@@ -111,7 +109,7 @@ class Link implements LinkInterface
             }
 
             /** @psalm-suppress DocblockTypeContradiction */
-            if (! is_array(value: $routeInfo)) {
+            if (!is_array(value: $routeInfo)) {
                 throw new Exception\InvalidArgumentException(message: sprintf(
                     '%s requires that the specification array\'s "route" element be a string or array; received "%s"',
                     __METHOD__,
@@ -119,7 +117,7 @@ class Link implements LinkInterface
                 ));
             }
 
-            if (! isset($routeInfo['name'])) {
+            if (!isset($routeInfo['name'])) {
                 throw new Exception\InvalidArgumentException(message: sprintf(
                     '%s requires that the specification array\'s "route" array contain a "name" element; none found',
                     __METHOD__
@@ -134,7 +132,7 @@ class Link implements LinkInterface
                 ? $routeInfo['options']
                 : [];
             /** @psalm-suppress RedundantCastGivenDocblockType */
-            $link->setRoute(route: (string) $name, params: $params, options: $options);
+            $link->setRoute(route: (string)$name, params: $params, options: $options);
             return $link;
         }
 
@@ -179,7 +177,7 @@ class Link implements LinkInterface
             ));
         }
 
-        $this->route = (string) $route;
+        $this->route = (string)$route;
         if ($params) {
             /** @psalm-var array<string,mixed> $params */
             $this->setRouteParams(params: $params);
@@ -195,22 +193,14 @@ class Link implements LinkInterface
     /**
      * Set route assembly options
      *
-     * @param  mixed|array|Traversable $options
+     * @param iterable $options
      * @return self
      * @throws Exception\InvalidArgumentException
      */
-    public function setRouteOptions(mixed $options): static
+    public function setRouteOptions(iterable $options): static
     {
         if ($options instanceof Traversable) {
             $options = ArrayUtils::iteratorToArray(iterator: $options);
-        }
-
-        if (! is_array(value: $options)) {
-            throw new Exception\InvalidArgumentException(message: sprintf(
-                '%s expects an array or Traversable; received "%s"',
-                __METHOD__,
-                get_debug_type(value: $options)
-            ));
         }
 
         $this->routeOptions = $options;
@@ -224,16 +214,8 @@ class Link implements LinkInterface
      * @return self
      * @throws Exception\InvalidArgumentException
      */
-    public function setRouteParams(array|Traversable $params): static
+    public function setRouteParams(iterable $params): static
     {
-        if (! is_array(value: $params) && ! $params instanceof Traversable) {
-            throw new Exception\InvalidArgumentException(message: sprintf(
-                '%s expects an array or Traversable; received "%s"',
-                __METHOD__,
-                get_debug_type(value: $params)
-            ));
-        }
-
         if ($params instanceof Traversable) {
             $params = ArrayUtils::iteratorToArray(iterator: $params);
         }
@@ -266,10 +248,10 @@ class Link implements LinkInterface
             throw new Exception\InvalidArgumentException(message: sprintf(
                 'Received invalid URL: %s',
                 $exception->getMessage()
-            ), code: (int) $exception->getCode(), previous: $exception);
+            ), code: (int)$exception->getCode(), previous: $exception);
         }
 
-        if (! $uri->isValid()) {
+        if (!$uri->isValid()) {
             throw new Exception\InvalidArgumentException(
                 message: 'Received invalid URL'
             );
@@ -282,9 +264,9 @@ class Link implements LinkInterface
     /**
      * Get additional properties to include in Link representation
      *
+     * @return array
      * @deprecated 1.4.3 Use getAttributes() instead
      *
-     * @return array
      */
     public function getProps(): array
     {
@@ -294,15 +276,15 @@ class Link implements LinkInterface
     /**
      * Retrieve the link relation
      *
+     * @return string
      * @deprecated 1.4.3 Use getRels() and update your code to handle an array of strings
      *
-     * @return string
      */
     public function getRelation(): string
     {
         $rels = $this->getRels();
 
-        return (string) reset(array: $rels);
+        return (string)reset(array: $rels);
     }
 
     /**
@@ -338,9 +320,9 @@ class Link implements LinkInterface
     /**
      * Retrieve the link URL, if set
      *
+     * @return null|string
      * @deprecated 1.4.3 Use getHref() instead
      *
-     * @return null|string
      */
     public function getUrl(): ?string
     {
@@ -354,7 +336,7 @@ class Link implements LinkInterface
      */
     public function isComplete(): bool
     {
-        return ! empty($this->href) || ! empty($this->route);
+        return !empty($this->href) || !empty($this->route);
     }
 
     /**
@@ -364,19 +346,19 @@ class Link implements LinkInterface
      */
     public function hasRoute(): bool
     {
-        return ! empty($this->route);
+        return !empty($this->route);
     }
 
     /**
      * Does the link have a URL set?
      *
+     * @return bool
      * @deprecated since 1.5.0; no empty URLs will be allowed in the future.
      *
-     * @return bool
      */
     public function hasUrl(): bool
     {
-        return ! empty($this->href);
+        return !empty($this->href);
     }
 
     /**
@@ -393,7 +375,7 @@ class Link implements LinkInterface
     #[Override]
     public function getHref(): string
     {
-        return (string) $this->href;
+        return (string)$this->href;
     }
 
     /**

@@ -19,14 +19,14 @@ use function get_object_vars;
 class EntityExtractor implements ExtractionInterface
 {
     /** @var EntityHydratorManager */
-    protected $entityHydratorManager;
+    protected EntityHydratorManager $entityHydratorManager;
 
     /**
      * Map of entities to their Jield\ApiTools\Hal\Entity serializations
      *
      * @var SplObjectStorage
      */
-    protected $serializedEntities;
+    protected SplObjectStorage $serializedEntities;
 
     public function __construct(EntityHydratorManager $entityHydratorManager)
     {

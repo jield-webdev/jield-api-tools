@@ -14,7 +14,7 @@ use function sprintf;
 class LinkExtractor implements LinkExtractorInterface
 {
     /** @var LinkUrlBuilder */
-    protected $linkUrlBuilder;
+    protected LinkUrlBuilder $linkUrlBuilder;
 
     public function __construct(LinkUrlBuilder $linkUrlBuilder)
     {

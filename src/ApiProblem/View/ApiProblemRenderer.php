@@ -15,7 +15,7 @@ class ApiProblemRenderer extends JsonRenderer
      *
      * @var bool
      */
-    protected $displayExceptions = false;
+    protected bool $displayExceptions = false;
 
     /**
      * Set display_exceptions flag.

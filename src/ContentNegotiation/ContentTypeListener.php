@@ -35,7 +35,7 @@ use const JSON_ERROR_UTF8;
 class ContentTypeListener
 {
     /** @var array */
-    protected $jsonErrors
+    protected array $jsonErrors
         = [
             JSON_ERROR_DEPTH          => 'Maximum stack depth exceeded',
             JSON_ERROR_STATE_MISMATCH => 'Underflow or the modes mismatch',
@@ -49,7 +49,7 @@ class ContentTypeListener
      *
      * @var string
      */
-    protected $uploadTmpDir;
+    protected string $uploadTmpDir;
 
     /**
      * Perform content negotiation

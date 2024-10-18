@@ -18,7 +18,7 @@ class RestParametersListener implements ListenerAggregateInterface
 {
     use ListenerAggregateTrait;
 
-    protected $sharedListeners = [];
+    protected array $sharedListeners = [];
 
     /** @param int $priority */
     #[Override]

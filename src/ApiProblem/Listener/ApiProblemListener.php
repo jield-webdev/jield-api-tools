@@ -37,7 +37,7 @@ class ApiProblemListener extends AbstractListenerAggregate
      *
      * @var array
      */
-    protected $acceptFilters = [
+    protected array $acceptFilters = [
         'application/json',
         'application/*+json',
     ];

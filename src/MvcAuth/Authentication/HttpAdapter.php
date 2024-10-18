@@ -10,7 +10,6 @@ use Laminas\Authentication\Adapter\Http as HttpAuth;
 use Laminas\Authentication\AuthenticationServiceInterface;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
-
 use Override;
 use function array_shift;
 use function in_array;
@@ -21,26 +20,23 @@ class HttpAdapter extends AbstractAdapter
 {
     /**
      * Authorization header token types this adapter can fulfill.
-     *
-     * @var array
      */
-    protected $authorizationTokenTypes = ['basic', 'digest'];
+    protected array $authorizationTokenTypes = ['basic', 'digest'];
 
     /**
      * Base to use when prefixing "provides" strings
-     *
-     * @var null|string
      */
-    private $providesBase;
+    private ?string $providesBase = null;
 
     /**
      * @param string|null $providesBase
      */
     public function __construct(
-        private readonly HttpAuth $httpAuth,
+        private readonly HttpAuth                       $httpAuth,
         private readonly AuthenticationServiceInterface $authenticationService,
-        string $providesBase = null
-    ) {
+        string                                          $providesBase = null
+    )
+    {
         if (is_string(value: $providesBase) && ($providesBase !== '' && $providesBase !== '0')) {
             $this->providesBase = $providesBase;
         }
@@ -101,14 +97,11 @@ class HttpAdapter extends AbstractAdapter
 
     /**
      * Attempt to authenticate the current request.
-     *
-     * @return false|Identity\IdentityInterface False on failure, IdentityInterface
-     *     otherwise
      */
     #[Override]
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\GuestIdentity|false|Identity\IdentityInterface|Identity\AuthenticatedIdentity
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface
     {
-        if (! $request->getHeader(name: 'Authorization', default: false)) {
+        if (!$request->getHeader(name: 'Authorization', default: false)) {
             // No credentials were present at all, so we just return a guest identity.
             return new Identity\GuestIdentity();
         }
@@ -119,8 +112,8 @@ class HttpAdapter extends AbstractAdapter
         $result = $this->authenticationService->authenticate($this->httpAuth);
         $mvcAuthEvent->setAuthenticationResult(result: $result);
 
-        if (! $result->isValid()) {
-            return false;
+        if (!$result->isValid()) {
+            return new Identity\GuestIdentity();
         }
 
         $resultIdentity = $result->getIdentity();
@@ -131,7 +124,7 @@ class HttpAdapter extends AbstractAdapter
         // But determine the name separately
         $name = $resultIdentity;
         if (is_array(value: $resultIdentity)) {
-            $name = $resultIdentity['username'] ?? (string) array_shift(array: $resultIdentity);
+            $name = $resultIdentity['username'] ?? (string)array_shift(array: $resultIdentity);
         }
 
         $identity->setName(name: $name);

@@ -21,7 +21,7 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
      *
      * @var array
      */
-    protected $config = [];
+    protected array $config = [];
 
     /**
      * @param int                    $priority

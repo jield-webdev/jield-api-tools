@@ -45,7 +45,7 @@ class HalViewHelperFactory
         if ($container->has('EventManager')) {
             $eventManager = $container->get('EventManager');
             Assert::isInstanceOf(value: $eventManager, class: EventManagerInterface::class);
-            $helper->setEventManager(events: $eventManager);
+            $helper->setEventManager(eventManager: $eventManager);
         }
 
         $helper->setMetadataMap(map: $metadataMap);

@@ -28,66 +28,66 @@ class Collection implements Link\LinkCollectionAwareInterface
      *
      * @var array
      */
-    protected $attributes = [];
+    protected array $attributes = [];
 
     /** @var Paginator|Traversable|array<array-key, mixed> */
-    protected $collection;
+    protected Paginator|array|Traversable $collection;
 
     /**
      * Name of collection (used to identify it in the "_embedded" object)
      *
      * @var string
      */
-    protected $collectionName = 'items';
+    protected string $collectionName = 'items';
 
     /** @var string */
-    protected $collectionRoute;
+    protected string $collectionRoute;
 
     /** @var array */
-    protected $collectionRouteOptions = [];
+    protected array $collectionRouteOptions = [];
 
     /** @var array */
-    protected $collectionRouteParams = [];
+    protected array $collectionRouteParams = [];
 
     /**
      * Name of the field representing the identifier
      *
      * @var string
      */
-    protected $entityIdentifierName = 'id';
+    protected string $entityIdentifierName = 'id';
 
     /**
      * Name of the route parameter identifier for individual entities of the collection
      *
      * @var string
      */
-    protected $routeIdentifierName = 'id';
+    protected string $routeIdentifierName = 'id';
 
     /**
      * Current page
      *
      * @var int
      */
-    protected $page = 1;
+    protected int $page = 1;
 
     /**
      * Number of entities per page
      *
      * @var int
      */
-    protected $pageSize = 30;
+    protected int $pageSize = 30;
 
     /** @var Link\LinkCollection */
-    protected $entityLinks;
+    protected Link\LinkCollection $entityLinks;
 
     /** @var string */
-    protected $entityRoute;
+    protected string $entityRoute;
 
     /** @var array */
-    protected $entityRouteOptions = [];
+    protected array $entityRouteOptions = [];
 
     /** @var array */
-    protected $entityRouteParams = [];
+    protected array $entityRouteParams = [];
 
     /**
      * @param Traversable|array<array-key, mixed>|Paginator $collection

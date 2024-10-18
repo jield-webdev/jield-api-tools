@@ -10,9 +10,7 @@ use Laminas\EventManager\ListenerAggregateTrait;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
-
 use Override;
 use function array_key_exists;
 use function array_walk;
@@ -27,10 +25,10 @@ class OptionsListener implements ListenerAggregateInterface
     use ListenerAggregateTrait;
 
     /** @var array */
-    protected $config;
+    protected array $config;
 
     /**
-     * @param  array $config
+     * @param array $config
      */
     public function __construct(array $config)
     {
@@ -49,24 +47,24 @@ class OptionsListener implements ListenerAggregateInterface
     public function onRoute(MvcEvent $event): ?Response
     {
         $request = $event->getRequest();
-        if (! $request instanceof Request) {
+        if (!$request instanceof Request) {
             // Not an HTTP request? nothing to do
             return null;
         }
 
         $matches = $event->getRouteMatch();
-        if (! $matches) {
+        if (!$matches) {
             // No matches, nothing to do
             return null;
         }
 
         $controller = $matches->getParam(name: 'controller', default: false);
-        if (! $controller) {
+        if (!$controller) {
             // No controller in the matches, nothing to do
             return null;
         }
 
-        if (! array_key_exists(key: $controller, array: $this->config)) {
+        if (!array_key_exists(key: $controller, array: $this->config)) {
             // No matching controller in our configuration, nothing to do
             return null;
         }
@@ -102,10 +100,10 @@ class OptionsListener implements ListenerAggregateInterface
     protected function normalizeMethods(array|string $methods): array|string
     {
         if (is_string(value: $methods)) {
-            $methods = (array) $methods;
+            $methods = (array)$methods;
         }
 
-        array_walk(array: $methods, callback: fn(&$value) => strtoupper(string: (string) $value));
+        array_walk(array: $methods, callback: fn(&$value) => strtoupper(string: (string)$value));
         return $methods;
     }
 
@@ -127,6 +125,7 @@ class OptionsListener implements ListenerAggregateInterface
      */
     protected function getOptionsResponse(MvcEvent $event, array $options): Response
     {
+        /** @var Response $response */
         $response = $event->getResponse();
         $this->createAllowHeader(options: $options, response: $response);
         return $response;
@@ -152,9 +151,9 @@ class OptionsListener implements ListenerAggregateInterface
      * If an entity request was detected, but no entity configuration exists, returns
      * empty array.
      *
-     * @param RouteMatch|V2RouteMatch $matches
+     * @param RouteMatch $matches
      */
-    protected function getConfigForControllerAndMatches(array $config, V2RouteMatch|RouteMatch $matches): array
+    protected function getConfigForControllerAndMatches(array $config, RouteMatch $matches): array
     {
         $collectionConfig = [];
         if (
@@ -173,7 +172,7 @@ class OptionsListener implements ListenerAggregateInterface
             $identifier = $config['route_identifier_name'];
         }
 
-        if (! $identifier || $matches->getParam(name: $identifier, default: false) === false) {
+        if (!$identifier || $matches->getParam(name: $identifier, default: false) === false) {
             return $collectionConfig;
         }
 

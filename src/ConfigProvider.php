@@ -57,7 +57,6 @@ use Jield\ApiTools\MvcAuth\Authorization\DefaultAuthorizationListener;
 use Jield\ApiTools\MvcAuth\Authorization\DefaultAuthorizationPostListener;
 use Jield\ApiTools\MvcAuth\Authorization\DefaultResourceResolverListener;
 use Jield\ApiTools\MvcAuth\Factory\AclAuthorizationFactory;
-use Jield\ApiTools\MvcAuth\Factory\ApacheResolverFactory;
 use Jield\ApiTools\MvcAuth\Factory\AuthenticationAdapterDelegatorFactory;
 use Jield\ApiTools\MvcAuth\Factory\AuthenticationServiceFactory;
 use Jield\ApiTools\MvcAuth\Factory\DefaultAuthenticationListenerFactory;
@@ -118,15 +117,15 @@ final class ConfigProvider
                 'getIdentity'    => IdentityPlugin::class,
             ],
             'factories' => [
-                RouteParam::class  => InvokableFactory::class,
-                QueryParam::class  => InvokableFactory::class,
-                BodyParam::class   => InvokableFactory::class,
-                RouteParams::class => InvokableFactory::class,
-                QueryParams::class => InvokableFactory::class,
-                BodyParams::class  => InvokableFactory::class,
+                RouteParam::class        => InvokableFactory::class,
+                QueryParam::class        => InvokableFactory::class,
+                BodyParam::class         => InvokableFactory::class,
+                RouteParams::class       => InvokableFactory::class,
+                QueryParams::class       => InvokableFactory::class,
+                BodyParams::class        => InvokableFactory::class,
                 InputFilterPlugin::class => InvokableFactory::class,
-                Hal::class                                  => HalControllerPluginFactory::class,
-                IdentityPlugin::class                 => InvokableFactory::class,
+                Hal::class               => HalControllerPluginFactory::class,
+                IdentityPlugin::class    => InvokableFactory::class,
             ],
         ];
     }
@@ -164,10 +163,10 @@ final class ConfigProvider
     {
         return [
             'aliases'    => [
-                'authentication'                                                    => 'Jield\ApiTools\MvcAuth\Authentication',
-                'authorization'                                                     => AuthorizationInterface::class,
-                AuthorizationInterface::class => AclAuthorization::class,
-                'Jield\ApiTools\OAuth2\Provider\UserId'                             => AuthenticationService::class,
+                'authentication'                        => 'Jield\ApiTools\MvcAuth\Authentication',
+                'authorization'                         => AuthorizationInterface::class,
+                AuthorizationInterface::class           => AclAuthorization::class,
+                'Jield\ApiTools\OAuth2\Provider\UserId' => AuthenticationService::class,
 
             ],
             'delegators' => [
@@ -180,9 +179,9 @@ final class ConfigProvider
             ],
             'factories'  => [
                 \Jield\ApiTools\Rest\Listener\OptionsListener::class => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
-                OptionsListener::class           => OptionsListenerFactory::class,
+                OptionsListener::class                               => OptionsListenerFactory::class,
 
-                PdoAdapter::class                    => PdoAdapterFactory::class,
+                PdoAdapter::class            => PdoAdapterFactory::class,
                 AuthenticationService::class => \Jield\ApiTools\OAuth2\Provider\UserId\AuthenticationServiceFactory::class,
                 //                'Jield\ApiTools\OAuth2\Service\OAuth2Server'                        => \Jield\ApiTools\OAuth2\Factory\OAuth2ServerFactory::class,
 
@@ -192,39 +191,38 @@ final class ConfigProvider
                 ApiProblemListener::class             => ApiProblemListenerFactory::class,
                 RenderErrorListener::class            => RenderErrorListenerFactory::class,
                 SendApiProblemResponseListener::class => SendApiProblemResponseListenerFactory::class,
-                ApiProblemRenderer::class                 => ApiProblemRendererFactory::class,
-                ApiProblemStrategy::class                 => ApiProblemStrategyFactory::class,
+                ApiProblemRenderer::class             => ApiProblemRendererFactory::class,
+                ApiProblemStrategy::class             => ApiProblemStrategyFactory::class,
 
-                \Jield\ApiTools\ContentNegotiation\ContentTypeListener::class        => \Laminas\ServiceManager\Factory\InvokableFactory::class,
-                \Jield\ApiTools\ContentNegotiation\AcceptListener::class             => \Jield\ApiTools\ContentNegotiation\Factory\AcceptListenerFactory::class,
-                AcceptFilterListener::class       => AcceptFilterListenerFactory::class,
-                ContentTypeFilterListener::class  => ContentTypeFilterListenerFactory::class,
-                ContentNegotiationOptions::class  => ContentNegotiationOptionsFactory::class,
-                HttpMethodOverrideListener::class => HttpMethodOverrideListenerFactory::class,
+                \Jield\ApiTools\ContentNegotiation\ContentTypeListener::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
+                \Jield\ApiTools\ContentNegotiation\AcceptListener::class      => \Jield\ApiTools\ContentNegotiation\Factory\AcceptListenerFactory::class,
+                AcceptFilterListener::class                                   => AcceptFilterListenerFactory::class,
+                ContentTypeFilterListener::class                              => ContentTypeFilterListenerFactory::class,
+                ContentNegotiationOptions::class                              => ContentNegotiationOptionsFactory::class,
+                HttpMethodOverrideListener::class                             => HttpMethodOverrideListenerFactory::class,
 
                 ContentValidationListener::class => ContentValidationListenerFactory::class,
 
                 LinkExtractor::class           => LinkExtractorFactory::class,
                 LinkCollectionExtractor::class => LinkCollectionExtractorFactory::class,
-                'Jield\ApiTools\Hal\HalConfig'                               => HalConfigFactory::class,
-                HalJsonRenderer::class                                       => HalJsonRendererFactory::class,
-                HalJsonStrategy::class                                       => HalJsonStrategyFactory::class,
-                LinkUrlBuilder::class               => LinkUrlBuilderFactory::class,
-                MetadataMap::class                                           => MetadataMapFactory::class,
-                RendererOptions::class                                       => RendererOptionsFactory::class,
+                'Jield\ApiTools\Hal\HalConfig' => HalConfigFactory::class,
+                HalJsonRenderer::class         => HalJsonRendererFactory::class,
+                HalJsonStrategy::class         => HalJsonStrategyFactory::class,
+                LinkUrlBuilder::class          => LinkUrlBuilderFactory::class,
+                MetadataMap::class             => MetadataMapFactory::class,
+                RendererOptions::class         => RendererOptionsFactory::class,
 
-                'Jield\ApiTools\MvcAuth\Authentication'                                         => AuthenticationServiceFactory::class,
-                'Jield\ApiTools\MvcAuth\ApacheResolver'                                         => ApacheResolverFactory::class,
-                'Jield\ApiTools\MvcAuth\FileResolver'                                           => FileResolverFactory::class,
-                DefaultAuthenticationListener::class     => DefaultAuthenticationListenerFactory::class,
-                Http::class                                     => DefaultAuthHttpAdapterFactory::class,
-                AclAuthorization::class                   => AclAuthorizationFactory::class,
-                DefaultAuthorizationListener::class       => DefaultAuthorizationListenerFactory::class,
-                DefaultResourceResolverListener::class    => DefaultResourceResolverListenerFactory::class,
-                'Jield\ApiTools\OAuth2\Service\OAuth2Server'                                    => NamedOAuth2ServerFactory::class,
-                NonPersistent::class                                                            => InvokableFactory::class,
-                DefaultAuthenticationPostListener::class => InvokableFactory::class,
-                DefaultAuthorizationPostListener::class   => InvokableFactory::class,
+                'Jield\ApiTools\MvcAuth\Authentication'      => AuthenticationServiceFactory::class,
+                'Jield\ApiTools\MvcAuth\FileResolver'        => FileResolverFactory::class,
+                DefaultAuthenticationListener::class         => DefaultAuthenticationListenerFactory::class,
+                Http::class                                  => DefaultAuthHttpAdapterFactory::class,
+                AclAuthorization::class                      => AclAuthorizationFactory::class,
+                DefaultAuthorizationListener::class          => DefaultAuthorizationListenerFactory::class,
+                DefaultResourceResolverListener::class       => DefaultResourceResolverListenerFactory::class,
+                'Jield\ApiTools\OAuth2\Service\OAuth2Server' => NamedOAuth2ServerFactory::class,
+                NonPersistent::class                         => InvokableFactory::class,
+                DefaultAuthenticationPostListener::class     => InvokableFactory::class,
+                DefaultAuthorizationPostListener::class      => InvokableFactory::class,
 
                 AcceptListener::class      => AcceptListenerFactory::class,
                 ContentTypeListener::class => ContentTypeListenerFactory::class,

@@ -18,13 +18,13 @@ use function is_bool;
 class MvcRouteListener extends AbstractListenerAggregate
 {
     /** @var AuthenticationService */
-    protected $authentication;
+    protected AuthenticationService $authentication;
 
     /** @var EventManagerInterface */
-    protected $events;
+    protected EventManagerInterface $events;
 
     /** @var MvcAuthEvent */
-    protected $mvcAuthEvent;
+    protected MvcAuthEvent $mvcAuthEvent;
 
     public function __construct(
         MvcAuthEvent $mvcAuthEvent,

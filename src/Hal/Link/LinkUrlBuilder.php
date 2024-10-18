@@ -13,10 +13,10 @@ use function substr;
 class LinkUrlBuilder
 {
     /** @var ServerUrl */
-    protected $serverUrlHelper;
+    protected ServerUrl $serverUrlHelper;
 
     /** @var Url */
-    protected $urlHelper;
+    protected Url $urlHelper;
 
     public function __construct(ServerUrl $serverUrlHelper, Url $urlHelper)
     {

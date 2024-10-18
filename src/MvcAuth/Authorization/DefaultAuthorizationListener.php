@@ -8,24 +8,18 @@ use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 
 class DefaultAuthorizationListener
 {
     /** @var AuthorizationInterface */
-    protected $authorization;
+    protected AuthorizationInterface $authorization;
 
     public function __construct(AuthorizationInterface $authorization)
     {
         $this->authorization = $authorization;
     }
 
-    /**
-     * Attempt to authorize the discovered identity based on the ACLs present
-     *
-     * @return bool
-     */
     public function __invoke(MvcAuthEvent $mvcAuthEvent): ?bool
     {
         if ($mvcAuthEvent->isAuthorized()) {
@@ -35,22 +29,22 @@ class DefaultAuthorizationListener
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
 
         $request = $mvcEvent->getRequest();
-        if (! $request instanceof Request) {
+        if (!$request instanceof Request) {
             return null;
         }
 
         $response = $mvcEvent->getResponse();
-        if (! $response instanceof Response) {
+        if (!$response instanceof Response) {
             return null;
         }
 
         $routeMatch = $mvcEvent->getRouteMatch();
-        if (!$routeMatch instanceof RouteMatch && !$routeMatch instanceof V2RouteMatch) {
+        if (!$routeMatch instanceof RouteMatch) {
             return null;
         }
 
         $identity = $mvcAuthEvent->getIdentity();
-        if (! $identity instanceof IdentityInterface) {
+        if (!$identity instanceof IdentityInterface) {
             return null;
         }
 

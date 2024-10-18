@@ -29,14 +29,14 @@ class PrototypeRouteListener implements ListenerAggregateInterface
      *
      * @var string
      */
-    protected $versionRoutePrefix = '[/v:version]';
+    protected string $versionRoutePrefix = '[/v:version]';
 
     /**
      * Constraints to introduce in versioned routes
      *
      * @var array
      */
-    protected $versionRouteOptions = [
+    protected array $versionRouteOptions = [
         'defaults'    => [
             'version' => 1,
         ],

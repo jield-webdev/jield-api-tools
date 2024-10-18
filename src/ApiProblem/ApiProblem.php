@@ -32,21 +32,21 @@ class ApiProblem
      *
      * @var array
      */
-    protected $additionalDetails = [];
+    protected array|null|\Traversable $additionalDetails = [];
 
     /**
      * URL describing the problem type; defaults to HTTP status codes.
      *
      * @var string
      */
-    protected $type = 'https://datatracker.ietf.org/doc/html/rfc7231#section-6';
+    protected string $type = 'https://datatracker.ietf.org/doc/html/rfc7231#section-6';
 
     /**
      * Description of the specific problem.
      *
      * @var string|Exception|Throwable
      */
-    protected $detail = '';
+    protected mixed $detail = '';
 
     /**
      * Whether or not to include a stack trace and previous
@@ -54,21 +54,21 @@ class ApiProblem
      *
      * @var bool
      */
-    protected $detailIncludesStackTrace = false;
+    protected bool $detailIncludesStackTrace = false;
 
     /**
      * HTTP status for the error.
      *
      * @var int
      */
-    protected $status;
+    protected int $status;
 
     /**
      * Normalized property names for overloading.
      *
      * @var array
      */
-    protected $normalizedProperties
+    protected array $normalizedProperties
         = [
             'type'   => 'type',
             'status' => 'status',
@@ -81,7 +81,7 @@ class ApiProblem
      *
      * @var array
      */
-    protected $problemStatusTitles
+    protected array $problemStatusTitles
         = [
             // CLIENT ERROR
             400 => 'Bad Request',
@@ -129,7 +129,7 @@ class ApiProblem
      *
      * @var string
      */
-    protected $title;
+    protected ?string $title;
 
     /**
      * Create an instance using the provided information. If nothing is

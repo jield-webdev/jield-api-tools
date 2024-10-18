@@ -26,7 +26,7 @@ use function method_exists;
 class HalJsonStrategy extends JsonStrategy
 {
     /** @var string */
-    protected $contentType = 'application/json';
+    protected string $contentType = 'application/json';
 
     public function __construct(HalJsonRenderer $renderer)
     {

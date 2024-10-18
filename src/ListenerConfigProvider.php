@@ -122,7 +122,6 @@ final class ListenerConfigProvider
 
         $arguments = [];
         foreach ($constructor->getParameters() as $parameter) {
-            /** @phpstan-ignore-next-line */
             $arguments[] = $parameter->getType()->getName();
         }
 

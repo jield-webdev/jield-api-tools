@@ -20,7 +20,7 @@ class UploadFileValidatorFactory implements FactoryInterface
      *
      * @var null|array
      */
-    private $options;
+    private ?array $options;
 
     /**
      * @param string $requestedName,

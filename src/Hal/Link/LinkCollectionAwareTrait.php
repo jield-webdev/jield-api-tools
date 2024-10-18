@@ -7,7 +7,7 @@ namespace Jield\ApiTools\Hal\Link;
 trait LinkCollectionAwareTrait
 {
     /** @var LinkCollection */
-    protected $links;
+    protected LinkCollection $links;
 
     public function setLinks(LinkCollection $links): static
     {

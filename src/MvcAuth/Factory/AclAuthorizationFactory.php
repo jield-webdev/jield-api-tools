@@ -24,7 +24,7 @@ use function strtr;
 class AclAuthorizationFactory implements FactoryInterface
 {
     /** @var array */
-    protected $httpMethods = [
+    protected array $httpMethods = [
         Request::METHOD_DELETE => true,
         Request::METHOD_GET    => true,
         Request::METHOD_PATCH  => true,

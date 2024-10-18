@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Rest;
 
 use ArrayObject;
-use InvalidArgumentException;
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Jield\ApiTools\Hal\Collection as HalCollection;
@@ -15,11 +14,11 @@ use Laminas\EventManager\EventManagerInterface;
 use Laminas\EventManager\ResponseCollection;
 use Laminas\Http\Response;
 use Laminas\InputFilter\InputFilterInterface;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
+use Laminas\Paginator\Adapter\ArrayAdapter;
+use Laminas\Paginator\Paginator;
 use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\Parameters;
 use Override;
-use Traversable;
 use function array_merge;
 use function array_walk;
 use function gettype;
@@ -36,28 +35,18 @@ use function sprintf;
  */
 class Resource implements ResourceInterface
 {
-    /** @var EventManagerInterface */
-    protected $events;
+    protected ?EventManagerInterface $events = null;
 
-    /** @var null|IdentityInterface */
-    protected $identity;
+    protected ?IdentityInterface $identity = null;
 
-    /** @var null|InputFilterInterface */
-    protected $inputFilter;
+    protected ?InputFilterInterface $inputFilter = null;
 
-    /** @var array */
-    protected $params = [];
+    protected array $params = [];
 
-    /** @var null|Parameters */
-    protected $queryParams;
+    protected ?Parameters $queryParams = null;
 
-    /** @var null|RouteMatch|V2RouteMatch */
-    protected $routeMatch;
+    protected ?RouteMatch $routeMatch = null;
 
-    /**
-     * @param array $params
-     * @return self
-     */
     #[Override]
     public function setEventParams(array $params): static
     {
@@ -65,9 +54,6 @@ class Resource implements ResourceInterface
         return $this;
     }
 
-    /**
-     * @return array
-     */
     #[Override]
     public function getEventParams(): array
     {
@@ -80,9 +66,6 @@ class Resource implements ResourceInterface
         return $this;
     }
 
-    /**
-     * @return null|IdentityInterface
-     */
     public function getIdentity(): ?IdentityInterface
     {
         return $this->identity;
@@ -94,9 +77,6 @@ class Resource implements ResourceInterface
         return $this;
     }
 
-    /**
-     * @return null|InputFilterInterface
-     */
     public function getInputFilter(): ?InputFilterInterface
     {
         return $this->inputFilter;
@@ -108,47 +88,22 @@ class Resource implements ResourceInterface
         return $this;
     }
 
-    /**
-     * @return null|Parameters
-     */
     public function getQueryParams(): ?Parameters
     {
         return $this->queryParams;
     }
 
-    /**
-     * @param RouteMatch|V2RouteMatch $matches
-     * @return self
-     */
-    public function setRouteMatch(V2RouteMatch|RouteMatch $matches): static
+    public function setRouteMatch(?RouteMatch $matches = null): static
     {
-        if (!$matches instanceof RouteMatch && !$matches instanceof V2RouteMatch) {
-            throw new InvalidArgumentException(message: sprintf(
-                '%s expects a %s or %s instance; received %s',
-                __METHOD__,
-                RouteMatch::class,
-                V2RouteMatch::class,
-                get_debug_type(value: $matches)
-            ));
-        }
-
         $this->routeMatch = $matches;
         return $this;
     }
 
-    /**
-     * @return null|RouteMatch|V2RouteMatch
-     */
-    public function getRouteMatch(): V2RouteMatch|RouteMatch|null
+    public function getRouteMatch(): ?RouteMatch
     {
         return $this->routeMatch;
     }
 
-    /**
-     * @param string $name
-     * @param mixed $value
-     * @return self
-     */
     #[Override]
     public function setEventParam(string $name, mixed $value): static
     {
@@ -156,24 +111,12 @@ class Resource implements ResourceInterface
         return $this;
     }
 
-    /**
-     * @param mixed $name
-     * @param mixed|null $default
-     * @return mixed
-     */
     #[Override]
     public function getEventParam(mixed $name, mixed $default = null): mixed
     {
         return $this->params[$name] ?? $default;
     }
 
-    /**
-     * Set event manager instance
-     *
-     * Sets the event manager identifiers to the current class, this class, and
-     * the resource interface.
-     *
-     */
     #[Override]
     public function setEventManager(EventManagerInterface $eventManager): static
     {
@@ -421,9 +364,6 @@ class Resource implements ResourceInterface
      * Use to delete the item indicated by $id. The value returned by the last
      * listener will be used, as long as it is a boolean; otherwise, a boolean
      * false will be returned, indicating failure to delete.
-     *
-     * @param int|string $id
-     * @return bool
      */
     #[Override]
     public function delete(int|string $id): Response|bool|ApiProblem|ApiProblemResponse
@@ -449,27 +389,11 @@ class Resource implements ResourceInterface
      * @return bool
      */
     #[Override]
-    public function deleteList(array $data = null): Response|bool|ApiProblem|ApiProblemResponse
+    public function deleteList(array $data = null): mixed
     {
-        if (
-            $data
-            && (!is_array(value: $data) && !$data instanceof Traversable)
-        ) {
-            throw new Exception\InvalidArgumentException(message: sprintf(
-                '%s expects a null argument, or an array/Traversable of items and/or ids; received %s',
-                __METHOD__,
-                gettype(value: $data)
-            ));
-        }
-
         $results = $this->triggerEvent(name: __FUNCTION__, args: ['data' => $data]);
         $last    = $results->last();
-        if (
-            !is_bool(value: $last)
-            && !$last instanceof ApiProblem
-            && !$last instanceof ApiProblemResponse
-            && !$last instanceof Response
-        ) {
+        if (!is_bool(value: $last) && !$last instanceof Response) {
             return false;
         }
 
@@ -509,11 +433,9 @@ class Resource implements ResourceInterface
      * The recommendation is to return a \Laminas\Paginator\Paginator instance,
      * which will allow performing paginated sets, and thus allow the view
      * layer to select the current page based on the query string or route.
-     *
-     * @return array|Traversable
      */
     #[Override]
-    public function fetchAll(...$params): Traversable|array|ApiProblem|HalCollection|ApiProblemResponse
+    public function fetchAll(...$params): \Laminas\Paginator\Paginator
     {
         $results = $this->triggerEvent(name: __FUNCTION__, args: $params);
         $last    = $results->last();
@@ -524,7 +446,7 @@ class Resource implements ResourceInterface
             && !$last instanceof ApiProblemResponse
             && !is_object(value: $last)
         ) {
-            return [];
+            return new Paginator(new ArrayAdapter(array: []));
         }
 
         return $last;
@@ -580,7 +502,7 @@ class Resource implements ResourceInterface
         $defaultParams = $this->getEventParams();
         $params        = array_merge($defaultParams, $args);
         if ($params === []) {
-            return $params;
+            return new ArrayObject();
         }
 
         return $this->getEventManager()->prepareArgs(args: $params);

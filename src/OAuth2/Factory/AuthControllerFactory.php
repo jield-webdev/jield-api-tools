@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\OAuth2\Factory;
 
 use Jield\ApiTools\OAuth2\Controller\AuthController;
-use Jield\ApiTools\OAuth2\Provider\UserId;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 use OAuth2\Server as OAuth2Server;
 use Override;
 use Psr\Container\ContainerInterface;
@@ -22,7 +20,7 @@ class AuthControllerFactory implements FactoryInterface
     {
         $authController = new AuthController(
             serverFactory: $this->getOAuth2ServerFactory(container: $container),
-            userIdProvider: $container->get(UserId::class)
+            userIdProvider: $container->get('Jield\ApiTools\OAuth2\Provider\UserId')
         );
 
         $authController->setApiProblemErrorResponse(
@@ -37,12 +35,11 @@ class AuthControllerFactory implements FactoryInterface
      *
      * For BC purposes, if the OAuth2Server service returns an actual
      * instance, this will wrap it in a closure before returning it.
-     *
      */
     private function getOAuth2ServerFactory(ContainerInterface $container): callable
     {
         $oauth2ServerFactory = $container->get('Jield\ApiTools\OAuth2\Service\OAuth2Server');
-        if (! $oauth2ServerFactory instanceof OAuth2Server) {
+        if (!$oauth2ServerFactory instanceof OAuth2Server) {
             return $oauth2ServerFactory;
         }
 
@@ -51,11 +48,10 @@ class AuthControllerFactory implements FactoryInterface
 
     /**
      * Determine whether or not to render API Problem error responses.
-     *
      */
     private function marshalApiProblemErrorResponse(ContainerInterface $container): bool
     {
-        if (! $container->has('config')) {
+        if (!$container->has('config')) {
             return false;
         }
 

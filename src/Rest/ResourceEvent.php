@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Rest;
 
 use ArrayAccess;
-use InvalidArgumentException;
 use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 use Laminas\EventManager\Event;
 use Laminas\EventManager\Exception\InvalidArgumentException as EventManagerInvalidArgumentException;
@@ -21,20 +20,11 @@ use function sprintf;
 
 class ResourceEvent extends Event
 {
-    /** @var null|IdentityInterface */
-    protected $identity;
-
-    /** @var null|InputFilterInterface */
-    protected $inputFilter;
-
-    /** @var null|Parameters */
-    protected $queryParams;
-
-    /** @var null|RequestInterface */
-    protected $request;
-
-    /** @var null|RouteMatch */
-    protected $routeMatch;
+    protected ?IdentityInterface    $identity    = null;
+    protected ?InputFilterInterface $inputFilter = null;
+    protected ?Parameters           $queryParams = null;
+    protected ?RequestInterface     $request     = null;
+    protected ?RouteMatch           $routeMatch  = null;
 
     /**
      * Overload setParams to inject request object, if passed via params
@@ -67,9 +57,6 @@ class ResourceEvent extends Event
         return $this;
     }
 
-    /**
-     * @return null|IdentityInterface
-     */
     public function getIdentity(): ?IdentityInterface
     {
         return $this->identity;
@@ -81,9 +68,6 @@ class ResourceEvent extends Event
         return $this;
     }
 
-    /**
-     * @return null|InputFilterInterface
-     */
     public function getInputFilter(): ?InputFilterInterface
     {
         return $this->inputFilter;
@@ -95,9 +79,6 @@ class ResourceEvent extends Event
         return $this;
     }
 
-    /**
-     * @return null|Parameters
-     */
     public function getQueryParams(): ?Parameters
     {
         return $this->queryParams;
@@ -134,30 +115,13 @@ class ResourceEvent extends Event
         return $this->request;
     }
 
-    /**
-     * @param RouteMatch|V2RouteMatch|null $matches
-     * @return self
-     */
-    public function setRouteMatch(V2RouteMatch|RouteMatch $matches = null): static
+    public function setRouteMatch(?RouteMatch $matches = null): static
     {
-        if (null !== $matches && (!$matches instanceof RouteMatch && !$matches instanceof V2RouteMatch)) {
-            throw new InvalidArgumentException(message: sprintf(
-                '%s expects a null or %s or %s instances; received %s',
-                __METHOD__,
-                RouteMatch::class,
-                V2RouteMatch::class,
-                get_debug_type(value: $matches)
-            ));
-        }
-
         $this->routeMatch = $matches;
         return $this;
     }
 
-    /**
-     * @return null|RouteMatch|V2RouteMatch
-     */
-    public function getRouteMatch(): V2RouteMatch|RouteMatch|null
+    public function getRouteMatch(): ?RouteMatch
     {
         return $this->routeMatch;
     }

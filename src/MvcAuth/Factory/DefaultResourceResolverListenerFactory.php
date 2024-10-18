@@ -17,7 +17,7 @@ use Psr\Container\ContainerInterface;
 class DefaultResourceResolverListenerFactory implements FactoryInterface
 {
     /** @var array<Request::METHOD_*, bool> */
-    protected $httpMethods = [
+    protected array $httpMethods = [
         Request::METHOD_DELETE => true,
         Request::METHOD_GET    => true,
         Request::METHOD_PATCH  => true,

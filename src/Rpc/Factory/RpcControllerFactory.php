@@ -26,7 +26,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
      *
      * @var null|string
      */
-    private $lastRequestedControllerService;
+    private ?string $lastRequestedControllerService;
 
     /**
      * Determine if we can create a service with name

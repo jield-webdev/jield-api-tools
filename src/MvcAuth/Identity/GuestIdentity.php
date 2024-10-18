@@ -10,7 +10,7 @@ use Override;
 class GuestIdentity extends Role implements IdentityInterface
 {
     /** @var string */
-    protected static $identity = 'guest';
+    protected static string $identity = 'guest';
 
     public function __construct()
     {

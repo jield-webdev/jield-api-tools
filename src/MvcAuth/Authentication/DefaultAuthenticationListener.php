@@ -25,21 +25,21 @@ class DefaultAuthenticationListener
      *
      * @var AdapterInterface[]
      */
-    private $adapters = [];
+    private array $adapters = [];
 
     /**
      * Supported authentication types
      *
      * @var array
      */
-    private $authenticationTypes = [];
+    private array $authenticationTypes = [];
 
     /**
      * Map of API/version to authentication type pairs
      *
      * @var array
      */
-    private $authMap = [];
+    private array $authMap = [];
 
     /**
      * Attach an authentication adapter

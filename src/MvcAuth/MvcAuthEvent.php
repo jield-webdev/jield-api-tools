@@ -20,24 +20,24 @@ class MvcAuthEvent extends Event
     public const EVENT_AUTHORIZATION_POST  = 'authorization.post';
 
     /** @var MvcEvent */
-    protected $mvcEvent;
+    protected MvcEvent $mvcEvent;
 
     /** @var Result */
-    protected $authenticationResult;
+    protected Result $authenticationResult;
 
     /**
      * Whether or not authorization has completed/succeeded
      *
      * @var bool
      */
-    protected $authorized = false;
+    protected bool $authorized = false;
 
     /**
      * The resource used for authorization queries
      *
      * @var mixed
      */
-    protected $resource;
+    protected mixed $resource;
 
     /**
      * @param mixed    $authentication

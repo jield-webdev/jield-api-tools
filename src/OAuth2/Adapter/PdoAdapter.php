@@ -17,7 +17,7 @@ class PdoAdapter extends OAuth2Pdo
     protected int $bcryptCost = 12;
 
     /**
-     * @param string $connection
+     * @param array $connection
      * @param array $config
      */
     public function __construct($connection, $config = [])
@@ -52,7 +52,7 @@ class PdoAdapter extends OAuth2Pdo
         }
 
         // bcrypt verify
-        return password_verify(password: (string) $clientSecret, hash: (string)$result['client_secret']);
+        return password_verify(password: (string)$clientSecret, hash: (string)$result['client_secret']);
     }
 
     /**

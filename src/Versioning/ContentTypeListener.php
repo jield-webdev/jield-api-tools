@@ -29,13 +29,13 @@ class ContentTypeListener implements ListenerAggregateInterface
      *
      * @var string
      */
-    protected $headerName = 'content-type';
+    protected string $headerName = 'content-type';
 
     // @codingStandardsIgnoreStart
     /**
      * @var array
      */
-    protected $regexes
+    protected array $regexes
         = [
             '#^application/vnd\.(?P<laminas_ver_vendor>[^.]+)\.v(?P<laminas_ver_version>\d+)(?:\.(?P<laminas_ver_resource>[a-zA-Z0-9_-]+))?(?:\+[a-z]+)?$#',
         ];

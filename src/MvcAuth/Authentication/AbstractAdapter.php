@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Jield\ApiTools\MvcAuth\Authentication;
 
 use Laminas\Http\Request;
-
 use Override;
 use function in_array;
 use function preg_split;
-use function strpos;
 use function strtolower;
 use function trim;
 
@@ -20,7 +18,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @var array
      */
-    protected $authorizationTokenTypes = [];
+    protected array $authorizationTokenTypes = [];
 
     /**
      * Determine if the incoming request provides either basic or digest
@@ -32,14 +30,14 @@ abstract class AbstractAdapter implements AdapterInterface
     {
         $request->getHeaders();
         $authorization = $request->getHeader(name: 'Authorization');
-        if (! $authorization) {
+        if (!$authorization) {
             return false;
         }
 
         $authorization = trim(string: $authorization->getFieldValue());
         $type          = $this->getTypeFromAuthorizationHeader(header: $authorization);
 
-        if (! in_array(needle: $type, haystack: $this->authorizationTokenTypes)) {
+        if (!in_array(needle: $type, haystack: $this->authorizationTokenTypes)) {
             return false;
         }
 

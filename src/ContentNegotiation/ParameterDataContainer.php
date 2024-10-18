@@ -7,13 +7,13 @@ namespace Jield\ApiTools\ContentNegotiation;
 class ParameterDataContainer
 {
     /** @var array */
-    protected $routeParams = [];
+    protected array $routeParams = [];
 
     /** @var array */
-    protected $queryParams = [];
+    protected array $queryParams = [];
 
     /** @var array */
-    protected $bodyParams = [];
+    protected array $bodyParams = [];
 
     /**
      * @return array

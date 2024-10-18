@@ -19,7 +19,7 @@ use function sprintf;
 class HttpMethodOverrideListener extends AbstractListenerAggregate
 {
     /** @var array */
-    protected $httpMethodOverride = [];
+    protected array $httpMethodOverride = [];
 
     /**
      * @param array $httpMethodOverride

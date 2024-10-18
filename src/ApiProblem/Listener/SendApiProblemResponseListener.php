@@ -16,10 +16,10 @@ use Override;
 class SendApiProblemResponseListener extends HttpResponseSender
 {
     /** @var HttpResponse; */
-    protected $applicationResponse;
+    protected HttpResponse $applicationResponse;
 
     /** @var bool */
-    protected $displayExceptions = false;
+    protected bool $displayExceptions = false;
 
     public function setApplicationResponse(HttpResponse $response): static
     {

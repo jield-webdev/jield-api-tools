@@ -5,29 +5,23 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Hal;
 
 use Closure;
-use Jield\ApiTools\Hal\Exception;
 use Jield\ApiTools\Hal\Extractor\EntityExtractor;
 use Jield\ApiTools\Hal\Link\Link;
 use Jield\ApiTools\Hal\Link\LinkCollection;
 use Jield\ApiTools\Hal\Metadata\Metadata;
 use Laminas\Paginator\Paginator;
-use Traversable;
-
 use function array_merge;
 use function get_debug_type;
-use function is_array;
 use function is_callable;
-use function is_string;
 use function sprintf;
-use function str_contains;
 
 class ResourceFactory
 {
     /** @var EntityHydratorManager */
-    protected $entityHydratorManager;
+    protected EntityHydratorManager $entityHydratorManager;
 
     /** @var EntityExtractor */
-    protected $entityExtractor;
+    protected EntityExtractor $entityExtractor;
 
     public function __construct(EntityHydratorManager $entityHydratorManager, EntityExtractor $entityExtractor)
     {
@@ -38,11 +32,11 @@ class ResourceFactory
     /**
      * Create a entity and/or collection based on a metadata map
      *
-     * @param Traversable|array<array-key, mixed>|Paginator<int, mixed> $object
+     * @param iterable|Paginator<int, mixed> $object
      * @param bool $renderEmbeddedEntities
      * @throws Exception\RuntimeException
      */
-    public function createEntityFromMetadata(array|Traversable|Paginator $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
+    public function createEntityFromMetadata(Entity $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
     {
         if ($metadata->isCollection()) {
             return $this->createCollectionFromMetadata(object: $object, metadata: $metadata);
@@ -52,7 +46,7 @@ class ResourceFactory
         $data = $this->entityExtractor->extract(object: $object);
 
         $entityIdentifierName = $metadata->getEntityIdentifierName();
-        if ($entityIdentifierName && ! isset($data[$entityIdentifierName])) {
+        if ($entityIdentifierName && !isset($data[$entityIdentifierName])) {
             throw new Exception\RuntimeException(message: sprintf(
                 'Unable to determine entity identifier for object of type "%s"; no fields matching "%s"',
                 get_debug_type(value: $object),
@@ -63,7 +57,7 @@ class ResourceFactory
         /** @var string|null $id */
         $id = $entityIdentifierName !== '' && $entityIdentifierName !== '0' ? $data[$entityIdentifierName] : null;
 
-        if (! $renderEmbeddedEntities) {
+        if (!$renderEmbeddedEntities) {
             $object = [];
         }
 
@@ -73,7 +67,7 @@ class ResourceFactory
         $this->marshalMetadataLinks(metadata: $metadata, links: $links);
 
         $forceSelfLink = $metadata->getForceSelfLink();
-        if ($forceSelfLink && ! $links->has(relation: 'self')) {
+        if ($forceSelfLink && !$links->has(relation: 'self')) {
             $link = $this->marshalLinkFromMetadata(
                 metadata: $metadata,
                 object: $object,
@@ -87,9 +81,9 @@ class ResourceFactory
     }
 
     /**
-     * @param Traversable|array|Paginator $object
+     * @param iterable|Paginator $object
      */
-    public function createCollectionFromMetadata(Traversable|array|Paginator $object, Metadata $metadata): Collection
+    public function createCollectionFromMetadata(Paginator|iterable $object, Metadata $metadata): Collection
     {
         $halCollection = new Collection(collection: $object);
         $halCollection->setCollectionName(name: $metadata->getCollectionName());
@@ -103,7 +97,7 @@ class ResourceFactory
 
         $forceSelfLink = $metadata->getForceSelfLink();
         if (
-            $forceSelfLink && ! $links->has(relation: 'self')
+            $forceSelfLink && !$links->has(relation: 'self')
             && ($metadata->hasUrl() || $metadata->hasRoute())
         ) {
             $link = $this->marshalLinkFromMetadata(metadata: $metadata, object: $object);
@@ -123,11 +117,11 @@ class ResourceFactory
      * @throws Exception\RuntimeException
      */
     public function marshalLinkFromMetadata(
-        Metadata               $metadata,
-        array|object|Paginator $object,
-        string                 $id = null,
-        string                 $routeIdentifierName = null,
-        string                 $relation = 'self'
+        Metadata        $metadata,
+        array|Paginator $object,
+        string          $id = null,
+        string          $routeIdentifierName = null,
+        string          $relation = 'self'
     ): Link
     {
         $link = new Link(relation: $relation);
@@ -136,7 +130,7 @@ class ResourceFactory
             return $link;
         }
 
-        if (! $metadata->hasRoute()) {
+        if (!$metadata->hasRoute()) {
             throw new Exception\RuntimeException(message: sprintf(
                 'Unable to create a self link for resource of type "%s"; metadata does not contain a route or a href',
                 get_debug_type(value: $object)
@@ -156,12 +150,7 @@ class ResourceFactory
 
             // invoke callables with the object
             if (is_callable(value: $param)) {
-                // @todo remove when minimum supported PHP version is bumped to 8.1 or greater
-                $callback = is_array(value: $param) || (is_string(value: $param) && str_contains(haystack: $param, needle: '::'))
-                    ? Closure::fromCallable(callback: $param)
-                    : $param;
-                /** @var mixed $value */
-                $value        = $callback($object);
+                $value        = $param($object);
                 $params[$key] = $value;
             }
         }

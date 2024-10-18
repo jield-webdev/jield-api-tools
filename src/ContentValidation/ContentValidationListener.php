@@ -19,7 +19,6 @@ use Laminas\InputFilter\Exception\InvalidArgumentException as InputFilterInvalid
 use Laminas\InputFilter\InputFilterInterface;
 use Laminas\InputFilter\UnknownInputsCapableInterface;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use Laminas\ServiceManager\ServiceLocatorInterface;
 use Laminas\Stdlib\ArrayUtils;
@@ -41,26 +40,26 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
 {
     use ListenerAggregateTrait;
 
-    public const EVENT_BEFORE_VALIDATE = 'contentvalidation.beforevalidate';
+    public const string EVENT_BEFORE_VALIDATE = 'contentvalidation.beforevalidate';
 
     /** @var array */
-    protected $config = [];
+    protected array $config = [];
 
     /** @var null|EventManagerInterface */
-    protected $events;
+    protected ?EventManagerInterface $events;
 
     /** @var null|ServiceLocatorInterface */
-    protected $inputFilterManager;
+    protected ?ServiceLocatorInterface $inputFilterManager;
 
     /**
      * Cache of input filter service names/instances
      *
      * @var array
      */
-    protected $inputFilters = [];
+    protected array $inputFilters = [];
 
     /** @var array */
-    protected $methodsWithoutBodies
+    protected array $methodsWithoutBodies
         = [
             'GET',
             'HEAD',
@@ -74,7 +73,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *
      * @var array
      */
-    protected $restControllers;
+    protected array $restControllers;
 
     public function __construct(
         array                    $config = [],
@@ -101,14 +100,14 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *
      */
     #[Override]
-    public function setEventManager(EventManagerInterface $events): static
+    public function setEventManager(EventManagerInterface $eventManager): static
     {
-        $events->addIdentifiers(identifiers: [
+        $eventManager->addIdentifiers(identifiers: [
             static::class,
             self::class,
             self::EVENT_BEFORE_VALIDATE,
         ]);
-        $this->events = $events;
+        $this->events = $eventManager;
 
         return $this;
     }
@@ -124,7 +123,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     public function getEventManager(): ?EventManagerInterface
     {
         if (null === $this->events) {
-            $this->setEventManager(events: new EventManager());
+            $this->setEventManager(eventManager: new EventManager());
         }
 
         return $this->events;
@@ -166,7 +165,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
         }
 
         $routeMatches = $e->getRouteMatch();
-        if (!$routeMatches instanceof RouteMatch && !$routeMatches instanceof V2RouteMatch) {
+        if (!$routeMatches instanceof RouteMatch) {
             return null;
         }
 
@@ -186,7 +185,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
             );
         }
 
-        $data = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
+        $data         = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
             ? $dataContainer->getQueryParams()
             : $dataContainer->getBodyParams();
         $receivedData = in_array(needle: $method, haystack: $this->methodsWithoutBodies)
@@ -369,8 +368,8 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     protected function useRawData(string $controllerService): bool
     {
         return !isset($this->config[$controllerService]['use_raw_data'])
-        || (isset($this->config[$controllerService]['use_raw_data'])
-            && $this->config[$controllerService]['use_raw_data'] === true);
+            || (isset($this->config[$controllerService]['use_raw_data'])
+                && $this->config[$controllerService]['use_raw_data'] === true);
     }
 
     /**
@@ -380,7 +379,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
     protected function shouldRemoveEmptyData(string $controllerService): bool
     {
         return isset($this->config[$controllerService]['remove_empty_data'])
-        && $this->config[$controllerService]['remove_empty_data'] === true;
+            && $this->config[$controllerService]['remove_empty_data'] === true;
     }
 
     /**
@@ -525,9 +524,9 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
      *
      * @param string $serviceName
      * @param array $data
-     * @param RouteMatch|V2RouteMatch $matches
+     * @param RouteMatch $matches
      */
-    protected function isCollection(string $serviceName, array $data, V2RouteMatch|RouteMatch $matches, HttpRequest $request): bool
+    protected function isCollection(string $serviceName, array $data, RouteMatch $matches, HttpRequest $request): bool
     {
         if (!array_key_exists(key: $serviceName, array: $this->restControllers)) {
             return false;

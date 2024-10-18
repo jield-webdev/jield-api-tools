@@ -18,10 +18,10 @@ use function sprintf;
 class MetadataMap
 {
     /** @var null|HydratorPluginManager|HydratorPluginManagerInterface */
-    protected $hydrators;
+    protected null|HydratorPluginManagerInterface|HydratorPluginManager $hydrators;
 
     /** @var array<class-string, array<string,string>|Metadata> */
-    protected $map = [];
+    protected array $map = [];
 
     /**
      * Constructor

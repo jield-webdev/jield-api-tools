@@ -6,15 +6,16 @@ namespace Jield\ApiTools\ContentNegotiation\Validator;
 
 use Laminas\Stdlib\RequestInterface;
 use Laminas\Validator\File\UploadFile as BaseValidator;
-
 use Override;
 use function count;
 use function method_exists;
 
+
+//@phpstan-ignore-next-line
 class UploadFile extends BaseValidator
 {
     /** @var null|RequestInterface */
-    protected $request;
+    protected ?RequestInterface $request;
 
     public function setRequest(RequestInterface $request): void
     {
@@ -35,9 +36,9 @@ class UploadFile extends BaseValidator
     {
         if (
             null === $this->request
-            || ! method_exists(object_or_class: $this->request, method: 'isPut')
-            || (! $this->request->isPut()
-                && ! $this->request->isPatch())
+            || !method_exists(object_or_class: $this->request, method: 'isPut')
+            || (!$this->request->isPut()
+                && !$this->request->isPatch())
         ) {
             // In absence of a request object, an HTTP request, or a PATCH/PUT
             // operation, just use the parent logic.
@@ -49,7 +50,7 @@ class UploadFile extends BaseValidator
             return $result;
         }
 
-        if (! isset($this->abstractOptions['messages'][static::ATTACK])) {
+        if (!isset($this->abstractOptions['messages'][static::ATTACK])) {
             return false;
         }
 

@@ -12,7 +12,6 @@ use OAuth2\GrantType\RefreshToken;
 use OAuth2\GrantType\UserCredentials;
 use OAuth2\Server as OAuth2Server;
 use Psr\Container\ContainerInterface;
-
 use function array_merge;
 use function is_array;
 use function is_string;
@@ -21,20 +20,10 @@ class OAuth2ServerInstanceFactory
 {
     private ?OAuth2Server $server = null;
 
-    /**
-     * @param array $config Configuration to use when creating the instance.
-     * @param ContainerInterface $services ServiceLocator for retrieving storage adapters.
-     */
     public function __construct(private readonly array $config, private readonly ContainerInterface $services)
     {
     }
 
-    /**
-     * Create an OAuth2\Server instance.
-     *
-     * @return OAuth2Server
-     * @throws Exception\RuntimeException
-     */
     public function __invoke(): ?OAuth2Server
     {
         if ($this->server instanceof \OAuth2\Server) {
@@ -43,7 +32,7 @@ class OAuth2ServerInstanceFactory
 
         $config = $this->config;
 
-        if (! isset($config['storage']) || empty($config['storage'])) {
+        if (empty($config['storage'])) {
             throw new Exception\RuntimeException(
                 message: 'The storage configuration for OAuth2 is missing'
             );

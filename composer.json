@@ -30,10 +30,12 @@
     "laminas/laminas-authentication": "^2.17",
     "laminas/laminas-permissions-rbac": "^3.6.0",
     "solarium/solarium": "^6.3.5",
+    "jield-webdev/jield-authorize": "dev-main",
     "webmozart/assert": "^1.11",
     "lm-commons/lmc-cors": "^v1.3",
     "psr/link": "^2.0",
-    "zircote/swagger-php": "^4.11.0"
+    "zircote/swagger-php": "^4.11.0",
+    "ext-fileinfo": "*"
   },
   "require-dev": {
     "iteaoffice/testing": "^4.1-dev",

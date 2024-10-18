@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Paginator;
 
-use Jield\ApiTOols\Provider\SolariumProviderInterface;
+use Jield\ApiTools\Provider\SolariumProviderInterface;
 use Laminas\Paginator\Adapter\AdapterInterface;
 use Override;
 use Solarium\Client;

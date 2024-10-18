@@ -14,25 +14,25 @@ use function str_replace;
 class ContentNegotiationOptions extends AbstractOptions
 {
     /** @var array */
-    protected $controllers = [];
+    protected array $controllers = [];
 
     /** @var array */
-    protected $selectors = [];
+    protected array $selectors = [];
 
     /** @var array */
-    protected $acceptWhitelist = [];
+    protected array $acceptWhitelist = [];
 
     /** @var array */
-    protected $contentTypeWhitelist = [];
+    protected array $contentTypeWhitelist = [];
 
     /** @var boolean */
-    protected $xHttpMethodOverrideEnabled = false;
+    protected bool $xHttpMethodOverrideEnabled = false;
 
     /** @var array */
-    protected $httpOverrideMethods = [];
+    protected array $httpOverrideMethods = [];
 
     /** @var array */
-    private $keysToNormalize = [
+    private array $keysToNormalize = [
         'accept-whitelist',
         'content-type-whitelist',
         'x-http-method-override-enabled',

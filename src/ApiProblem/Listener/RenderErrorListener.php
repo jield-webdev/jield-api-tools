@@ -22,7 +22,7 @@ use function json_encode;
 class RenderErrorListener extends AbstractListenerAggregate
 {
     /** @var bool */
-    protected $displayExceptions = false;
+    protected bool $displayExceptions = false;
 
     /**
      * {@inheritDoc}

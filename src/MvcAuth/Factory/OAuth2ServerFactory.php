@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\MvcAuth\Factory;
 
-use Jield\ApiTools\OAuth2\Adapter\MongoAdapter;
 use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
-use MongoClient;
-use MongoDB;
 use OAuth2\GrantType\AuthorizationCode;
 use OAuth2\GrantType\ClientCredentials;
 use OAuth2\GrantType\JwtBearer;
@@ -17,7 +14,6 @@ use OAuth2\GrantType\UserCredentials;
 use OAuth2\OpenID\GrantType\AuthorizationCode as OpenIDAuthorizationCodeGrantType;
 use OAuth2\Server as OAuth2Server;
 use Psr\Container\ContainerInterface;
-
 use function array_key_exists;
 use function array_merge;
 use function is_array;
@@ -54,9 +50,9 @@ final class OAuth2ServerFactory
     /**
      * Create and return an OAuth2 storage adapter instance.
      *
-     * @return array|MongoAdapter|PdoAdapter A PdoAdapter, MongoAdapter, or array of storage instances.
+     * @return array|PdoAdapter A PdoAdapter, MongoAdapter, or array of storage instances.
      */
-    private static function createStorage(array $config, ContainerInterface $container): MongoAdapter|PdoAdapter|array
+    private static function createStorage(array $config, ContainerInterface $container): PdoAdapter|array
     {
         if (isset($config['adapter']) && is_string(value: $config['adapter'])) {
             return self::createStorageFromAdapter(adapter: $config['adapter'], config: $config, container: $container);
@@ -77,11 +73,10 @@ final class OAuth2ServerFactory
      *
      * @param string $adapter One of "pdo" or "mongo".
      */
-    private static function createStorageFromAdapter(string $adapter, array $config, ContainerInterface $container): MongoAdapter|PdoAdapter
+    private static function createStorageFromAdapter(string $adapter, array $config, ContainerInterface $container): PdoAdapter
     {
         return match (strtolower(string: $adapter)) {
-            'pdo' => self::createPdoAdapter(config: $config),
-            'mongo' => self::createMongoAdapter(config: $config, container: $container),
+            'pdo'   => self::createPdoAdapter(config: $config),
             default => throw new ServiceNotCreatedException(message: 'Invalid storage adapter type for OAuth2'),
         };
     }
@@ -113,27 +108,12 @@ final class OAuth2ServerFactory
 
     /**
      * Create and return an OAuth2 PDO adapter.
-     *
-     * @param array $config
-     * @return PdoAdapter
      */
     private static function createPdoAdapter(array $config): PdoAdapter
     {
         return new PdoAdapter(
             connection: self::createPdoConfig(config: $config),
             config: self::getOAuth2ServerConfig(config: $config)
-        );
-    }
-
-    /**
-     * Create and return an OAuth2 Mongo adapter.
-     *
-     */
-    private static function createMongoAdapter(array $config, ContainerInterface $container): MongoAdapter
-    {
-        return new MongoAdapter(
-            self::createMongoDatabase(config: $config, container: $container),
-            self::getOAuth2ServerConfig(config: $config)
         );
     }
 
@@ -145,7 +125,7 @@ final class OAuth2ServerFactory
      */
     private static function createPdoConfig(array $config): array
     {
-        if (! isset($config['dsn'])) {
+        if (!isset($config['dsn'])) {
             throw new ServiceNotCreatedException(
                 message: 'Missing DSN for OAuth2 PDO adapter creation'
             );
@@ -164,36 +144,9 @@ final class OAuth2ServerFactory
     }
 
     /**
-     * Create and return a Mongo database instance.
-     *
-     */
-    private static function createMongoDatabase(array $config, ContainerInterface $container): MongoDB
-    {
-        $dbLocatorName = $config['locator_name'] ?? 'MongoDB';
-
-        if ($container->has($dbLocatorName)) {
-            return $container->get($dbLocatorName);
-        }
-
-        if (! isset($config['database'])) {
-            throw new ServiceNotCreatedException(
-                message: 'Missing OAuth2 Mongo database configuration'
-            );
-        }
-
-        $options            = $config['options'] ?? [];
-        $options['connect'] = false;
-        $server             = $config['dsn'] ?? null;
-        $mongo              = new MongoClient(server: $server, options: $options);
-        return $mongo->{$config['database']};
-    }
-
-    /**
      * Retrieve oauth2-server-php storage settings configuration.
-     *
-     * @param array|ArrayAccess $config
      */
-    private static function getOAuth2ServerConfig(ArrayAccess|array $config): array
+    private static function getOAuth2ServerConfig(array $config): array
     {
         $oauth2ServerConfig = [];
         if (isset($config['storage_settings']) && is_array(value: $config['storage_settings'])) {

@@ -13,7 +13,7 @@ class ApiProblemModel extends ViewModel
     protected $captureTo = 'errors';
 
     /** @var ApiProblem */
-    protected $problem;
+    protected ApiProblem $problem;
 
     /** @var bool */
     protected $terminate = true;

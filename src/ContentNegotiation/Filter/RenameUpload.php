@@ -17,7 +17,7 @@ use function sprintf;
 class RenameUpload extends BaseFilter
 {
     /** @var RequestInterface */
-    protected $request;
+    protected RequestInterface $request;
 
     public function setRequest(RequestInterface $request): void
     {

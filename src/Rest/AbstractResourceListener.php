@@ -9,9 +9,9 @@ use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\EventManager\ListenerAggregateInterface;
 use Laminas\EventManager\ListenerAggregateTrait;
+use Laminas\Http\Response;
 use Laminas\InputFilter\InputFilterInterface;
 use Laminas\Stdlib\Parameters;
-
 use Override;
 use function sprintf;
 
@@ -20,41 +20,34 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
     use ListenerAggregateTrait;
 
     /** @var ResourceEvent */
-    protected $event;
+    protected ResourceEvent $event;
 
     /**
      * The entity_class config for the calling controller api-tools-rest config
      *
      * @var string
      */
-    protected $entityClass;
+    protected string $entityClass;
 
     /**
      * The collection_class config for the calling controller api-tools-rest config
      *
      * @var string
      */
-    protected $collectionClass;
+    protected string $collectionClass;
 
     /**
      * Current identity, if discovered in the resource event.
-     *
-     * @var IdentityInterface
      */
-    protected $identity;
+    protected ?IdentityInterface $identity = null;
 
     /**
      * Input filter, if discovered in the resource event.
-     *
-     * @var InputFilterInterface
      */
-    protected $inputFilter;
+    protected ?InputFilterInterface $inputFilter = null;
 
     /**
      * Set the entity_class for the controller config calling this resource
-     *
-     * @param string $className
-     * @return $this
      */
     public function setEntityClass(string $className): static
     {
@@ -62,32 +55,14 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
         return $this;
     }
 
-    /** @return string */
-    public function getEntityClass(): string
-    {
-        return $this->entityClass;
-    }
-
-    /**
-     * @param string $className
-     * @return $this
-     */
     public function setCollectionClass(string $className): static
     {
         $this->collectionClass = $className;
         return $this;
     }
 
-    /** @return string */
-    public function getCollectionClass(): string
-    {
-        return $this->collectionClass;
-    }
-
     /**
      * Retrieve the current resource event, if any
-     *
-     * @return ResourceEvent
      */
     public function getEvent(): ResourceEvent
     {
@@ -167,19 +142,19 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->create(data: $data);
             case 'delete':
-                $id = $event->getParam(name: 'id', default: null);
+                $id = $event->getParam(name: 'id');
                 return $this->delete(id: $id);
             case 'deleteList':
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->deleteList(data: $data);
             case 'fetch':
-                $id = $event->getParam(name: 'id', default: null);
+                $id = $event->getParam(name: 'id');
                 return $this->fetch(id: $id);
             case 'fetchAll':
                 $queryParams = $event->getQueryParams() ?: [];
                 return $this->fetchAll(params: $queryParams);
             case 'patch':
-                $id   = $event->getParam(name: 'id', default: null);
+                $id   = $event->getParam(name: 'id');
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->patch(id: $id, data: $data);
             case 'patchList':
@@ -189,7 +164,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->replaceList(data: $data);
             case 'update':
-                $id   = $event->getParam(name: 'id', default: null);
+                $id   = $event->getParam(name: 'id');
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->update(id: $id, data: $data);
             default:
@@ -205,81 +180,64 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
 
     /**
      * Create a resource
-     *
-     * @return ApiProblem|mixed
      */
-    public function create(mixed $data): mixed
+    public function create(Parameters $data): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The POST method has not been defined');
     }
 
     /**
      * Delete a resource
-     *
-     * @return ApiProblem|mixed
      */
-    public function delete(mixed $id): mixed
+    public function delete(int $id): ApiProblem|Response
     {
         return new ApiProblem(status: 405, detail: 'The DELETE method has not been defined for individual resources');
     }
 
     /**
      * Delete a collection, or members of a collection
-     *
-     * @return ApiProblem|mixed
      */
-    public function deleteList(mixed $data): mixed
+    public function deleteList(Parameters $data): ApiProblem|Response
     {
         return new ApiProblem(status: 405, detail: 'The DELETE method has not been defined for collections');
     }
 
     /**
      * Fetch a resource
-     *
-     * @return ApiProblem|mixed
      */
-    public function fetch(mixed $id): mixed
+    public function fetch(int $id): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The GET method has not been defined for individual resources');
     }
 
     /**
      * Fetch all or a subset of resources
-     *
-     * @param array|Parameters $params
-     * @return ApiProblem|mixed
      */
-    public function fetchAll(array|Parameters $params = []): mixed
+    public function fetchAll(Parameters $params): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The GET method has not been defined for collections');
     }
 
     /**
      * Patch (partial in-place update) a resource
-     *
-     * @return ApiProblem|mixed
      */
-    public function patch(mixed $id, mixed $data): mixed
+    public function patch(int $id, Parameters $data): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The PATCH method has not been defined for individual resources');
     }
 
     /**
      * Patch (partial in-place update) a collection or members of a collection
-     *
-     * @return ApiProblem|mixed
      */
-    public function patchList(mixed $data): mixed
+    public function patchList(Parameters $data): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The PATCH method has not been defined for collections');
     }
 
     /**
      * Replace a collection or members of a collection
-     *
-     * @return ApiProblem|mixed
      */
-    public function replaceList(mixed $data): mixed
+    public function replaceList(Parameters $data): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The PUT method has not been defined for collections');
     }
@@ -289,7 +247,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
      *
      * @return ApiProblem|mixed
      */
-    public function update(mixed $id, mixed $data): mixed
+    public function update(int $id, Parameters $data): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The PUT method has not been defined for individual resources');
     }

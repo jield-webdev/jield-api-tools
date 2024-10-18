@@ -31,7 +31,7 @@ use function strtolower;
 class ParameterMatcher
 {
     /** @var MvcEvent  */
-    protected $mvcEvent;
+    protected MvcEvent $mvcEvent;
 
     public function __construct(MvcEvent $mvcEvent)
     {

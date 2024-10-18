@@ -17,7 +17,7 @@ class AcceptListener extends ContentTypeListener
      *
      * @var string
      */
-    protected $headerName = 'accept';
+    protected string $headerName = 'accept';
 
     /**
      * Parse the header for matches against registered regexes

@@ -4,26 +4,17 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\MvcAuth\Authorization;
 
-use InvalidArgumentException;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Laminas\Http\Request;
-use Laminas\Mvc\Router\RouteMatch as V2RouteMatch;
 use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\RequestInterface;
-
 use function array_key_exists;
-use function gettype;
-use function is_object;
 use function sprintf;
 
 class DefaultResourceResolverListener
 {
-    /** @var array */
-    protected $restControllers;
+    protected array $restControllers;
 
-    /**
-     * @param array $restControllers
-     */
     public function __construct(array $restControllers = [])
     {
         $this->restControllers = $restControllers;
@@ -50,7 +41,7 @@ class DefaultResourceResolverListener
         $routeMatch = $mvcEvent->getRouteMatch();
 
         $resource = $this->buildResourceString(routeMatch: $routeMatch, request: $request);
-        if (! $resource) {
+        if (!$resource) {
             return;
         }
 
@@ -71,32 +62,22 @@ class DefaultResourceResolverListener
      *
      * If it cannot resolve a controller service name, boolean false is returned.
      *
-     * @param RouteMatch|V2RouteMatch $routeMatch
+     * @param RouteMatch $routeMatch
      * @param RequestInterface $request
      * @return false|string
      */
-    public function buildResourceString(V2RouteMatch|RouteMatch $routeMatch, RequestInterface $request): false|string
+    public function buildResourceString(RouteMatch $routeMatch, RequestInterface $request): false|string
     {
-        if (!$routeMatch instanceof RouteMatch && !$routeMatch instanceof V2RouteMatch) {
-            throw new InvalidArgumentException(message: sprintf(
-                '%s expected either a %s or %s; received %s',
-                __METHOD__,
-                RouteMatch::class,
-                V2RouteMatch::class,
-                get_debug_type(value: $routeMatch)
-            ));
-        }
-
         // Considerations:
         // - We want the controller service name
         $controller = $routeMatch->getParam(name: 'controller', default: false);
-        if (! $controller) {
+        if (!$controller) {
             return false;
         }
 
         // - Is this an RPC or a REST call?
         //   - Basically, if it's not in the api-tools-rest configuration, we assume RPC
-        if (! array_key_exists(key: $controller, array: $this->restControllers)) {
+        if (!array_key_exists(key: $controller, array: $this->restControllers)) {
             $action = $routeMatch->getParam(name: 'action', default: 'index');
             return sprintf('%s::%s', $controller, $action);
         }
@@ -120,18 +101,18 @@ class DefaultResourceResolverListener
      * as a query string parameter.
      *
      * @param string $identifierName
-     * @param RouteMatch|V2RouteMatch $routeMatch Validated by calling method.
+     * @param RouteMatch $routeMatch Validated by calling method.
      * @param RequestInterface $request
      * @return false|mixed
      */
-    protected function getIdentifier(string $identifierName, V2RouteMatch|RouteMatch $routeMatch, RequestInterface $request): mixed
+    protected function getIdentifier(string $identifierName, RouteMatch $routeMatch, RequestInterface $request): mixed
     {
         $id = $routeMatch->getParam(name: $identifierName, default: false);
         if ($id !== false) {
             return $id;
         }
 
-        if (! $request instanceof Request) {
+        if (!$request instanceof Request) {
             return false;
         }
 

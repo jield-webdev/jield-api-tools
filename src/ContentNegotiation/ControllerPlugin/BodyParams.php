@@ -12,10 +12,8 @@ class BodyParams extends AbstractPlugin
 {
     /**
      * Grabs a param from body match after content-negotation
-     *
-     * @return array|ArrayAccess
      */
-    public function __invoke(): ArrayAccess|array
+    public function __invoke(): array
     {
         $controller = $this->getController();
         if ($controller instanceof AbstractController) {

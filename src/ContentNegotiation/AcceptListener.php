@@ -10,7 +10,6 @@ use Laminas\Mvc\Controller\Plugin\AcceptableViewModelSelector;
 use Laminas\Mvc\InjectApplicationEventInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Model\ModelInterface as ViewModelInterface;
-
 use function is_array;
 use function is_string;
 use function method_exists;
@@ -18,13 +17,11 @@ use function method_exists;
 class AcceptListener
 {
     /** @var AcceptableViewModelSelector */
-    protected $selector;
+    protected AcceptableViewModelSelector $selector;
 
-    /** @var array */
-    protected $controllerConfig = [];
+    protected array $controllerConfig = [];
 
-    /** @var array */
-    protected $selectorsConfig = [];
+    protected array $selectorsConfig = [];
 
     public function __construct(AcceptableViewModelSelector $selector, array $config)
     {
@@ -48,13 +45,13 @@ class AcceptListener
     public function __invoke(MvcEvent $e): ?ApiProblemResponse
     {
         $request = $e->getRequest();
-        if (! method_exists(object_or_class: $request, method: 'getHeaders')) {
+        if (!method_exists(object_or_class: $request, method: 'getHeaders')) {
             // Should only trigger on HTTP requests
             return null;
         }
 
         $result = $e->getResult();
-        if (! is_array(value: $result) && ! $result instanceof ViewModel) {
+        if (!is_array(value: $result) && !$result instanceof ViewModel) {
             // We will only attempt to re-cast ContentNegotiation\ViewModel
             // results or arrays to what the AcceptableViewModelSelector gives
             // us. Anything else, we cannot handle.
@@ -62,7 +59,7 @@ class AcceptListener
         }
 
         $controller = $e->getTarget();
-        if (! $controller instanceof InjectApplicationEventInterface) {
+        if (!$controller instanceof InjectApplicationEventInterface) {
             // The AcceptableViewModelSelector needs a controller that is
             // event-aware in order to work; if it's not, we cannot do
             // anything more.
@@ -81,7 +78,7 @@ class AcceptListener
         }
 
         // If we have no criteria, derive it from configuration and/or any set fallbacks
-        if (! $criteria) {
+        if (!$criteria) {
             $fallbackConfig = $e->getParam(name: 'LaminasContentNegotiationFallback');
             $controllerName = $e->getRouteMatch()->getParam(name: 'controller');
 
@@ -90,13 +87,13 @@ class AcceptListener
 
         // Retrieve a view model based on the criteria
         $useDefault = false;
-        if (! $criteria || empty($criteria)) {
+        if (empty($criteria)) {
             $useDefault = true;
         }
 
         $viewModel = $selector(matchAgainst: $criteria, returnDefault: $useDefault);
 
-        if (! $viewModel instanceof ViewModelInterface) {
+        if (!$viewModel instanceof ViewModelInterface) {
             return new ApiProblemResponse(apiProblem: new ApiProblem(status: 406, detail: 'Unable to resolve Accept header to a representation'));
         }
 
@@ -125,7 +122,7 @@ class AcceptListener
         $controllers = $this->controllerConfig;
 
         // if there is no config for this controller, move on
-        if (! $controllerName || ! isset($controllers[$controllerName])) {
+        if (!$controllerName || !isset($controllers[$controllerName])) {
             return $this->getCriteria(criteria: $fallbackConfig);
         }
 
@@ -196,7 +193,7 @@ class AcceptListener
         // if it's a string, we should try to resolve that key to a reusable selector set
         if (is_string(value: $criteria) && isset($this->selectorsConfig[$criteria])) {
             $criteria = $this->selectorsConfig[$criteria];
-            if (! empty($criteria)) {
+            if (!empty($criteria)) {
                 return $criteria;
             }
         }

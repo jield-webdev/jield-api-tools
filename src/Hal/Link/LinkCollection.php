@@ -30,7 +30,7 @@ use function sprintf;
 class LinkCollection implements Countable, IteratorAggregate
 {
     /** @var array<mixed> */
-    protected $links = [];
+    protected array $links = [];
 
     /**
      * Return a count of link relations

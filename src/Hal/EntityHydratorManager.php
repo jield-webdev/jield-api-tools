@@ -14,24 +14,24 @@ use function strtolower;
 class EntityHydratorManager
 {
     /** @var HydratorPluginManager|HydratorPluginManagerInterface */
-    protected $hydrators;
+    protected HydratorPluginManagerInterface|HydratorPluginManager $hydrators;
 
     /** @var MetadataMap */
-    protected $metadataMap;
+    protected MetadataMap $metadataMap;
 
     /**
      * Map of class name/(hydrator instance|name) pairs
      *
      * @var array
      */
-    protected $hydratorMap = [];
+    protected array $hydratorMap = [];
 
     /**
      * Default hydrator to use if no hydrator found for a specific entity class.
      *
      * @var ExtractionInterface
      */
-    protected $defaultHydrator;
+    protected ExtractionInterface $defaultHydrator;
 
     /**
      * @param HydratorPluginManager|HydratorPluginManagerInterface $hydrators

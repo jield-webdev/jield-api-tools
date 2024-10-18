@@ -15,11 +15,10 @@ use Jield\ApiTools\Hal\Entity as HalEntity;
 use Jield\ApiTools\Hal\Exception\InvalidArgumentException as HalInvalidArgumentException;
 use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Laminas\Http\Header\Allow;
-use Laminas\Http\Request;
 use Laminas\Http\Response;
 use Laminas\Mvc\Controller\AbstractRestfulController;
 use Laminas\Mvc\MvcEvent;
-use Laminas\Router\Http\RouteMatch;
+use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\RequestInterface;
 use Override;
 use Throwable;
@@ -60,7 +59,7 @@ class RestController extends AbstractRestfulController
      *
      * @var array
      */
-    protected $collectionHttpMethods
+    protected array $collectionHttpMethods
         = [
             'GET',
             'POST',
@@ -71,32 +70,26 @@ class RestController extends AbstractRestfulController
      *
      * @var string
      */
-    protected $collectionName = 'items';
+    protected string $collectionName = 'items';
 
     /**
      * Minimum number of entities to return per page of a collection.  If
      * $pageSize parameter is out of range an ApiProblem will be returned
-     *
-     * @var int
      */
-    protected $minPageSize;
+    protected int $minPageSize = 1;
 
     /**
      * Number of entities to return per page of a collection.  If
      * $pageSize parameter is specified, then it will override this when
      * provided in a request.
-     *
-     * @var int
      */
-    protected $pageSize = 30;
+    protected int $pageSize = 30;
 
     /**
      * Maximum number of entities to return per page of a collection.  If
      * $pageSize parameter is out of range an ApiProblem will be returned
-     *
-     * @var int
      */
-    protected $maxPageSize;
+    protected int $maxPageSize = 9999;
 
     /**
      * A query parameter to use to specify the number of records to return in
@@ -104,13 +97,10 @@ class RestController extends AbstractRestfulController
      * default value.
      *
      * Leave null to disable this functionality and always use $pageSize.
-     *
-     * @var string
      */
-    protected $pageSizeParam;
+    protected string $pageSizeParam = 'pageSize';
 
-    /** @var ResourceInterface */
-    protected $resource;
+    protected ?ResourceInterface $resource = null;
 
     /**
      * HTTP methods we allow for individual entities; used by options()
@@ -119,7 +109,7 @@ class RestController extends AbstractRestfulController
      *
      * @var array
      */
-    protected $entityHttpMethods
+    protected array $entityHttpMethods
         = [
             'DELETE',
             'GET',
@@ -129,18 +119,14 @@ class RestController extends AbstractRestfulController
 
     /**
      * Route name that resolves to this resource; used to generate links.
-     *
-     * @var string
      */
-    protected $route;
+    protected ?string $route = null;
 
     /**
      * Constructor
      *
      * Allows you to set the event identifier, which can be useful to allow multiple
      * instances of this controller to react to different sets of shared events.
-     *
-     * @param string|null $eventIdentifier
      */
     public function __construct(string $eventIdentifier = null)
     {
@@ -151,8 +137,6 @@ class RestController extends AbstractRestfulController
 
     /**
      * Set the allowed HTTP methods for collections
-     *
-     * @param array $methods
      */
     public function setCollectionHttpMethods(array $methods): void
     {
@@ -166,7 +150,7 @@ class RestController extends AbstractRestfulController
      */
     public function setCollectionName(string $name): void
     {
-        $this->collectionName = (string)$name;
+        $this->collectionName = $name;
     }
 
     /**
@@ -176,13 +160,11 @@ class RestController extends AbstractRestfulController
      */
     public function setMinPageSize(int $count): void
     {
-        $this->minPageSize = (int)$count;
+        $this->minPageSize = $count;
     }
 
     /**
      * Return the minimum page size
-     *
-     * @return int
      */
     public function getMinPageSize(): int
     {
@@ -191,18 +173,14 @@ class RestController extends AbstractRestfulController
 
     /**
      * Set the default page size for paginated responses
-     *
-     * @param int $count
      */
     public function setPageSize(int $count): void
     {
-        $this->pageSize = (int)$count;
+        $this->pageSize = $count;
     }
 
     /**
      * Return the default page size
-     *
-     * @return int
      */
     public function getPageSize(): int
     {
@@ -211,18 +189,14 @@ class RestController extends AbstractRestfulController
 
     /**
      * Set the maximum page size for paginated responses
-     *
-     * @param int $count
      */
     public function setMaxPageSize(int $count): void
     {
-        $this->maxPageSize = (int)$count;
+        $this->maxPageSize = $count;
     }
 
     /**
      * Return the maximum page size
-     *
-     * @return int
      */
     public function getMaxPageSize(): int
     {
@@ -231,12 +205,10 @@ class RestController extends AbstractRestfulController
 
     /**
      * Set the page size parameter for paginated responses.
-     *
-     * @param string $param
      */
     public function setPageSizeParam(string $param): void
     {
-        $this->pageSizeParam = (string)$param;
+        $this->pageSizeParam = $param;
     }
 
     /**
@@ -362,13 +334,9 @@ class RestController extends AbstractRestfulController
 
     /**
      * Create a new entity
-     *
-     * @param array $data
-     * @return Response|ApiProblem|ApiProblemResponse|HalEntity
-     * @todo   Remove 'resource' from the create.post event parameters for 1.0.0
      */
     #[Override]
-    public function create($data): HalEntity|Response|HalCollection|ApiProblem|ApiProblemResponse
+    public function create($data): mixed
     {
         $events = $this->getEventManager();
         $events->trigger(eventName: 'create.pre', target: $this, argv: ['data' => $data]);
@@ -421,12 +389,9 @@ class RestController extends AbstractRestfulController
 
     /**
      * Delete an existing entity
-     *
-     * @param int|string $id
-     * @return Response|ApiProblem|ApiProblemResponse
      */
     #[Override]
-    public function delete($id): Response|ApiProblem|ApiProblemResponse
+    public function delete($id): mixed
     {
         $events = $this->getEventManager();
         $events->trigger(eventName: 'delete.pre', target: $this, argv: ['id' => $id]);
@@ -525,7 +490,7 @@ class RestController extends AbstractRestfulController
      * @return Response|HalCollection|ApiProblem
      */
     #[Override]
-    public function getList(): HalEntity|Response|ApiProblem|HalCollection
+    public function getList(): mixed
     {
         $events = $this->getEventManager();
         $events->trigger(eventName: 'getList.pre', target: $this, argv: []);
@@ -555,14 +520,14 @@ class RestController extends AbstractRestfulController
             ? $this->getRequest()->getQuery(name: $this->pageSizeParam, default: $this->pageSize)
             : $this->pageSize;
 
-        if ($this->minPageSize !== null && $pageSize < $this->minPageSize) {
+        if ($pageSize < $this->minPageSize) {
             return new ApiProblem(
                 status: 416,
                 detail: sprintf("Page size is out of range, minimum page size is %s", $this->minPageSize)
             );
         }
 
-        if ($this->maxPageSize !== null && $pageSize > $this->maxPageSize) {
+        if ($pageSize > $this->maxPageSize) {
             return new ApiProblem(
                 status: 416,
                 detail: sprintf("Page size is out of range, maximum page size is %s", $this->maxPageSize)
@@ -704,9 +669,6 @@ class RestController extends AbstractRestfulController
     /**
      * Respond to the PATCH method (partial update of existing entity) on
      * a collection, i.e. create and/or update multiple entities in a collection.
-     *
-     * @param array $data
-     * @return array|ApiProblem
      */
     #[Override]
     public function patchList($data): array|HalCollection|ApiProblem
@@ -775,7 +737,7 @@ class RestController extends AbstractRestfulController
      * returning it if found. Otherwise, returns a boolean false.
      *
      * @param RouteMatch $routeMatch
-     * @param Request $request
+     * @param RequestInterface $request
      * @return false|mixed
      */
     #[Override]
@@ -892,29 +854,6 @@ class RestController extends AbstractRestfulController
 
         $params['request'] = $request;
         $this->resource->setEventParams(params: $params);
-    }
-
-    /**
-     * Override parent - pull from content negotiation helpers
-     *
-     * @return null|array|Traversable
-     */
-    #[Override]
-    public function processPostData(RequestInterface $request): HalEntity|Response|Traversable|array|HalCollection|ApiProblem|ApiProblemResponse|null
-    {
-        return $this->create(data: $this->bodyParams());
-    }
-
-    /**
-     * Override parent - pull from content negotiation helpers
-     *
-     * @param Request $request
-     * @return null|array|Traversable
-     */
-    #[Override]
-    protected function processBodyContent($request): Traversable|array|null
-    {
-        return $this->bodyParams();
     }
 
     protected function isPreparedResponse(mixed $object): bool

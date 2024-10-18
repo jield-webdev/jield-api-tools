@@ -27,13 +27,13 @@ use Override;
 class HalJsonRenderer extends JsonRenderer
 {
     /** @var ApiProblemRenderer */
-    protected $apiProblemRenderer;
+    protected ApiProblemRenderer $apiProblemRenderer;
 
     /** @var HelperPluginManager|null */
-    protected $helpers;
+    protected ?HelperPluginManager $helpers;
 
     /** @var ViewEvent|null */
-    protected $viewEvent;
+    protected ?ViewEvent $viewEvent;
 
     public function __construct(ApiProblemRenderer $apiProblemRenderer)
     {

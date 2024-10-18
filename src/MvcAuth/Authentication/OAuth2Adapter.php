@@ -11,7 +11,6 @@ use Laminas\Http\Response;
 use OAuth2\Request as OAuth2Request;
 use OAuth2\Response as OAuth2Response;
 use OAuth2\Server as OAuth2Server;
-
 use Override;
 use function in_array;
 use function is_array;
@@ -25,25 +24,26 @@ class OAuth2Adapter extends AbstractAdapter
      *
      * @var array
      */
-    protected $authorizationTokenTypes = ['bearer'];
+    protected array $authorizationTokenTypes = ['bearer'];
 
     /**
      * Authentication types this adapter provides.
      *
      * @var array
      */
-    private $providesTypes = ['oauth2'];
+    private array $providesTypes = ['oauth2'];
 
     /**
      * Request methods that will not have request bodies
      *
      * @var array
      */
-    private $requestsWithoutBodies = [
-        'GET',
-        'HEAD',
-        'OPTIONS',
-    ];
+    private array $requestsWithoutBodies
+        = [
+            'GET',
+            'HEAD',
+            'OPTIONS',
+        ];
 
     /** @psalm-param null|string|string[] $types */
     public function __construct(private readonly OAuth2Server $oauth2Server, $types = null)
@@ -93,7 +93,7 @@ class OAuth2Adapter extends AbstractAdapter
         }
 
         if (
-            ! in_array(needle: $request->getMethod(), haystack: $this->requestsWithoutBodies)
+            !in_array(needle: $request->getMethod(), haystack: $this->requestsWithoutBodies)
             && $request->getHeaders()->has(name: 'Content-Type')
             && $request->getHeaders()->get(name: 'Content-Type')->match('application/x-www-form-urlencoded')
             && $request->getPost(name: 'access_token')
@@ -122,10 +122,9 @@ class OAuth2Adapter extends AbstractAdapter
 
     /**
      * Attempt to authenticate the current request.
-     *
      */
     #[Override]
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Response|Identity\GuestIdentity|Identity\AuthenticatedIdentity
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface
     {
         $oauth2request = new OAuth2Request(
             query: $request->getQuery()->toArray(),
@@ -141,7 +140,7 @@ class OAuth2Adapter extends AbstractAdapter
         $token = $this->oauth2Server->getAccessTokenData(request: $oauth2request);
 
         // Failure to validate
-        if (! $token) {
+        if (!$token) {
             return $this->processInvalidToken(response: $response);
         }
 

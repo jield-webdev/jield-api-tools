@@ -23,7 +23,7 @@ class Request extends BaseRequest
      *
      * @var string
      */
-    protected $contentStream = 'php://input';
+    protected string $contentStream = 'php://input';
 
     /**
      * Returns a stream URI for the content, allowing the user to use standard

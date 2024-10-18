@@ -19,14 +19,14 @@ use const JSON_UNESCAPED_SLASHES;
 class ApiProblemResponse extends Response
 {
     /** @var ApiProblem */
-    protected $apiProblem;
+    protected ApiProblem $apiProblem;
 
     /**
      * Flags to use with json_encode.
      *
      * @var int
      */
-    protected $jsonFlags;
+    protected int $jsonFlags;
 
     public function __construct(ApiProblem $apiProblem)
     {

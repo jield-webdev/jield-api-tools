@@ -26,52 +26,47 @@ class Metadata
      *
      * @var string
      */
-    protected $class;
+    protected string $class;
 
     /**
      * Name of the field representing the collection
      *
      * @var string
      */
-    protected $collectionName = 'items';
+    protected string $collectionName = 'items';
 
     /**
      * Hydrator to use when extracting object of this class
-     *
-     * @var ExtractionInterface
      */
-    protected $hydrator;
+    protected ExtractionInterface $hydrator;
 
-    /** @var HydratorPluginManager|HydratorPluginManagerInterface */
-    protected $hydrators;
+    protected HydratorPluginManagerInterface|HydratorPluginManager $hydrators;
 
     /**
      * Name of the field representing the identifier
-     *
-     * @var string
      */
-    protected $entityIdentifierName;
+    protected string $entityIdentifierName;
 
     /**
      * Route for entities composed in a collection
      *
      * @var string
      */
-    protected $entityRoute;
+    protected string $entityRoute;
 
     /**
      * Name of the route parameter identifier for the entity
      *
      * @var string
      */
-    protected $routeIdentifierName;
+    protected string $routeIdentifierName;
 
     /**
      * Does the class represent a collection?
      *
      * @var bool
      */
-    protected $isCollection = false;
+    protected bool $isCollection = false;
 
     /**
      * Collection of additional relational links to inject in entity
@@ -84,7 +79,7 @@ class Metadata
      *     url?: string
      * }>
      */
-    protected $links = [];
+    protected array $links = [];
 
     /**
      * Whether to force the existance of a "self" link. The HAl specification encourages it but it is not strictly
@@ -92,42 +87,42 @@ class Metadata
      *
      * @var bool
      */
-    protected $forceSelfLink = true;
+    protected bool $forceSelfLink = true;
 
     /**
      * Route to use to generate a self link for this entity
      *
      * @var string
      */
-    protected $route;
+    protected string $route;
 
     /**
      * Additional options to use when generating a self link for this entity
      *
      * @var array
      */
-    protected $routeOptions = [];
+    protected array $routeOptions = [];
 
     /**
      * Additional route parameters to use when generating a self link for this entity
      *
      * @var array<string,mixed>
      */
-    protected $routeParams = [];
+    protected array $routeParams = [];
 
     /**
      * URL to use for this entity (instead of a route)
      *
      * @var string
      */
-    protected $url;
+    protected string $url;
 
     /**
      * Maximum number of nesting levels
      *
      * @var int
      */
-    protected $maxDepth;
+    protected int $maxDepth;
 
     /**
      * Constructor
@@ -303,24 +298,6 @@ class Metadata
         }
 
         return $this->entityRoute;
-    }
-
-    /**
-     * Retrieve the resource route
-     *
-     * Deprecated; please use getEntityRoute()
-     *
-     * @return null|string
-     * @deprecated
-     *
-     */
-    public function getResourceRoute(): ?string
-    {
-        trigger_error(message: sprintf(
-            __METHOD__,
-            self::class
-        ), error_level: E_USER_DEPRECATED);
-        return $this->getEntityRoute();
     }
 
     /**
