@@ -85,9 +85,6 @@ class RestControllerFactory implements AbstractFactoryInterface
         return true;
     }
 
-    /**
-     * Create named controller instance
-     */
     #[Override]
     public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): RestController
     {
@@ -272,11 +269,11 @@ class RestControllerFactory implements AbstractFactoryInterface
                     break;
 
                 case 'page_size':
-                    $controller->setPageSize(count: $value);
+                    $controller->setPageSize(count: (int)$value);
                     break;
 
                 case 'max_page_size':
-                    $controller->setMaxPageSize(count: $value);
+                    $controller->setMaxPageSize(count: (int)$value);
                     break;
 
                 case 'page_size_param':

@@ -141,13 +141,13 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
         switch ($event->getName()) {
             case 'create':
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->create(data: $data);
+                return $this->create(data: new Parameters((array)$data));
             case 'delete':
                 $id = $event->getParam(name: 'id');
                 return $this->delete(id: $id);
             case 'deleteList':
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->deleteList(data: $data);
+                return $this->deleteList(data: new Parameters((array)$data));
             case 'fetch':
                 $id = $event->getParam(name: 'id');
                 return $this->fetch(id: $id);
@@ -157,17 +157,17 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
             case 'patch':
                 $id   = $event->getParam(name: 'id');
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->patch(id: $id, data: $data);
+                return $this->patch(id: $id, data: new Parameters((array)$data));
             case 'patchList':
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->patchList(data: $data);
+                return $this->patchList(data: new Parameters((array)$data));
             case 'replaceList':
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->replaceList(data: $data);
+                return $this->replaceList(data: new Parameters((array)$data));
             case 'update':
                 $id   = $event->getParam(name: 'id');
                 $data = $event->getParam(name: 'data', default: []);
-                return $this->update(id: $id, data: $data);
+                return $this->update(id: $id, data: new Parameters((array)$data));
             default:
                 throw new Exception\RuntimeException(
                     message: sprintf(

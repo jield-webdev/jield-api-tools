@@ -534,7 +534,7 @@ class RestController extends AbstractRestfulController
             );
         }
 
-        $this->setPageSize(count: $pageSize);
+        $this->setPageSize(count: (int)$pageSize);
 
         $halCollection = $this->createHalCollection(collection: $collection);
 

@@ -700,6 +700,16 @@ class Hal extends AbstractHelper implements
         return $this->linkCollectionExtractor->extract(collection: $collection);
     }
 
+    public function fromLink(\Jield\ApiTools\Hal\Link\Link $linkDefinition): array
+    {
+        $this->getEventManager()->trigger(__FUNCTION__ . '.pre', $this, ['linkDefinition' => $linkDefinition]);
+
+        $linkExtractor = $this->linkCollectionExtractor->getLinkExtractor();
+
+        return $linkExtractor->extract($linkDefinition);
+    }
+
+
     /**
      * Create HAL links "object" from an entity or collection
      */
