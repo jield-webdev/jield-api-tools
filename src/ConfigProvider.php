@@ -244,7 +244,7 @@ final class ConfigProvider
     {
         return [
             'factories'          => [
-                'Jield\ApiTools\OAuth2\Controller\Auth' => AuthControllerFactory::class,
+                \Jield\ApiTools\OAuth2\Controller\AuthController::class => AuthControllerFactory::class,
             ],
             'abstract_factories' => [
                 RestControllerFactory::class,

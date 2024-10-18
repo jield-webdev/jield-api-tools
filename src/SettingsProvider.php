@@ -6,6 +6,7 @@ use Jield\ApiTools\ContentNegotiation\JsonModel;
 use Jield\ApiTools\Hal\View\HalJsonModel;
 use Jield\ApiTools\MvcAuth\Authentication\OAuth2Adapter;
 use Jield\ApiTools\OAuth2\Adapter\PdoAdapter;
+use Laminas\Router\Http\Literal;
 use Laminas\View\Model\ViewModel;
 
 final class SettingsProvider
@@ -16,11 +17,53 @@ final class SettingsProvider
             'router'                        => [
                 'routes' => [
                     'oauth' => [
-                        'options' => [
-                            'spec'  => '%oauth%',
-                            'regex' => '(?P<oauth>(/oauth))',
+                        'type'          => Literal::class,
+                        'options'       => [
+                            'route'    => '/oauth',
+                            'defaults' => [
+                                'controller' => \Jield\ApiTools\OAuth2\Controller\AuthController::class,
+                                'action'     => 'token'
+                            ],
                         ],
-                        'type'    => 'regex',
+                        'may_terminate' => true,
+                        'child_routes'  => [
+                            'revoke'    => [
+                                'type'    => Literal::class,
+                                'options' => [
+                                    'route'    => '/revoke',
+                                    'defaults' => [
+                                        'action' => 'revoke',
+                                    ],
+                                ],
+                            ],
+                            'authorize' => [
+                                'type'    => Literal::class,
+                                'options' => [
+                                    'route'    => '/authorize',
+                                    'defaults' => [
+                                        'action' => 'authorize',
+                                    ],
+                                ],
+                            ],
+                            'resource'  => [
+                                'type'    => Literal::class,
+                                'options' => [
+                                    'route'    => '/resource',
+                                    'defaults' => [
+                                        'action' => 'resource',
+                                    ],
+                                ],
+                            ],
+                            'code'      => [
+                                'type'    => Literal::class,
+                                'options' => [
+                                    'route'    => '/receivecode',
+                                    'defaults' => [
+                                        'action' => 'receiveCode',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ],
@@ -95,7 +138,7 @@ final class SettingsProvider
                 // - an array of specific selectors, in the same format as for the
                 //   selectors key
                 'controllers'                    => [
-                    'Jield\ApiTools\OAuth2\Controller\Auth' => [
+                    \Jield\ApiTools\OAuth2\Controller\AuthController::class => [
                         JsonModel::class => [
                             'application/json',
                             'application/*+json',
@@ -149,8 +192,8 @@ final class SettingsProvider
                     // 'GET' => ['HEAD', 'POST', 'PUT', 'DELETE', 'PATCH']
                 ],
             ],
-            'api-tools-versioning' => [
-                'content-type' => [
+            'api-tools-versioning'          => [
+                'content-type'    => [
                     // @codingStandardsIgnoreStart
                     // Array of regular expressions to apply against the content-type
                     // header. All capturing expressions should be named:

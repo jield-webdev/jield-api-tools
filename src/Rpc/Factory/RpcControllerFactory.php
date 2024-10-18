@@ -14,7 +14,6 @@ use function explode;
 use function is_callable;
 use function is_string;
 use function sprintf;
-use function strpos;
 
 class RpcControllerFactory implements AbstractFactoryInterface
 {
@@ -23,10 +22,8 @@ class RpcControllerFactory implements AbstractFactoryInterface
      * loop.
      *
      * @see https://github.com/zfcampus/zf-rpc/issues/18
-     *
-     * @var null|string
      */
-    private ?string $lastRequestedControllerService;
+    private ?string $lastRequestedControllerService = null;
 
     /**
      * Determine if we can create a service with name
@@ -94,7 +91,7 @@ class RpcControllerFactory implements AbstractFactoryInterface
     private function marshalCallable(mixed $string, ContainerInterface $container): callable|array
     {
         $callable = false;
-        [$class, $method] = explode(separator: '::', string: (string) $string, limit: 2);
+        [$class, $method] = explode(separator: '::', string: (string)$string, limit: 2);
 
         if (
             $container->has('ControllerManager')
@@ -131,10 +128,6 @@ class RpcControllerFactory implements AbstractFactoryInterface
 
     /**
      * Attempt to marshal a callable from a container.
-     *
-     * @param string $class
-     * @param string $method
-     * @return false|callable
      */
     private function marshalCallableFromContainer(string $class, string $method, ContainerInterface $container): callable|false|array
     {
