@@ -145,7 +145,7 @@ class OAuth2Adapter extends AbstractAdapter
         }
 
         $identity = new Identity\AuthenticatedIdentity(identity: $token);
-        $identity->setName(name: $token['user_id']);
+        $identity->setName(name: 'user_' . $token['user_id']);
 
         return $identity;
     }

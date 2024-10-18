@@ -25,7 +25,7 @@ class AuthenticatedIdentity extends Role implements IdentityInterface
         return $this->identity;
     }
 
-    public function setName(string|int $name): void
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
