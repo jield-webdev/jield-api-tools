@@ -206,7 +206,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
     /**
      * Fetch a resource
      */
-    public function fetch(int|string|null $id): array|ApiProblem
+    public function fetch(string $id): array|ApiProblem
     {
         return new ApiProblem(status: 405, detail: 'The GET method has not been defined for individual resources');
     }

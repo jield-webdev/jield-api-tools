@@ -663,6 +663,35 @@ class Hal extends AbstractHelper implements
         return $payload->getArrayCopy();
     }
 
+    public function createEntity(mixed $entity, string $route, string $routeIdentifierName): Entity
+    {
+        $metadataMap = $this->getMetadataMap();
+
+        if (is_object($entity) && $metadataMap->has($entity)) {
+            /** @psalm-suppress PossiblyFalseArgument,ArgumentTypeCoercion */
+            $halEntity = $this->getResourceFactory()->createEntityFromMetadata(
+                $entity,
+                $metadataMap->get($entity)
+            );
+        } elseif (!$entity instanceof \Jield\ApiTools\Hal\Entity) {
+            /** @var mixed $id */
+            $id        = $this->getIdFromEntity($entity) ?: null;
+            $halEntity = new Entity($entity, $id);
+        } else {
+            $halEntity = $entity;
+        }
+
+        $metadata = !is_array($entity) && $metadataMap->has($entity)
+            ? $metadataMap->get($entity)
+            : false;
+
+        if (!$metadata || ($metadata->getForceSelfLink())) {
+            $this->injectSelfLink($halEntity, $route, $routeIdentifierName);
+        }
+
+        return $halEntity;
+    }
+
     /**
      * Generate HAL links from a LinkCollection
      */
