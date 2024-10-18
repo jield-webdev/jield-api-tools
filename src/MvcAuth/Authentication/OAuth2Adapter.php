@@ -118,7 +118,7 @@ class OAuth2Adapter extends AbstractAdapter
      * Attempt to authenticate the current request.
      */
     #[Override]
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface|Laminas\Http\PhpEnvironment\Response
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface|\Laminas\Http\PhpEnvironment\Response
     {
         $oauth2request = new OAuth2Request(
             query: $request->getQuery()->toArray(),
