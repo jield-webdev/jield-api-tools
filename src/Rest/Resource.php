@@ -435,7 +435,7 @@ class Resource implements ResourceInterface
      * layer to select the current page based on the query string or route.
      */
     #[Override]
-    public function fetchAll(...$params): \Laminas\Paginator\Paginator
+    public function fetchAll(...$params): \Laminas\Paginator\Paginator|array
     {
         $results = $this->triggerEvent(name: __FUNCTION__, args: $params);
         $last    = $results->last();
