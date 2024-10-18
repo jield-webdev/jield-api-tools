@@ -21,22 +21,16 @@ class OAuth2Adapter extends AbstractAdapter
 {
     /**
      * Authorization header token types this adapter can fulfill.
-     *
-     * @var array
      */
     protected array $authorizationTokenTypes = ['bearer'];
 
     /**
      * Authentication types this adapter provides.
-     *
-     * @var array
      */
     private array $providesTypes = ['oauth2'];
 
     /**
      * Request methods that will not have request bodies
-     *
-     * @var array
      */
     private array $requestsWithoutBodies
         = [
@@ -124,7 +118,7 @@ class OAuth2Adapter extends AbstractAdapter
      * Attempt to authenticate the current request.
      */
     #[Override]
-    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface
+    public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): Identity\IdentityInterface|Laminas\Http\PhpEnvironment\Response
     {
         $oauth2request = new OAuth2Request(
             query: $request->getQuery()->toArray(),

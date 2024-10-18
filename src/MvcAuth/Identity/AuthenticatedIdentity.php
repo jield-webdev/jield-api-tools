@@ -20,7 +20,7 @@ class AuthenticatedIdentity extends Role implements IdentityInterface
     }
 
     #[Override]
-    public function getAuthenticationIdentity(): mixed
+    public function getAuthenticationIdentity(): array
     {
         return $this->identity;
     }

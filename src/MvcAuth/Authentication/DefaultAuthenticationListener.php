@@ -188,7 +188,7 @@ class DefaultAuthenticationListener
     /**
      * Invoke the adapter matching the given $type in order to peform authentication
      */
-    private function authenticate(string $type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent): false|Identity\IdentityInterface
+    private function authenticate(string $type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent): false|\Laminas\Http\PhpEnvironment\Response|Identity\IdentityInterface
     {
         foreach ($this->adapters as $adapter) {
             if (!$adapter->matches(type: $type)) {
