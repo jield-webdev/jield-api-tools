@@ -128,7 +128,7 @@ class RestController extends AbstractRestfulController
      * Allows you to set the event identifier, which can be useful to allow multiple
      * instances of this controller to react to different sets of shared events.
      */
-    public function __construct(string $eventIdentifier = null)
+    public function __construct(?string $eventIdentifier = null)
     {
         if (null !== $eventIdentifier) {
             $this->eventIdentifier = $eventIdentifier;

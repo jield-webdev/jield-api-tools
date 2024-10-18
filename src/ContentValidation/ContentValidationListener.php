@@ -396,7 +396,7 @@ class ContentValidationListener implements ListenerAggregateInterface, EventMana
          * @param mixed $value
          * @param int|string|null $key
          */
-        $removeNull = function (mixed $value, int|string $key = null) use ($compareTo): bool {
+        $removeNull = function (mixed $value, null|int|string $key = null) use ($compareTo): bool {
             // If comparison array is empty, do a straight comparison
             if ($compareTo === []) {
                 return null !== $value;

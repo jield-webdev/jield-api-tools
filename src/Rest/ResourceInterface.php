@@ -58,7 +58,7 @@ interface ResourceInterface extends EventManagerAwareInterface
     /**
      * Delete an existing collection of records
      */
-    public function deleteList(array $data = null): mixed;
+    public function deleteList(array $data): mixed;
 
     /**
      * Fetch an existing record

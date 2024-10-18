@@ -34,7 +34,7 @@ class HttpAdapter extends AbstractAdapter
     public function __construct(
         private readonly HttpAuth                       $httpAuth,
         private readonly AuthenticationServiceInterface $authenticationService,
-        string                                          $providesBase = null
+        ?string                                         $providesBase = null
     )
     {
         if (is_string(value: $providesBase) && ($providesBase !== '' && $providesBase !== '0')) {
@@ -71,9 +71,6 @@ class HttpAdapter extends AbstractAdapter
 
     /**
      * Match the requested authentication type against what we provide.
-     *
-     * @param string $type
-     * @return bool
      */
     #[Override]
     public function matches(string $type): bool
@@ -85,7 +82,6 @@ class HttpAdapter extends AbstractAdapter
      * Perform pre-flight authentication operations.
      *
      * If invoked, issues a client challenge.
-     *
      */
     #[Override]
     public function preAuth(Request $request, Response $response): void

@@ -11,13 +11,13 @@ use Laminas\Mvc\MvcEvent;
 
 class MvcAuthEvent extends Event
 {
-    public const EVENT_AUTHENTICATION      = 'authentication';
+    public const string EVENT_AUTHENTICATION      = 'authentication';
 
-    public const EVENT_AUTHENTICATION_POST = 'authentication.post';
+    public const string EVENT_AUTHENTICATION_POST = 'authentication.post';
 
-    public const EVENT_AUTHORIZATION       = 'authorization';
+    public const string EVENT_AUTHORIZATION       = 'authorization';
 
-    public const EVENT_AUTHORIZATION_POST  = 'authorization.post';
+    public const string EVENT_AUTHORIZATION_POST  = 'authorization.post';
 
     /** @var MvcEvent */
     protected MvcEvent $mvcEvent;

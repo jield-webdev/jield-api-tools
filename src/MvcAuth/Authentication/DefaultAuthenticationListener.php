@@ -8,15 +8,14 @@ use Jield\ApiTools\MvcAuth\Identity;
 use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Laminas\Http\Request as HttpRequest;
+use Laminas\Http\Response;
 use Laminas\Http\Response as HttpResponse;
 use Laminas\Router\RouteMatch;
-use OAuth2\Server as OAuth2Server;
 use function array_merge;
 use function array_unique;
 use function count;
 use function rtrim;
 use function strlen;
-use function strpos;
 
 class DefaultAuthenticationListener
 {
@@ -29,15 +28,11 @@ class DefaultAuthenticationListener
 
     /**
      * Supported authentication types
-     *
-     * @var array
      */
     private array $authenticationTypes = [];
 
     /**
      * Map of API/version to authentication type pairs
-     *
-     * @var array
      */
     private array $authMap = [];
 
@@ -60,9 +55,6 @@ class DefaultAuthenticationListener
      * This method allows specifiying additional authentication types, outside
      * of adapters, that your application supports. The values provided are
      * merged with any types already discovered.
-     *
-     * @param array $types
-     * @return void
      */
     public function addAuthenticationTypes(array $types): void
     {
@@ -72,30 +64,6 @@ class DefaultAuthenticationListener
                 $types
             )
         );
-    }
-
-    /**
-     * Retrieve the supported authentication types
-     *
-     * @return array
-     */
-    public function getAuthenticationTypes(): array
-    {
-        return $this->authenticationTypes;
-    }
-
-    /**
-     * Set the OAuth2 server
-     *
-     * This method is deprecated; create and attach an OAuth2Adapter instead.
-     *
-     * @deprecated
-     *
-     */
-    public function setOauth2Server(OAuth2Server $oauth2Server): static
-    {
-        $this->attach(adapter: new OAuth2Adapter(oauth2Server: $oauth2Server));
-        return $this;
     }
 
     /**
@@ -109,10 +77,11 @@ class DefaultAuthenticationListener
         $this->authMap = $map;
     }
 
-    public function __invoke(MvcAuthEvent $mvcAuthEvent): HttpResponse|Identity\GuestIdentity|false|Identity\IdentityInterface|null
+    public function __invoke(MvcAuthEvent $mvcAuthEvent): mixed
     {
         $mvcEvent = $mvcAuthEvent->getMvcEvent();
         $request  = $mvcEvent->getRequest();
+        /** @var Response $response */
         $response = $mvcEvent->getResponse();
 
         if (
@@ -161,11 +130,8 @@ class DefaultAuthenticationListener
     /**
      * Match the controller to an authentication type, based on the API to
      * which the controller belongs.
-     *
-     * @param RouteMatch|null $routeMatch
-     * @return string|false
      */
-    private function getTypeFromMap(RouteMatch $routeMatch = null): false|string
+    private function getTypeFromMap(?RouteMatch $routeMatch = null): false|string
     {
         if (!$routeMatch instanceof \Laminas\Router\RouteMatch) {
             return false;
@@ -178,11 +144,11 @@ class DefaultAuthenticationListener
 
         foreach ($this->authMap as $api => $type) {
             $api = rtrim(string: $api, characters: '\\') . '\\';
-            if (strlen(string: $api) > strlen(string: (string) $controller)) {
+            if (strlen(string: $api) > strlen(string: (string)$controller)) {
                 continue;
             }
 
-            if (str_starts_with(haystack: (string) $controller, needle: $api)) {
+            if (str_starts_with(haystack: (string)$controller, needle: $api)) {
                 return $type;
             }
         }
@@ -221,8 +187,6 @@ class DefaultAuthenticationListener
 
     /**
      * Invoke the adapter matching the given $type in order to peform authentication
-     *
-     * @param string $type
      */
     private function authenticate(string $type, HttpRequest $request, HttpResponse $response, MvcAuthEvent $mvcAuthEvent): false|Identity\IdentityInterface
     {

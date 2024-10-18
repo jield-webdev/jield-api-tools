@@ -17,7 +17,7 @@ class BodyParam extends AbstractPlugin
      * @param mixed|null $default
      * @return mixed
      */
-    public function __invoke(string $param = null, mixed $default = null): mixed
+    public function __invoke(?string $param = null, mixed $default = null): mixed
     {
         $controller = $this->getController();
         if ($controller instanceof AbstractController) {

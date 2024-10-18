@@ -25,14 +25,12 @@ class ApiProblem
     /**
      * Content type for api problem response
      */
-    public const CONTENT_TYPE = 'application/problem+json';
+    public const string CONTENT_TYPE = 'application/problem+json';
 
     /**
      * Additional details to include in report.
-     *
-     * @var array
      */
-    protected array|null|\Traversable $additionalDetails = [];
+    protected array $additionalDetails = [];
 
     /**
      * URL describing the problem type; defaults to HTTP status codes.
@@ -51,15 +49,11 @@ class ApiProblem
     /**
      * Whether or not to include a stack trace and previous
      * exceptions when an exception is provided for the detail.
-     *
-     * @var bool
      */
     protected bool $detailIncludesStackTrace = false;
 
     /**
      * HTTP status for the error.
-     *
-     * @var int
      */
     protected int $status;
 
@@ -136,14 +130,14 @@ class ApiProblem
      * provided for the type field, the class default will be used;
      * if the status matches any known, the title field will be selected
      * from $problemStatusTitles as a result.
-     *
-     * @param int|string $status
-     * @param Throwable|Exception|string $detail
-     * @param string|null $type
-     * @param string|null $title
-     * @param array $additional
      */
-    public function __construct(int|string $status, Throwable|Exception|string $detail, string $type = null, string $title = null, array $additional = [])
+    public function __construct(
+        int                        $status,
+        Throwable|Exception|string $detail,
+        ?string                    $type = null,
+        ?string                    $title = null,
+        array                      $additional = []
+    )
     {
         if ($detail instanceof ProblemExceptionInterface) {
             if (null === $type) {

@@ -20,7 +20,6 @@ use Jield\ApiTools\Hal\Link\PaginationInjector;
 use Jield\ApiTools\Hal\Link\PaginationInjectorInterface;
 use Jield\ApiTools\Hal\Link\SelfLinkInjector;
 use Jield\ApiTools\Hal\Link\SelfLinkInjectorInterface;
-use Jield\ApiTools\Hal\Metadata\Metadata;
 use Jield\ApiTools\Hal\Metadata\MetadataMap;
 use Jield\ApiTools\Hal\ResourceFactory;
 use Laminas\EventManager\Event;
@@ -30,10 +29,8 @@ use Laminas\EventManager\EventManagerAwareTrait;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Hydrator\ExtractionInterface;
 use Laminas\Hydrator\HydratorPluginManager;
-use Laminas\Hydrator\HydratorPluginManagerInterface;
 use Laminas\Mvc\Controller\Plugin\PluginInterface as ControllerPluginInterface;
 use Laminas\Paginator\Paginator;
-use Laminas\ServiceManager\ServiceManager;
 use Laminas\Stdlib\DispatchableInterface;
 use Laminas\View\Helper\AbstractHelper;
 use Override;
@@ -80,8 +77,6 @@ class Hal extends AbstractHelper implements
      */
     protected bool $renderCollections = true;
 
-    protected ?HydratorPluginManager $hydrators = null;
-
     protected ?MetadataMap $metadataMap = null;
 
     protected ?PaginationInjectorInterface $paginationInjector = null;
@@ -99,18 +94,9 @@ class Hal extends AbstractHelper implements
      */
     protected array $entityHashStack = [];
 
-    /**
-     * @param HydratorPluginManager|HydratorPluginManagerInterface|null $hydrators
-     * @throws Exception\InvalidArgumentException If $hydrators is of invalid type.
-     */
-    public function __construct(HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
+    public function __construct(protected HydratorPluginManager $hydrators)
     {
-        if (!$hydrators instanceof \Laminas\Hydrator\HydratorPluginManagerInterface) {
-            $this->hydrators = new HydratorPluginManager(configInstanceOrParentLocator: new ServiceManager());
-        } else {
-            /** @psalm-var HydratorPluginManager $hydrators */
-            $this->hydrators = $hydrators;
-        }
+        $this->hydrators = $hydrators;
     }
 
     #[Override]
@@ -752,54 +738,9 @@ class Hal extends AbstractHelper implements
     }
 
     /**
-     * Create a entity and/or collection based on a metadata map
-     */
-    public function createEntityFromMetadata(iterable|Paginator $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
-    {
-        /** @psalm-suppress ArgumentTypeCoercion */
-        return $this->getResourceFactory()->createEntityFromMetadata(
-            object: $object,
-            metadata: $metadata,
-            renderEmbeddedEntities: $renderEmbeddedEntities
-        );
-    }
-
-    /**
-     * Create an Entity instance and inject it with a self relational link if necessary
-     */
-    public function createEntity(Entity|array $entity, string $route, string $routeIdentifierName): Entity|Collection
-    {
-        $metadataMap = $this->getMetadataMap();
-
-        if (is_object(value: $entity) && $metadataMap->has(class: $entity)) {
-            /** @psalm-suppress PossiblyFalseArgument,ArgumentTypeCoercion */
-            $halEntity = $this->getResourceFactory()->createEntityFromMetadata(
-                object: $entity,
-                metadata: $metadataMap->get(class: $entity)
-            );
-        } elseif (!$entity instanceof Entity) {
-            /** @var mixed $id */
-            $id        = $this->getIdFromEntity(entity: $entity) ?: null;
-            $halEntity = new Entity(entity: $entity, id: $id);
-        } else {
-            $halEntity = $entity;
-        }
-
-        $metadata = !is_array(value: $entity) && $metadataMap->has(class: $entity)
-            ? $metadataMap->get(class: $entity)
-            : false;
-
-        if (!$metadata || ($metadata->getForceSelfLink())) {
-            $this->injectSelfLink(resource: $halEntity, route: $route, routeIdentifier: $routeIdentifierName);
-        }
-
-        return $halEntity;
-    }
-
-    /**
      * Creates a Collection instance with a self relational link if necessary
      */
-    public function createCollection(array $collection, string $route = null): array|Collection
+    public function createCollection(Paginator|iterable $collection, ?string $route = null): array|Collection
     {
         $metadataMap = $this->getMetadataMap();
         if (is_object(value: $collection) && $metadataMap->has(class: $collection)) {
@@ -810,7 +751,7 @@ class Hal extends AbstractHelper implements
             );
         }
 
-        if (!$collection instanceof Collection) {
+        if (is_array($collection)) {
             $collection = new Collection(collection: $collection);
         }
 
@@ -855,7 +796,7 @@ class Hal extends AbstractHelper implements
      * @param int $depth depth of the current rendering recursion
      * @param int|null $maxDepth maximum rendering depth for the current metadata
      */
-    protected function extractEmbeddedEntity(array &$parent, string $key, Entity $entity, int $depth = 0, int $maxDepth = null): void
+    protected function extractEmbeddedEntity(array &$parent, string $key, Entity $entity, int $depth = 0, ?int $maxDepth = null): void
     {
         // No need to increment depth for this call
         $rendered = $this->renderEntity(halEntity: $entity, renderEntity: true, depth: $depth, maxDepth: $maxDepth);
@@ -884,7 +825,7 @@ class Hal extends AbstractHelper implements
         string     $key,
         Collection $collection,
         int        $depth = 0,
-        int        $maxDepth = null
+        ?int       $maxDepth = null
     ): void
     {
         $rendered = $this->extractCollection(halCollection: $collection, depth: $depth + 1, maxDepth: $maxDepth);
@@ -905,7 +846,7 @@ class Hal extends AbstractHelper implements
      * @todo   Remove 'resource' from event parameters for 1.0.0
      * @todo   Remove trigger of 'renderCollection.resource' for 1.0.0
      */
-    protected function extractCollection(Collection $halCollection, int $depth = 0, int $maxDepth = null): array
+    protected function extractCollection(Collection $halCollection, int $depth = 0, ?int $maxDepth = null): array
     {
         $collection          = [];
         $events              = $this->getEventManager();

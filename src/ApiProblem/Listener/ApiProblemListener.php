@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\ApiProblem\Listener;
 
-use Exception;
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Jield\ApiTools\ApiProblem\View\ApiProblemModel;
@@ -17,7 +16,6 @@ use Laminas\Stdlib\DispatchableInterface;
 use Laminas\View\Model\ModelInterface;
 use Override;
 use Throwable;
-
 use function in_array;
 use function is_array;
 use function is_string;
@@ -32,22 +30,16 @@ use function is_string;
  */
 class ApiProblemListener extends AbstractListenerAggregate
 {
-    /**
-     * Default types to match in Accept header.
-     *
-     * @var array
-     */
-    protected array $acceptFilters = [
-        'application/json',
-        'application/*+json',
-    ];
+    protected array $acceptFilters
+        = [
+            'application/json',
+            'application/*+json',
+        ];
 
     /**
      * Set the accept filter, if one is passed
-     *
-     * @param array|string|null $filters
      */
-    public function __construct(array|string $filters = null)
+    public function __construct(null|array|string $filters = null)
     {
         if ($filters !== '' && $filters !== '0' && $filters !== []) {
             if (is_string(value: $filters)) {
@@ -84,14 +76,14 @@ class ApiProblemListener extends AbstractListenerAggregate
      */
     public function onRender(MvcEvent $e): void
     {
-        if (! $this->validateErrorEvent(e: $e)) {
+        if (!$this->validateErrorEvent(e: $e)) {
             return;
         }
 
         // Next, do we have a view model in the result?
         // If not, nothing more to do.
         $model = $e->getResult();
-        if (! $model instanceof ModelInterface || $model instanceof ApiProblemModel) {
+        if (!$model instanceof ModelInterface || $model instanceof ApiProblemModel) {
             return;
         }
 
@@ -124,13 +116,13 @@ class ApiProblemListener extends AbstractListenerAggregate
         $services = $app->getServiceManager();
         $config   = $services->get('config');
 
-        if (! isset($config['api-tools-api-problem']['render_error_controllers'])) {
+        if (!isset($config['api-tools-api-problem']['render_error_controllers'])) {
             return;
         }
 
         $controller  = $e->getRouteMatch()->getParam(name: 'controller');
         $controllers = $config['api-tools-api-problem']['render_error_controllers'];
-        if (! in_array(needle: $controller, haystack: $controllers)) {
+        if (!in_array(needle: $controller, haystack: $controllers)) {
             // The current controller is not in our list of controllers to handle
             return;
         }
@@ -149,7 +141,7 @@ class ApiProblemListener extends AbstractListenerAggregate
      */
     public function onDispatchError(MvcEvent $e): ?ApiProblemResponse
     {
-        if (! $this->validateErrorEvent(e: $e)) {
+        if (!$this->validateErrorEvent(e: $e)) {
             return null;
         }
 
@@ -174,18 +166,18 @@ class ApiProblemListener extends AbstractListenerAggregate
     protected function validateErrorEvent(MvcEvent $e): bool
     {
         // only worried about error pages
-        if (! $e->isError()) {
+        if (!$e->isError()) {
             return false;
         }
 
         // and then, only if we have an Accept header...
         $request = $e->getRequest();
-        if (! $request instanceof HttpRequest) {
+        if (!$request instanceof HttpRequest) {
             return false;
         }
 
         $headers = $request->getHeaders();
-        if (! $headers->has(name: 'Accept')) {
+        if (!$headers->has(name: 'Accept')) {
             return false;
         }
 

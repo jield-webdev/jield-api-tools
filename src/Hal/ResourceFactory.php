@@ -17,26 +17,14 @@ use function sprintf;
 
 class ResourceFactory
 {
-    /** @var EntityHydratorManager */
-    protected EntityHydratorManager $entityHydratorManager;
-
-    /** @var EntityExtractor */
-    protected EntityExtractor $entityExtractor;
-
-    public function __construct(EntityHydratorManager $entityHydratorManager, EntityExtractor $entityExtractor)
+    public function __construct(protected EntityHydratorManager $entityHydratorManager, protected EntityExtractor $entityExtractor)
     {
-        $this->entityHydratorManager = $entityHydratorManager;
-        $this->entityExtractor       = $entityExtractor;
     }
 
     /**
      * Create a entity and/or collection based on a metadata map
-     *
-     * @param iterable|Paginator<int, mixed> $object
-     * @param bool $renderEmbeddedEntities
-     * @throws Exception\RuntimeException
      */
-    public function createEntityFromMetadata(Entity $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
+    public function createEntityFromMetadata(Paginator|iterable $object, Metadata $metadata, bool $renderEmbeddedEntities = true): Entity|Collection
     {
         if ($metadata->isCollection()) {
             return $this->createCollectionFromMetadata(object: $object, metadata: $metadata);
@@ -80,9 +68,6 @@ class ResourceFactory
         return $halEntity;
     }
 
-    /**
-     * @param iterable|Paginator $object
-     */
     public function createCollectionFromMetadata(Paginator|iterable $object, Metadata $metadata): Collection
     {
         $halCollection = new Collection(collection: $object);
@@ -109,19 +94,13 @@ class ResourceFactory
 
     /**
      * Creates a link object, given metadata and a resource
-     *
-     * @param object|iterable<array-key|mixed, mixed>|Paginator<int, mixed> $object
-     * @param string|null $id
-     * @param string|null $routeIdentifierName
-     * @param string $relation
-     * @throws Exception\RuntimeException
      */
     public function marshalLinkFromMetadata(
-        Metadata        $metadata,
-        array|Paginator $object,
-        string          $id = null,
-        string          $routeIdentifierName = null,
-        string          $relation = 'self'
+        Metadata           $metadata,
+        Paginator|iterable $object,
+        ?string            $id = null,
+        ?string            $routeIdentifierName = null,
+        string             $relation = 'self'
     ): Link
     {
         $link = new Link(relation: $relation);
@@ -140,7 +119,6 @@ class ResourceFactory
         $params = $metadata->getRouteParams();
 
         // process any callbacks
-        /** @var mixed $param */
         foreach ($params as $key => $param) {
             // bind to the object
             if ($param instanceof Closure) {

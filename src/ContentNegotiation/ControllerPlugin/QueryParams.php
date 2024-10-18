@@ -10,10 +10,6 @@ use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 
 class QueryParams extends AbstractPlugin
 {
-    /**
-     * @return array
-     * @throws RuntimeException If controller does not implement InjectApplicationEventInterface.
-     */
     public function __invoke(): array
     {
         $controller = $this->getController();

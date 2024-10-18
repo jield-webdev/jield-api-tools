@@ -17,7 +17,6 @@ use function sprintf;
 
 class MetadataMap
 {
-    /** @var null|HydratorPluginManager|HydratorPluginManagerInterface */
     protected null|HydratorPluginManagerInterface|HydratorPluginManager $hydrators;
 
     /** @var array<class-string, array<string,string>|Metadata> */
@@ -28,11 +27,8 @@ class MetadataMap
      *
      * If provided, will pass $map to setMap().
      * If provided, will pass $hydrators to setHydratorManager().
-     *
-     * @param null|array<class-string, array<string,string>|Metadata> $map
-     * @param HydratorPluginManager|HydratorPluginManagerInterface|null $hydrators
      */
-    public function __construct(?array $map = null, HydratorPluginManager|HydratorPluginManagerInterface $hydrators = null)
+    public function __construct(?array $map = null, ?HydratorPluginManagerInterface $hydrators = null)
     {
         if ($hydrators instanceof \Laminas\Hydrator\HydratorPluginManagerInterface) {
             $this->setHydratorManager(hydrators: $hydrators);
@@ -43,21 +39,14 @@ class MetadataMap
         }
     }
 
-    /**
-     * @param HydratorPluginManager|HydratorPluginManagerInterface $hydrators
-     * @return self
-     */
-    public function setHydratorManager(HydratorPluginManager|HydratorPluginManagerInterface $hydrators): static
+    public function setHydratorManager(HydratorPluginManagerInterface $hydrators): static
     {
         $this->hydrators = $hydrators;
 
         return $this;
     }
 
-    /**
-     * @return HydratorPluginManager|HydratorPluginManagerInterface
-     */
-    public function getHydratorManager(): HydratorPluginManager|HydratorPluginManagerInterface|null
+    public function getHydratorManager(): HydratorPluginManager|HydratorPluginManagerInterface
     {
         if (null === $this->hydrators) {
             $hydrators = new HydratorPluginManager(configInstanceOrParentLocator: new ServiceManager());

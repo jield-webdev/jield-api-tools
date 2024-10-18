@@ -12,16 +12,11 @@ use Laminas\Mvc\InjectApplicationEventInterface;
 
 class RouteParam extends AbstractPlugin
 {
-    /**
-     * @param string|null $param
-     * @param mixed|null $default
-     * @return mixed
-     */
-    public function __invoke(string $param = null, mixed $default = null): mixed
+    public function __invoke(?string $param = null, mixed $default = null): mixed
     {
         $controller = $this->getController();
 
-        if (! $controller instanceof InjectApplicationEventInterface) {
+        if (!$controller instanceof InjectApplicationEventInterface) {
             throw new RuntimeException(
                 message: 'Controllers must implement Laminas\Mvc\InjectApplicationEventInterface to use this plugin.'
             );

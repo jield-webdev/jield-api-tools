@@ -385,11 +385,11 @@ class Resource implements ResourceInterface
     /**
      * Delete an existing collection of records
      *
-     * @param array|null $data
+     * @param array $data
      * @return bool
      */
     #[Override]
-    public function deleteList(array $data = null): mixed
+    public function deleteList(array $data): mixed
     {
         $results = $this->triggerEvent(name: __FUNCTION__, args: ['data' => $data]);
         $last    = $results->last();
