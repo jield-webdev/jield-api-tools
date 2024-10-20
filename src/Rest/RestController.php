@@ -453,7 +453,6 @@ class RestController extends AbstractRestfulController
      *
      * @param int|string $id
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
-     * @todo   Remove 'resource' from get.post event for 1.0.0
      */
     #[Override]
     public function get($id): HalEntity|Response|ApiProblem|ApiProblemResponse
@@ -476,9 +475,8 @@ class RestController extends AbstractRestfulController
         $halEntity = $this->createHalEntity(entity: $entity);
 
         $events->trigger(eventName: 'get.post', target: $this, argv: [
-            'id'       => $id,
-            'entity'   => $halEntity,
-            'resource' => $halEntity,
+            'id'     => $id,
+            'entity' => $halEntity,
         ]);
 
         return $halEntity;
@@ -631,7 +629,6 @@ class RestController extends AbstractRestfulController
      * @param int|string $id
      * @param array $data
      * @return Response|ApiProblem|ApiProblemResponse|HalEntity
-     * @todo   Remove 'resource' from update.post event for 1.0.0
      */
     #[Override]
     public function update($id, $data): HalEntity|Response|ApiProblem|ApiProblemResponse
@@ -652,10 +649,9 @@ class RestController extends AbstractRestfulController
         $halEntity = $this->createHalEntity(entity: $entity);
 
         $events->trigger(eventName: 'update.post', target: $this, argv: [
-            'id'       => $id,
-            'data'     => $data,
-            'entity'   => $halEntity,
-            'resource' => $halEntity,
+            'id'     => $id,
+            'data'   => $data,
+            'entity' => $halEntity,
         ]);
 
         return $halEntity;
@@ -889,7 +885,7 @@ class RestController extends AbstractRestfulController
 
         try {
             $collection->setPageSize(size: $this->getPageSize());
-            $collection->setPage(page: $this->getRequest()->getQuery(name: 'page', default: 1));
+            $collection->setPage(page: (int)$this->getRequest()->getQuery(name: 'page', default: 1));
         } catch (HalInvalidArgumentException $halInvalidArgumentException) {
             return new ApiProblem(status: 400, detail: $halInvalidArgumentException->getMessage());
         }
