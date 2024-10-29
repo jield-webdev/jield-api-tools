@@ -602,7 +602,7 @@ class RestController extends AbstractRestfulController
         $events->trigger(eventName: 'patch.pre', target: $this, argv: ['id' => $id, 'data' => $data]);
 
         try {
-            $entity = $this->getResource()->patch(id: (int)$id, data: $data ?? []);
+            $entity = $this->getResource()->patch(id: (int)$id, data: empty($data) ? [] : $data);
         } catch (Throwable $throwable) {
             return $this->createApiProblemFromException(e: $throwable);
         }
@@ -691,7 +691,7 @@ class RestController extends AbstractRestfulController
      * Update an existing collection of entities
      *
      * @param array $data
-     * @return array|ApiProblem
+     * @return array|HalCollection|ApiProblem
      */
     #[Override]
     public function replaceList($data): array|HalCollection|ApiProblem
@@ -729,7 +729,7 @@ class RestController extends AbstractRestfulController
      *
      * @param RouteMatch $routeMatch
      * @param RequestInterface $request
-     * @return false|mixed
+     * @return mixed
      */
     #[Override]
     protected function getIdentifier($routeMatch, $request): mixed
@@ -849,14 +849,9 @@ class RestController extends AbstractRestfulController
 
     protected function isPreparedResponse(mixed $object): bool
     {
-        return $object instanceof ApiProblem
-            || $object instanceof ApiProblemResponse
-            || $object instanceof Response;
+        return $object instanceof ApiProblem || $object instanceof Response;
     }
 
-    /**
-     * @return HalCollection
-     */
     protected function createHalCollection(mixed $collection): HalCollection|ApiProblem
     {
         if (!$collection instanceof HalCollection) {
@@ -869,7 +864,6 @@ class RestController extends AbstractRestfulController
 
     /**
      * Prepare a HAL collection with the metadata for the current instance.
-     *
      */
     protected function prepareHalCollection(HalCollection $collection): HalCollection|ApiProblem
     {
