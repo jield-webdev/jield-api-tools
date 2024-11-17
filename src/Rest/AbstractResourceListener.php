@@ -143,7 +143,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->create(data: new Parameters((array)$data));
             case 'delete':
-                $id = $event->getParam(name: 'id');
+                $id = (int)$event->getParam(name: 'id');
                 return $this->delete(id: $id);
             case 'deleteList':
                 $data = $event->getParam(name: 'data', default: []);
@@ -165,7 +165,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->replaceList(data: new Parameters((array)$data));
             case 'update':
-                $id   = $event->getParam(name: 'id');
+                $id   = (int)$event->getParam(name: 'id');
                 $data = $event->getParam(name: 'data', default: []);
                 return $this->update(id: $id, data: new Parameters((array)$data));
             default:
