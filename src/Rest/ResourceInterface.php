@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Rest;
 
 use Laminas\EventManager\EventManagerAwareInterface;
-use Laminas\Paginator\Paginator;
 use Laminas\Stdlib\Parameters;
 
 /**
@@ -68,5 +67,5 @@ interface ResourceInterface extends EventManagerAwareInterface
     /**
      * Fetch a collection of records
      */
-    public function fetchAll(): array|Paginator;
+    public function fetchAll(): mixed;
 }
