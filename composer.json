@@ -32,7 +32,7 @@
     "solarium/solarium": "^6.3.5",
     "jield-webdev/jield-authorize": "^2.0",
     "webmozart/assert": "^1.11",
-    "lm-commons/lmc-cors": "^v1.5",
+    "lm-commons/lmc-cors": "^1.4",
     "psr/link": "^2.0",
     "zircote/swagger-php": "^4.11.0",
     "ext-fileinfo": "*"
