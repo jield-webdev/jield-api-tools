@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Jield\ApiTools\Listener;
 
+use DateTime;
+use DateTimeInterface;
+use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\Rest\AbstractResourceListener;
 
 abstract class AbstractRoutedListener extends AbstractResourceListener
@@ -51,5 +54,29 @@ abstract class AbstractRoutedListener extends AbstractResourceListener
     public static function getRouteAssertionClass(): null|string
     {
         return null;
+    }
+
+    protected function convertJSDateTimeToPHPDateTime(?string $dateTimeString): null|DateTime|ApiProblem
+    {
+        if ($dateTimeString === null) {
+            return null;
+        }
+
+        $dateProcessed = DateTime::createFromFormat(format: DateTimeInterface::ATOM, datetime: $dateTimeString);
+
+        if ($dateProcessed instanceof DateTime) {
+            return $dateProcessed;
+        }
+
+        $dateProcessed = DateTime::createFromFormat(format: DateTimeInterface::RFC3339_EXTENDED, datetime: $dateTimeString);
+
+        if ($dateProcessed instanceof DateTime) {
+            return $dateProcessed;
+        }
+
+        return new ApiProblem(
+            status: 400,
+            detail: 'Invalid date format'
+        );
     }
 }
