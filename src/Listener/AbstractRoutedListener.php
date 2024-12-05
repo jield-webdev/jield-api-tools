@@ -58,7 +58,7 @@ abstract class AbstractRoutedListener extends AbstractResourceListener
 
     protected function convertJSDateTimeToPHPDateTime(?string $dateTimeString): null|DateTime|ApiProblem
     {
-        if ($dateTimeString === null) {
+        if (empty($dateTimeString)) {
             return null;
         }
 
