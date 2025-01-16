@@ -80,6 +80,12 @@ abstract class AbstractRoutedListener extends AbstractResourceListener
             return $dateProcessed;
         }
 
+        $dateProcessed = DateTime::createFromFormat(format: 'Y-m-d', datetime: $dateTimeString);
+
+        if ($dateProcessed instanceof DateTime) {
+            return $dateProcessed;
+        }
+
         return new ApiProblem(
             status: 400,
             detail: 'Invalid date format'
