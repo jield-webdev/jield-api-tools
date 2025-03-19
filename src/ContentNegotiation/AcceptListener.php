@@ -10,6 +10,7 @@ use Laminas\Mvc\Controller\Plugin\AcceptableViewModelSelector;
 use Laminas\Mvc\InjectApplicationEventInterface;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Model\ModelInterface as ViewModelInterface;
+
 use function is_array;
 use function is_string;
 use function method_exists;
@@ -94,7 +95,12 @@ class AcceptListener
         $viewModel = $selector(matchAgainst: $criteria, returnDefault: $useDefault);
 
         if (!$viewModel instanceof ViewModelInterface) {
-            return new ApiProblemResponse(apiProblem: new ApiProblem(status: 406, detail: 'Unable to resolve Accept header to a representation'));
+            return new ApiProblemResponse(
+                apiProblem: new ApiProblem(
+                                status: 406,
+                                detail: 'Unable to resolve Accept header to a representation'
+                            )
+            );
         }
 
         // Populate the view model with the result...
@@ -108,7 +114,7 @@ class AcceptListener
      * Try and determine the view model selection criteria based on the configuration
      * for the current controller service name, using a fallback if it exists.
      */
-    protected function getSelectorCriteria(string $fallbackConfig, string $controllerName): ?array
+    protected function getSelectorCriteria(?string $fallbackConfig = null, ?string $controllerName = null): ?array
     {
         if ($this->controllerConfig === []) {
             return $this->getCriteria(criteria: $fallbackConfig);
@@ -176,10 +182,10 @@ class AcceptListener
      *
      * Otherwise, return nothing.
      *
-     * @param array|string $criteria
+     * @param array|string|null $criteria
      * @return array|null
      */
-    protected function getCriteria(array|string $criteria): ?array
+    protected function getCriteria(array|string|null $criteria = null): ?array
     {
         // if it's an array, that means we have direct configuration
         if (is_array(value: $criteria)) {
