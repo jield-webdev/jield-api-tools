@@ -29,7 +29,7 @@
     "laminas/laminas-config-aggregator": "^1.18",
     "laminas/laminas-authentication": "^2.18",
     "laminas/laminas-permissions-rbac": "^3.7",
-    "solarium/solarium": "^6.3",
+    "solarium/solarium": "dev-latest",
     "jield-webdev/jield-authorize": "^2.0",
     "webmozart/assert": "^1.11",
     "lm-commons/lmc-cors": "^1.5",
