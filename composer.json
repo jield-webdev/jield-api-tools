@@ -30,7 +30,7 @@
     "laminas/laminas-authentication": "^2.18",
     "laminas/laminas-permissions-rbac": "^3.7",
     "solarium/solarium": "dev-master",
-    "jield-webdev/jield-authorize": "^2.0",
+    "jield-webdev/jield-authorize": "^2.1",
     "webmozart/assert": "^1.11",
     "lm-commons/lmc-cors": "^1.5",
     "psr/link": "^2.0",
@@ -38,8 +38,7 @@
     "ext-fileinfo": "*"
   },
   "require-dev": {
-    "iteaoffice/testing": "^5.0",
-    "rector/rector": "^1.2"
+    "iteaoffice/testing": "^5.1"
   },
   "autoload": {
     "psr-4": {
