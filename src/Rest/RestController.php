@@ -15,6 +15,7 @@ use Jield\ApiTools\Hal\Entity as HalEntity;
 use Jield\ApiTools\Hal\Exception\InvalidArgumentException as HalInvalidArgumentException;
 use Jield\ApiTools\MvcAuth\Identity\AuthenticatedIdentity;
 use Laminas\Http\Header\Allow;
+use Laminas\Http\Request;
 use Laminas\Http\Response;
 use Laminas\Mvc\Controller\AbstractRestfulController;
 use Laminas\Mvc\MvcEvent;
@@ -288,18 +289,22 @@ class RestController extends AbstractRestfulController
     public function onDispatch(MvcEvent $e): mixed
     {
         if (!$this->getResource()) {
-            throw new DomainException(message: sprintf(
-                '%s requires that a %s\ResourceInterface object is composed; none provided',
-                self::class,
-                __NAMESPACE__
-            ));
+            throw new DomainException(
+                message: sprintf(
+                    '%s requires that a %s\ResourceInterface object is composed; none provided',
+                    self::class,
+                    __NAMESPACE__
+                )
+            );
         }
 
         if (!$this->route) {
-            throw new DomainException(message: sprintf(
-                '%s requires that a route name for the resource is composed; none provided',
-                self::class
-            ));
+            throw new DomainException(
+                message: sprintf(
+                    '%s requires that a route name for the resource is composed; none provided',
+                    self::class
+                )
+            );
         }
 
         // Check for an API-Problem in the event
@@ -372,6 +377,7 @@ class RestController extends AbstractRestfulController
             $self   = $plugin->fromLink($link);
             $url    = $self['href'];
 
+            /** @var Response $response */
             $response = $this->getResponse();
             $response->setStatusCode(code: 201);
             $response->getHeaders()->addHeaderLine(headerFieldNameOrLine: 'Location', fieldValue: $url);
@@ -408,6 +414,7 @@ class RestController extends AbstractRestfulController
             return $result;
         }
 
+        /** @var Response $response */
         $response = $this->getResponse();
         $response->setStatusCode(code: 204);
 
@@ -440,6 +447,7 @@ class RestController extends AbstractRestfulController
             return $result;
         }
 
+        /** @var Response $response */
         $response = $this->getResponse();
         $response->setStatusCode(code: 204);
 
@@ -514,8 +522,11 @@ class RestController extends AbstractRestfulController
             return $halEntity;
         }
 
+        /** @var Request $request */
+        $request = $this->getRequest();
+
         $pageSize = $this->pageSizeParam
-            ? $this->getRequest()->getQuery(name: $this->pageSizeParam, default: $this->pageSize)
+            ? $request->getQuery(name: $this->pageSizeParam, default: $this->pageSize)
             : $this->pageSize;
 
         if ($pageSize < $this->minPageSize) {
@@ -581,6 +592,7 @@ class RestController extends AbstractRestfulController
         $events = $this->getEventManager();
         $events->trigger(eventName: 'options.pre', target: $this, argv: ['options' => $options]);
 
+        /** @var Response $response */
         $response = $this->getResponse();
         $response->setStatusCode(code: 204);
 

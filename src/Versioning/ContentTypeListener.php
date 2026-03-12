@@ -55,7 +55,7 @@ class ContentTypeListener implements ListenerAggregateInterface
      * Add a regular expression to the stack
      *
      * @param string $regex
-     * @return self
+     * @return static
      */
     public function addRegexp(string $regex): static
     {
