@@ -9,6 +9,7 @@ use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\Controller\Plugin\AbstractPlugin;
 use Laminas\Mvc\Exception\RuntimeException;
 use Laminas\Mvc\InjectApplicationEventInterface;
+use Laminas\Mvc\MvcEvent;
 
 class RouteParams extends AbstractPlugin
 {
@@ -29,6 +30,11 @@ class RouteParams extends AbstractPlugin
             }
         }
 
-        return $controller->getEvent()->getRouteMatch()->getParams();
+        $event = $controller->getEvent();
+        if (!$event instanceof MvcEvent || $event->getRouteMatch() === null) {
+            return [];
+        }
+
+        return $event->getRouteMatch()->getParams();
     }
 }

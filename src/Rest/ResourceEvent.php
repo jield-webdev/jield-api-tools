@@ -18,6 +18,9 @@ use function is_array;
 use function is_object;
 use function sprintf;
 
+/**
+ * @extends Event<object|string|null, array|ArrayAccess|object>
+ */
 class ResourceEvent extends Event
 {
     protected ?IdentityInterface    $identity    = null;
@@ -29,11 +32,11 @@ class ResourceEvent extends Event
     /**
      * Overload setParams to inject request object, if passed via params
      *
-     * @param array|ArrayAccess|object $params
-     * @return self
+     * @param mixed $params
      */
+    /** @phpstan-ignore-next-line  */
     #[Override]
-    public function setParams($params): static
+    public function setParams($params)
     {
         if (!is_array(value: $params) && !is_object(value: $params)) {
             throw new EventManagerInvalidArgumentException(message: sprintf(

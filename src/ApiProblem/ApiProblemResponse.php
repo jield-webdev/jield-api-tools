@@ -31,10 +31,10 @@ class ApiProblemResponse extends Response
     public function __construct(ApiProblem $apiProblem)
     {
         $this->apiProblem = $apiProblem;
-        $this->setCustomStatusCode(code: $apiProblem->status);
+        $this->setCustomStatusCode(code: $apiProblem->getStatus());
 
-        if ($apiProblem->title !== null) {
-            $this->setReasonPhrase(reasonPhrase: $apiProblem->title);
+        if ($apiProblem->getTitle() !== null) {
+            $this->setReasonPhrase(reasonPhrase: $apiProblem->getTitle());
         }
 
         $this->jsonFlags = JSON_UNESCAPED_SLASHES | JSON_PARTIAL_OUTPUT_ON_ERROR;

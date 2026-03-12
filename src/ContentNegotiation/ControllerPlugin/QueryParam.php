@@ -27,6 +27,15 @@ class QueryParam extends AbstractPlugin
             }
         }
 
-        return $this->getController()->getRequest()->getQuery($param, $default);
+        if (!method_exists(object_or_class: $controller, method: 'getRequest')) {
+            return $default;
+        }
+
+        $request = $controller->getRequest();
+        if (!method_exists(object_or_class: $request, method: 'getQuery')) {
+            return $default;
+        }
+
+        return $request->getQuery($param, $default);
     }
 }

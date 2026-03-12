@@ -53,7 +53,7 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
     }
 
     /**
-     * @param ContainerInterface $services
+     * @param ContainerInterface $container
      * @return false|HttpAdapter
      */
     protected function retrieveHttpAdapter(ContainerInterface $container): false|HttpAdapter
@@ -122,7 +122,7 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
             };
         }
 
-        return new OAuth2Adapter(oauth2Server: $serverFactory(null));
+        return new OAuth2Adapter(oauth2Server: $serverFactory());
     }
 
     /**

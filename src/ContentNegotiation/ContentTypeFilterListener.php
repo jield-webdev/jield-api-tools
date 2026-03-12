@@ -8,6 +8,7 @@ use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
 use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Http\Header\ContentType;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Stdlib\ArrayUtils;
 
@@ -36,7 +37,7 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
      * Set whitelist configuration
      *
      * @param  array $config
-     * @return self
+     * @return static
      */
     public function setConfig(array $config): static
     {
@@ -81,6 +82,11 @@ class ContentTypeFilterListener extends AbstractListenerAggregate
         }
 
         $contentTypeHeader = $headers->get('content-type');
+        if (! $contentTypeHeader instanceof ContentType) {
+            return new ApiProblemResponse(
+                apiProblem: new ApiProblem(status: 415, detail: 'Invalid content-type specified')
+            );
+        }
 
         $matched = $contentTypeHeader->match($this->config[$controllerName]);
 

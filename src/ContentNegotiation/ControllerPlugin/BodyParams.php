@@ -23,6 +23,15 @@ class BodyParams extends AbstractPlugin
             }
         }
 
-        return $controller->getRequest()->getPost();
+        if (!method_exists(object_or_class: $controller, method: 'getRequest')) {
+            return [];
+        }
+
+        $request = $controller->getRequest();
+        if (!method_exists(object_or_class: $request, method: 'getPost')) {
+            return [];
+        }
+
+        return $request->getPost()->toArray();
     }
 }

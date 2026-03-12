@@ -103,7 +103,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set additional attributes to render as part of the collection
      *
      * @param array $attributes
-     * @return self
+     * @return static
      */
     public function setAttributes(array $attributes): static
     {
@@ -115,7 +115,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set the collection name (for use within the _embedded object)
      *
      * @param string $name
-     * @return self
+     * @return static
      */
     public function setCollectionName(string $name): static
     {
@@ -127,7 +127,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set the collection route; used for generating pagination links
      *
      * @param string $route
-     * @return self
+     * @return static
      */
     public function setCollectionRoute(string $route): static
     {
@@ -139,7 +139,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set options to use with the collection route; used for generating pagination links
      *
      * @param Traversable|array $options
-     * @return self
+     * @return static
      * @throws InvalidArgumentException
      */
     public function setCollectionRouteOptions(iterable $options): static
@@ -154,7 +154,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set the route identifier name
      *
      * @param string $identifier
-     * @return self
+     * @return static
      */
     public function setRouteIdentifierName(string $identifier): static
     {
@@ -166,7 +166,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set the entity identifier name
      *
      * @param string $identifier
-     * @return self
+     * @return static
      */
     public function setEntityIdentifierName(string $identifier): static
     {
@@ -178,7 +178,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set current page
      *
      * @param int $page
-     * @return self
+     * @return static
      * @throws InvalidArgumentException For non-positive and/or non-integer values.
      */
     public function setPage(int $page): static
@@ -198,7 +198,7 @@ class Collection implements Link\LinkCollectionAwareInterface
      * Set page size
      *
      * @param int $size
-     * @return self
+     * @return static
      * @throws InvalidArgumentException For non-positive and/or non-integer values.
      */
     public function setPageSize(int $size): static

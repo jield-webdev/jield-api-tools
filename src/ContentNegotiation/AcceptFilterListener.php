@@ -6,10 +6,12 @@ namespace Jield\ApiTools\ContentNegotiation;
 
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Jield\ApiTools\ApiProblem\ApiProblemResponse;
+use Laminas\Http\Header\Accept as AcceptHeader;
 use Laminas\Http\Headers as HttpHeaders;
 use Laminas\Mvc\MvcEvent;
 
 use Override;
+use ArrayIterator;
 use function is_array;
 use function is_string;
 use function method_exists;
@@ -73,6 +75,20 @@ class AcceptFilterListener extends ContentTypeFilterListener
         }
 
         $accept = $headers->get(name: 'accept');
-        return (bool) $accept->match($match);
+        if ($accept instanceof AcceptHeader) {
+            return (bool) $accept->match($match);
+        }
+
+        if ($accept instanceof ArrayIterator) {
+            foreach ($accept as $header) {
+                if ($header instanceof AcceptHeader && $header->match($match)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return true;
     }
 }

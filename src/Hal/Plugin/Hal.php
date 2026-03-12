@@ -123,7 +123,7 @@ class Hal extends AbstractHelper implements
     public function setEventManager(EventManagerInterface $eventManager): static
     {
         $eventManager->setIdentifiers(identifiers: [
-            self::class,
+            static::class,
             static::class,
         ]);
 
@@ -255,7 +255,7 @@ class Hal extends AbstractHelper implements
     }
 
     /**
-     * @return void
+     * @return never
      * @throws Exception\DeprecatedMethodException
      *
      * @deprecated Since 1.4.0; use setLinkUrlBuilder() instead.
@@ -268,13 +268,13 @@ class Hal extends AbstractHelper implements
             . 'use %s::setLinkUrlBuilder() instead, providing a configured '
             . '%s instance',
             __METHOD__,
-            self::class,
+            static::class,
             LinkUrlBuilder::class
         ));
     }
 
     /**
-     * @return void
+     * @return never
      * @throws Exception\DeprecatedMethodException
      *
      * @deprecated Since 1.4.0; use setLinkUrlBuilder() instead.
@@ -287,7 +287,7 @@ class Hal extends AbstractHelper implements
             . 'use %s::setLinkUrlBuilder() instead, providing a configured '
             . '%s instance',
             __METHOD__,
-            self::class,
+            static::class,
             LinkUrlBuilder::class
         ));
     }
@@ -347,7 +347,7 @@ class Hal extends AbstractHelper implements
      *
      * @param string $class
      * @param ExtractionInterface $hydrator
-     * @return self
+     * @return static
      */
     public function addHydrator(string $class, ExtractionInterface $hydrator): static
     {
@@ -369,7 +369,7 @@ class Hal extends AbstractHelper implements
      * Set boolean to render embedded entities or just include _embedded data
      *
      * @param bool $value
-     * @return self
+     * @return static
      * @deprecated
      *
      */
@@ -378,7 +378,7 @@ class Hal extends AbstractHelper implements
         trigger_error(message: sprintf(
             '%s has been deprecated; please use %s::setRenderEmbeddedEntities',
             __METHOD__,
-            self::class
+            static::class
         ), error_level: E_USER_DEPRECATED);
         $this->renderEmbeddedEntities = $value;
         return $this;
@@ -388,7 +388,7 @@ class Hal extends AbstractHelper implements
      * Set boolean to render embedded entities or just include _embedded data
      *
      * @param bool $value
-     * @return self
+     * @return static
      */
     public function setRenderEmbeddedEntities(bool $value): static
     {
@@ -408,7 +408,7 @@ class Hal extends AbstractHelper implements
         trigger_error(message: sprintf(
             '%s has been deprecated; please use %s::getRenderEmbeddedEntities',
             __METHOD__,
-            self::class
+            static::class
         ), error_level: E_USER_DEPRECATED);
         return $this->renderEmbeddedEntities;
     }
@@ -427,7 +427,7 @@ class Hal extends AbstractHelper implements
      * Set boolean to render embedded collections or just include _embedded data
      *
      * @param bool $value
-     * @return self
+     * @return static
      */
     public function setRenderCollections(bool $value): static
     {
@@ -460,9 +460,9 @@ class Hal extends AbstractHelper implements
         trigger_error(message: sprintf(
             '%s is deprecated; please use %s::getHydratorForEntity',
             __METHOD__,
-            self::class
+            static::class
         ), error_level: E_USER_DEPRECATED);
-        return self::getHydratorForEntity(entity: $resource);
+        return static::getHydratorForEntity(entity: $resource);
     }
 
     /**
@@ -719,7 +719,7 @@ class Hal extends AbstractHelper implements
     }
 
     /**
-     * Creates a Collection instance with a self relational link if necessary
+     * Creates a Collection instance with a static relational link if necessary
      */
     public function createCollection(Paginator|iterable $collection, ?string $route = null): array|Collection
     {
@@ -900,9 +900,9 @@ class Hal extends AbstractHelper implements
                 $links = $entity['links'];
             }
 
-            /* $entity is always an array here. We don't have metadata config for arrays so the self link is forced
+            /* $entity is always an array here. We don't have metadata config for arrays so the static link is forced
                by default (at the moment) and should be removed manually if not required. But at some point it should
-               be discussed if it makes sense to force self links in this particular use-case.  */
+               be discussed if it makes sense to force static links in this particular use-case.  */
             $selfLink = new Link(relation: 'self');
 
             /** @var null|array $routeOptions */

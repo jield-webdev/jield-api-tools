@@ -10,6 +10,7 @@ use Jield\ApiTools\ApiProblem\View\ApiProblemModel;
 use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Header\Accept as AcceptHeader;
+use Laminas\Http\Response as HttpResponse;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\Mvc\MvcEvent;
 use Laminas\Stdlib\DispatchableInterface;
@@ -88,7 +89,8 @@ class ApiProblemListener extends AbstractListenerAggregate
         }
 
         // Marshal the information we need for the API-Problem response
-        $status    = $e->getResponse()->getStatusCode();
+        $response  = $e->getResponse();
+        $status    = $response instanceof HttpResponse ? $response->getStatusCode() : 500;
         $exception = $model->getVariable(name: 'exception');
 
         if ($exception instanceof Throwable) {

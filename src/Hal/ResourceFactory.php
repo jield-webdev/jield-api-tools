@@ -13,6 +13,7 @@ use Laminas\Paginator\Paginator;
 use function array_merge;
 use function get_debug_type;
 use function is_callable;
+use function is_object;
 use function sprintf;
 
 class ResourceFactory
@@ -121,8 +122,7 @@ class ResourceFactory
         // process any callbacks
         foreach ($params as $key => $param) {
             // bind to the object
-            if ($param instanceof Closure) {
-                /** @psalm-var object $object */
+            if ($param instanceof Closure && is_object($object)) {
                 $param = $param->bindTo($object);
             }
 

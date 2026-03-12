@@ -56,7 +56,7 @@ class EntityHydratorManager
      *
      * @param string $class
      * @param string|ExtractionInterface $hydrator
-     * @return self
+     * @return static
      */
     public function addHydrator(string $class, ExtractionInterface|string $hydrator): static
     {

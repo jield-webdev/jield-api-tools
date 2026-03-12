@@ -15,6 +15,7 @@ use function array_shift;
 use function in_array;
 use function is_array;
 use function is_string;
+use function method_exists;
 
 class HttpAdapter extends AbstractAdapter
 {
@@ -105,7 +106,10 @@ class HttpAdapter extends AbstractAdapter
         $this->httpAuth->setRequest(request: $request);
         $this->httpAuth->setResponse(response: $response);
 
-        $result = $this->authenticationService->authenticate($this->httpAuth);
+        if (method_exists($this->authenticationService, 'setAdapter')) {
+            $this->authenticationService->setAdapter($this->httpAuth);
+        }
+        $result = $this->authenticationService->authenticate();
         $mvcAuthEvent->setAuthenticationResult(result: $result);
 
         if (!$result->isValid()) {

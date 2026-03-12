@@ -27,6 +27,15 @@ class BodyParam extends AbstractPlugin
             }
         }
 
-        return $controller->getRequest()->getPost(name: $param, default: $default);
+        if (!method_exists(object_or_class: $controller, method: 'getRequest')) {
+            return $default;
+        }
+
+        $request = $controller->getRequest();
+        if (!method_exists(object_or_class: $request, method: 'getPost')) {
+            return $default;
+        }
+
+        return $request->getPost(name: $param, default: $default);
     }
 }

@@ -65,7 +65,7 @@ class ContentTypeListener
     public function __invoke(MvcEvent $e): ?ApiProblemResponse
     {
         $request = $e->getRequest();
-        if (!method_exists(object_or_class: $request, method: 'getHeaders')) {
+        if (!$request instanceof Request) {
             // Not an HTTP request; nothing to do
             return null;
         }
@@ -82,7 +82,6 @@ class ContentTypeListener
 
         // body parameters:
         $bodyParams = [];
-        /** @psalm-var Request $request */
         $contentType = $request->getHeader(name: 'Content-Type');
         /** @var null|ContentType $contentType */
         switch ($request->getMethod()) {
@@ -153,6 +152,9 @@ class ContentTypeListener
     public function onFinish(MvcEvent $e): void
     {
         $request = $e->getRequest();
+        if (!$request instanceof Request) {
+            return;
+        }
 
         foreach ($request->getFiles() as $fileInfo) {
             if (dirname(path: (string)$fileInfo['tmp_name']) !== $this->uploadTmpDir) {

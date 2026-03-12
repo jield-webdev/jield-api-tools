@@ -9,8 +9,6 @@ use Psr\Container\ContainerInterface;
 use Jield\ApiTools\Hal\RendererOptions;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Traversable;
-
 use function is_array;
 
 class RendererOptionsFactory
@@ -34,7 +32,6 @@ class RendererOptionsFactory
             $rendererConfig['render_embedded_entities'] = $rendererConfig['render_embedded_resources'];
         }
 
-        /** @psalm-var Traversable|array<array-key, mixed>|null $rendererConfig */
         return new RendererOptions(options: $rendererConfig);
     }
 }

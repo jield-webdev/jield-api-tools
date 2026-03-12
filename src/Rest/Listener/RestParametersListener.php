@@ -49,15 +49,13 @@ class RestParametersListener implements ListenerAggregateInterface
         foreach ($this->sharedListeners as $index => $listener) {
             switch ($eventManagerVersion) {
                 case 2:
-                    if ($events->detach(listener: RestController::class, identifier: $listener)) {
-                        unset($this->sharedListeners[$index]);
-                    }
+                    $events->detach(listener: RestController::class, identifier: $listener);
+                    unset($this->sharedListeners[$index]);
 
                     break;
                 case 3:
-                    if ($events->detach(listener: $listener, identifier: RestController::class, eventName: MvcEvent::EVENT_DISPATCH)) {
-                        unset($this->sharedListeners[$index]);
-                    }
+                    $events->detach(listener: $listener, identifier: RestController::class, eventName: MvcEvent::EVENT_DISPATCH);
+                    unset($this->sharedListeners[$index]);
 
                     break;
             }
@@ -75,6 +73,10 @@ class RestParametersListener implements ListenerAggregateInterface
         }
 
         $request  = $e->getRequest();
+        if (! method_exists(object_or_class: $request, method: 'getQuery')) {
+            return;
+        }
+
         $query    = $request->getQuery();
         $matches  = $e->getRouteMatch();
         $resource = $controller->getResource();

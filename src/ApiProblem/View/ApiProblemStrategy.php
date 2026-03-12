@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Jield\ApiTools\ApiProblem\View;
 
 use Jield\ApiTools\ApiProblem\ApiProblem;
+use Laminas\Http\Response as HttpResponse;
 use Laminas\View\Strategy\JsonStrategy;
 use Laminas\View\ViewEvent;
 
@@ -72,6 +73,10 @@ class ApiProblemStrategy extends JsonStrategy
 
         // Populate response
         $response = $e->getResponse();
+        if (! $response instanceof HttpResponse) {
+            return;
+        }
+
         $response->setStatusCode(code: $statusCode);
         $response->setContent($result);
 
@@ -87,7 +92,7 @@ class ApiProblemStrategy extends JsonStrategy
      */
     protected function getStatusCodeFromApiProblem(ApiProblem $problem): int
     {
-        $status = $problem->status;
+        $status = $problem->getStatus();
 
         if ($status < 100 || $status >= 600) {
             return 500;

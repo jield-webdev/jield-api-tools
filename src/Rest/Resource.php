@@ -25,6 +25,7 @@ use function gettype;
 use function is_array;
 use function is_bool;
 use function is_object;
+use function method_exists;
 use function sprintf;
 
 /**
@@ -82,7 +83,7 @@ class Resource implements ResourceInterface
         return $this->inputFilter;
     }
 
-    public function setQueryParams(Parameters $params): static
+    public function setQueryParams(?Parameters $params = null): static
     {
         $this->queryParams = $params;
         return $this;
@@ -505,6 +506,11 @@ class Resource implements ResourceInterface
             return new ArrayObject();
         }
 
-        return $this->getEventManager()->prepareArgs(args: $params);
+        $eventManager = $this->getEventManager();
+        if (method_exists($eventManager, 'prepareArgs')) {
+            return $eventManager->prepareArgs($params);
+        }
+
+        return new ArrayObject($params);
     }
 }

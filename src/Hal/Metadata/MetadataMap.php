@@ -65,7 +65,7 @@ class MetadataMap
      * of options used to define a Metadata instance.
      *
      * @param array<class-string, array<string,string>|Metadata> $map
-     * @return self
+     * @return static
      * @throws Exception\InvalidArgumentException
      */
     public function setMap(array $map): static

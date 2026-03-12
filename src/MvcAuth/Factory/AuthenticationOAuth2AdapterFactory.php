@@ -24,7 +24,7 @@ final class AuthenticationOAuth2AdapterFactory
      *
      * @param array|string $type
      * @param array $config
-     * @param ContainerInterface $services
+     * @param ContainerInterface $container
      * @return OAuth2Adapter
      */
     public static function factory(array|string $type, array $config, ContainerInterface $container): OAuth2Adapter
