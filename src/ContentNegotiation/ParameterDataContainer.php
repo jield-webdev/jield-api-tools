@@ -25,7 +25,7 @@ class ParameterDataContainer
 
     /**
      * @param  array $routeParams
-     * @return self
+     * @return static
      */
     public function setRouteParams(array $routeParams): static
     {
@@ -63,7 +63,7 @@ class ParameterDataContainer
 
     /**
      * @param  array $queryParams
-     * @return self
+     * @return static
      */
     public function setQueryParams(array $queryParams): static
     {
@@ -109,7 +109,7 @@ class ParameterDataContainer
 
     /**
      * @param  array $bodyParams
-     * @return self
+     * @return static
      */
     public function setBodyParams(array $bodyParams): static
     {

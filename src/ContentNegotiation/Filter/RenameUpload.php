@@ -41,11 +41,14 @@ class RenameUpload extends BaseFilter
     #[Override]
     protected function moveUploadedFile($sourceFile, $targetFile): bool
     {
-        if (
-            null === $this->request
-            || ! method_exists(object_or_class: $this->request, method: 'isPut')
-            || (! $this->request->isPut() && ! $this->request->isPatch())
-        ) {
+        $isPut = $this->request !== null
+            && method_exists(object_or_class: $this->request, method: 'isPut')
+            && $this->request->isPut();
+        $isPatch = $this->request !== null
+            && method_exists(object_or_class: $this->request, method: 'isPatch')
+            && $this->request->isPatch();
+
+        if (null === $this->request || (! $isPut && ! $isPatch)) {
             return parent::moveUploadedFile(sourceFile: $sourceFile, targetFile: $targetFile);
         }
 

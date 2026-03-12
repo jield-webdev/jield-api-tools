@@ -15,7 +15,7 @@ use Override;
  */
 class SendApiProblemResponseListener extends HttpResponseSender
 {
-    /** @var HttpResponse; */
+    /** @var HttpResponse */
     protected HttpResponse $applicationResponse;
 
     /** @var bool */
@@ -32,7 +32,7 @@ class SendApiProblemResponseListener extends HttpResponseSender
      * Set the flag determining whether exception stack traces are included.
      *
      * @param bool $flag
-     * @return self
+     * @return static
      */
     public function setDisplayExceptions(bool $flag): static
     {

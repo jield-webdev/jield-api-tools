@@ -75,7 +75,7 @@ class Link implements LinkInterface
             ));
         }
 
-        $link = new self(relation: $spec['rel']);
+        $link = new Link(relation: $spec['rel']);
         /** @psalm-suppress RedundantConditionGivenDocblockType */
         if (
             isset($spec['props'])
@@ -143,7 +143,7 @@ class Link implements LinkInterface
      * "href" will be ignored.
      *
      * @param array<string, mixed> $props
-     * @return self
+     * @return static
      */
     public function setProps(array $props): static
     {
@@ -165,7 +165,7 @@ class Link implements LinkInterface
         if ($this->hasUrl()) {
             throw new DomainException(message: sprintf(
                 '%s already has a URL set; cannot set route',
-                self::class
+                static::class
             ));
         }
 
@@ -186,7 +186,7 @@ class Link implements LinkInterface
      * Set route assembly options
      *
      * @param iterable $options
-     * @return self
+     * @return static
      * @throws Exception\InvalidArgumentException
      */
     public function setRouteOptions(iterable $options): static
@@ -203,7 +203,7 @@ class Link implements LinkInterface
      * Set route assembly parameters/substitutions
      *
      * @param Traversable|array<string, mixed> $params
-     * @return self
+     * @return static
      * @throws Exception\InvalidArgumentException
      */
     public function setRouteParams(iterable $params): static
@@ -221,7 +221,7 @@ class Link implements LinkInterface
      * Set an explicit URL for the link relation
      *
      * @param string $href
-     * @return self
+     * @return static
      * @throws DomainException
      * @throws Exception\InvalidArgumentException
      */
@@ -230,7 +230,7 @@ class Link implements LinkInterface
         if ($this->hasRoute()) {
             throw new DomainException(message: sprintf(
                 '%s already has a route set; cannot set URL',
-                self::class
+                static::class
             ));
         }
 

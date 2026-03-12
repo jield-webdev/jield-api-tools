@@ -12,7 +12,6 @@ use Laminas\Stdlib\JsonSerializable as StdlibJsonSerializable;
 use Laminas\View\Model\JsonModel as BaseJsonModel;
 use Override;
 use function json_last_error;
-use function method_exists;
 use const JSON_ERROR_CTRL_CHAR;
 use const JSON_ERROR_DEPTH;
 use const JSON_ERROR_NONE;
@@ -53,7 +52,7 @@ class JsonModel extends BaseJsonModel
      * Becomes a no-op; this model should always be terminal.
      *
      * @param bool $flag
-     * @return self
+     * @return static
      */
     #[Override]
     public function setTerminal($flag): static
@@ -87,9 +86,7 @@ class JsonModel extends BaseJsonModel
 
         // Use Jield\ApiTools\Hal\Entity's composed entity
         if ($variables instanceof HalEntity) {
-            $variables = method_exists(object_or_class: $variables, method: 'getEntity')
-                ? $variables->getEntity() // v1.2+
-                : $variables->entity;     // v1.0-1.1.*
+            $variables = $variables->getEntity();
         }
 
         // Use Jield\ApiTools\Hal\Collection's composed collection

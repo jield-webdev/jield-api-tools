@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Jield\ApiTools\Rest;
 
 use Laminas\EventManager\EventManagerAwareInterface;
+use Laminas\InputFilter\InputFilterInterface;
+use Laminas\Router\RouteMatch;
 use Laminas\Stdlib\Parameters;
+use Jield\ApiTools\MvcAuth\Identity\IdentityInterface;
 
 /**
  * Interface describing operations for a given resource.
@@ -29,6 +32,22 @@ interface ResourceInterface extends EventManagerAwareInterface
 
     public function getEventParam(mixed $name, mixed $default = null): mixed;
 
+    public function setIdentity(?IdentityInterface $identity = null): static;
+
+    public function getIdentity(): ?IdentityInterface;
+
+    public function setInputFilter(?InputFilterInterface $inputFilter = null): static;
+
+    public function getInputFilter(): ?InputFilterInterface;
+
+    public function setQueryParams(?Parameters $params = null): static;
+
+    public function getQueryParams(): ?Parameters;
+
+    public function setRouteMatch(?RouteMatch $matches = null): static;
+
+    public function getRouteMatch(): ?RouteMatch;
+
     /**
      * Create a record in the resource
      */
@@ -48,6 +67,11 @@ interface ResourceInterface extends EventManagerAwareInterface
      * Partial update of an existing record
      */
     public function patch(int|string $id, object|array $data): mixed;
+
+    /**
+     * Partial update of an existing collection of records
+     */
+    public function patchList(array $data): object|array;
 
     /**
      * Delete an existing record

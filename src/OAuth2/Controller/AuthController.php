@@ -13,6 +13,7 @@ use Jield\ApiTools\OAuth2\Provider\UserId\UserIdProviderInterface;
 use Laminas\Http\PhpEnvironment\Request as PhpEnvironmentRequest;
 use Laminas\Http\Request as HttpRequest;
 use Laminas\Http\Response;
+use Laminas\Http\Header\HeaderInterface;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\Stdlib\ResponseInterface;
 use OAuth2\Request as OAuth2Request;
@@ -98,6 +99,8 @@ class AuthController extends AbstractActionController
             );
         }
 
+        Assert::isInstanceOf(value: $response, class: OAuth2Response::class, message: 'Did not receive OAuth2 response instance');
+
         if ($response->isClientError()) {
             return $this->getErrorResponse(response: $response);
         }
@@ -124,6 +127,7 @@ class AuthController extends AbstractActionController
 
         $oauth2request = $this->getOAuth2Request();
         $response      = $this->getOAuth2Server(type: $this->params('oauth'))->handleRevokeRequest(request: $oauth2request);
+        Assert::isInstanceOf(value: $response, class: OAuth2Response::class, message: 'Did not receive OAuth2 response instance');
 
         if ($response->isClientError()) {
             return $this->getErrorResponse(response: $response);
@@ -151,6 +155,7 @@ class AuthController extends AbstractActionController
         }
 
         $httpResponse = $this->getResponse();
+        Assert::isInstanceOf(value: $httpResponse, class: Response::class, message: 'Cannot use non-HTTP response instance');
         $httpResponse->setStatusCode(code: 200);
         $httpResponse->getHeaders()->addHeaders(headers: ['Content-type' => 'application/json']);
         $httpResponse->setContent(
@@ -266,11 +271,15 @@ class AuthController extends AbstractActionController
     protected function getOAuth2Request(): OAuth2Request
     {
         $laminasRequest = $this->getRequest();
+        Assert::isInstanceOf(value: $laminasRequest, class: HttpRequest::class, message: 'Cannot build OAuth2 request without HTTP request');
         $headers        = $laminasRequest->getHeaders();
 
         // Marshal content type, so we can seed it into the $_SERVER array
         if ($headers->has(name: 'Content-Type')) {
-            $headers->get(name: 'Content-Type')->getFieldValue();
+            $contentTypeHeader = $headers->get(name: 'Content-Type');
+            if ($contentTypeHeader instanceof HeaderInterface) {
+                $contentTypeHeader->getFieldValue();
+            }
         }
 
         // Get $_SERVER superglobal

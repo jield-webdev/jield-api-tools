@@ -223,7 +223,7 @@ class ApiProblem
      * stack trace and previous exception information.
      *
      * @param bool $flag
-     * @return ApiProblem
+     * @return static
      */
     public function setDetailIncludesStackTrace(bool $flag): static
     {
@@ -255,7 +255,7 @@ class ApiProblem
      * If an exception was provided, creates the status code from it;
      * otherwise, code as provided is used.
      */
-    protected function getStatus(): int
+    public function getStatus(): int
     {
         if ($this->detail instanceof Throwable) {
             $this->status = (int)$this->createStatusFromException();
@@ -277,7 +277,7 @@ class ApiProblem
      *
      * @return string
      */
-    protected function getTitle(): ?string
+    public function getTitle(): ?string
     {
         if (null !== $this->title) {
             return $this->title;

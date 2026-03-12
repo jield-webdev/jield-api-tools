@@ -89,21 +89,21 @@ class Metadata
     protected bool $forceSelfLink = true;
 
     /**
-     * Route to use to generate a self link for this entity
+     * Route to use to generate a static link for this entity
      *
      * @var string
      */
     protected string $route;
 
     /**
-     * Additional options to use when generating a self link for this entity
+     * Additional options to use when generating a static link for this entity
      *
      * @var array
      */
     protected array $routeOptions = [];
 
     /**
-     * Additional route parameters to use when generating a self link for this entity
+     * Additional route parameters to use when generating a static link for this entity
      *
      * @var array<string,mixed>
      */
@@ -141,7 +141,7 @@ class Metadata
         if (!class_exists(class: $class)) {
             throw new Exception\InvalidArgumentException(message: sprintf(
                 'Class provided to %s must exist; received "%s"',
-                self::class,
+                static::class,
                 $class
             ));
         }
@@ -387,7 +387,7 @@ class Metadata
      * Set the collection name
      *
      * @param string $collectionName
-     * @return self
+     * @return static
      */
     public function setCollectionName(string $collectionName): static
     {
@@ -399,7 +399,7 @@ class Metadata
      * Set the hydrator to use with this class
      *
      * @param string|ExtractionInterface $hydrator
-     * @return self
+     * @return static
      * @throws Exception\InvalidArgumentException If the class or hydrator does not implement ExtractionInterface.
      */
     public function setHydrator(ExtractionInterface|string $hydrator): static
@@ -439,7 +439,7 @@ class Metadata
      * Set the entity identifier name
      *
      * @param string $identifier
-     * @return self
+     * @return static
      */
     public function setEntityIdentifierName(string $identifier): static
     {
@@ -451,7 +451,7 @@ class Metadata
      * Set the route identifier name
      *
      * @param string $identifier
-     * @return self
+     * @return static
      */
     public function setRouteIdentifierName(string $identifier): static
     {
@@ -463,7 +463,7 @@ class Metadata
      * Set the flag indicating collection status
      *
      * @param bool $flag
-     * @return self
+     * @return static
      */
     public function setIsCollection(bool $flag): static
     {
@@ -502,7 +502,7 @@ class Metadata
      * Set the entity route (for embedded entities in collections)
      *
      * @param string $route
-     * @return self
+     * @return static
      */
     public function setEntityRoute(string $route): static
     {
@@ -516,7 +516,7 @@ class Metadata
      * Deprecated; please use setEntityRoute().
      *
      * @param string $route
-     * @return self
+     * @return static
      * @deprecated
      *
      */
@@ -525,7 +525,7 @@ class Metadata
         trigger_error(message: sprintf(
             '%s is deprecated; please use %s::setEntityRoute',
             __METHOD__,
-            self::class
+            static::class
         ), error_level: E_USER_DEPRECATED);
         return $this->setEntityRoute(route: $route);
     }
@@ -534,7 +534,7 @@ class Metadata
      * Set the route for URL generation
      *
      * @param string $route
-     * @return self
+     * @return static
      */
     public function setRoute(string $route): static
     {
@@ -546,7 +546,7 @@ class Metadata
      * Set route options for URL generation
      *
      * @param array $options
-     * @return self
+     * @return static
      */
     public function setRouteOptions(array $options): static
     {
@@ -558,7 +558,7 @@ class Metadata
      * Set route parameters for URL generation
      *
      * @param array<string,mixed> $params
-     * @return self
+     * @return static
      */
     public function setRouteParams(array $params): static
     {
@@ -570,7 +570,7 @@ class Metadata
      * Set the URL to use with this entity
      *
      * @param string $url
-     * @return self
+     * @return static
      */
     public function setUrl(string $url): static
     {
@@ -582,7 +582,7 @@ class Metadata
      * Set the maximum number of nesting levels
      *
      * @param int $maxDepth
-     * @return self
+     * @return static
      */
     public function setMaxDepth(int $maxDepth): static
     {

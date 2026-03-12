@@ -21,7 +21,7 @@ class DomainException extends \DomainException implements
 
     /**
      * @param array $details
-     * @return self
+     * @return static
      */
     public function setAdditionalDetails(array $details): static
     {
@@ -31,7 +31,7 @@ class DomainException extends \DomainException implements
 
     /**
      * @param string $uri
-     * @return self
+     * @return static
      */
     public function setType(string $uri): static
     {
@@ -41,7 +41,7 @@ class DomainException extends \DomainException implements
 
     /**
      * @param string $title
-     * @return self
+     * @return static
      */
     public function setTitle(string $title): static
     {

@@ -9,6 +9,7 @@ use Jield\ApiTools\Rest\AbstractResourceListener;
 use Jield\ApiTools\Rest\Resource;
 use Jield\ApiTools\Rest\RestController;
 use Laminas\EventManager\Event;
+use Laminas\InputFilter\InputFilter;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
@@ -174,6 +175,10 @@ class RestControllerFactory implements AbstractFactoryInterface
                     $whitelist = $value;
                     $controller->getEventManager()->attach(eventName: 'getList.pre', listener: function (Event $e) use ($whitelist) {
                         $controller = $e->getTarget();
+                        if (! $controller instanceof RestController) {
+                            return;
+                        }
+
                         $resource   = $controller->getResource();
                         if (!$resource instanceof Resource) {
                             // ResourceInterface does not define setQueryParams, so we need
@@ -190,7 +195,7 @@ class RestControllerFactory implements AbstractFactoryInterface
                         $params = new Parameters(values: []);
 
                         // If a query Input Filter exists, merge its keys with the query whitelist
-                        if ($resource->getInputFilter() instanceof \Laminas\InputFilter\InputFilterInterface) {
+                        if ($resource->getInputFilter() instanceof InputFilter) {
                             $whitelist = array_unique(array: array_merge(
                                 $whitelist,
                                 array_keys(array: $resource->getInputFilter()->getInputs())
@@ -210,6 +215,10 @@ class RestControllerFactory implements AbstractFactoryInterface
 
                     $controller->getEventManager()->attach(eventName: 'getList.post', listener: function (Event $e) {
                         $controller = $e->getTarget();
+                        if (! $controller instanceof RestController) {
+                            return;
+                        }
+
                         $resource   = $controller->getResource();
                         if (!$resource instanceof Resource) {
                             // ResourceInterface does not define setQueryParams, so we need
@@ -222,7 +231,8 @@ class RestControllerFactory implements AbstractFactoryInterface
                             return;
                         }
 
-                        $params = $resource->getQueryParams()->getArrayCopy();
+                        $queryParams = $resource->getQueryParams();
+                        $params = $queryParams instanceof Parameters ? $queryParams->getArrayCopy() : [];
 
                         // Set collection route options with the captured query whitelist, to
                         // ensure paginated links are generated correctly
@@ -238,6 +248,10 @@ class RestControllerFactory implements AbstractFactoryInterface
 
                         // If self link is defined, but is not route-based, return
                         $self = $links->get(relation: 'self');
+                        if (!$self instanceof \Jield\ApiTools\Hal\Link\Link) {
+                            return;
+                        }
+
                         if (!$self->hasRoute()) {
                             return;
                         }
@@ -245,6 +259,10 @@ class RestControllerFactory implements AbstractFactoryInterface
                         // Otherwise, merge the query string parameters with
                         // the self link's route options
                         $self    = $links->get(relation: 'self');
+                        if (!$self instanceof \Jield\ApiTools\Hal\Link\Link) {
+                            return;
+                        }
+
                         $options = $self->getRouteOptions();
                         $self->setRouteOptions(options: array_merge($options, [
                             'query' => $params,

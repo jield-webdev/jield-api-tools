@@ -33,12 +33,14 @@ class UploadFile extends BaseValidator
     #[Override]
     public function isValid($value): bool
     {
-        if (
-            null === $this->request
-            || !method_exists(object_or_class: $this->request, method: 'isPut')
-            || (!$this->request->isPut()
-                && !$this->request->isPatch())
-        ) {
+        $isPut = $this->request !== null
+            && method_exists(object_or_class: $this->request, method: 'isPut')
+            && $this->request->isPut();
+        $isPatch = $this->request !== null
+            && method_exists(object_or_class: $this->request, method: 'isPatch')
+            && $this->request->isPatch();
+
+        if (null === $this->request || (! $isPut && ! $isPatch)) {
             // In absence of a request object, an HTTP request, or a PATCH/PUT
             // operation, just use the parent logic.
             return parent::isValid(value: $value);

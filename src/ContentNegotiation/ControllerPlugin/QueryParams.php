@@ -20,6 +20,15 @@ class QueryParams extends AbstractPlugin
             }
         }
 
-        return $this->getController()->getRequest()->getQuery()->toArray();
+        if (!method_exists(object_or_class: $controller, method: 'getRequest')) {
+            return [];
+        }
+
+        $request = $controller->getRequest();
+        if (!method_exists(object_or_class: $request, method: 'getQuery')) {
+            return [];
+        }
+
+        return $request->getQuery()->toArray();
     }
 }

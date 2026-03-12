@@ -120,7 +120,7 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
 
         $serviceManager->get(name: ContentValidationListener::class)->attach($eventManager);
 
-        if ($e->getRequest() instanceof HttpRequest) {
+        if ($e instanceof MvcEvent && $e->getRequest() instanceof HttpRequest) {
             $authentication = $serviceManager->get(name: 'authentication');
             $mvcAuthEvent   = new MvcAuthEvent(
                 mvcEvent: $e,

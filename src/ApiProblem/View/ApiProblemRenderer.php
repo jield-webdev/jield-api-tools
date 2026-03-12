@@ -21,7 +21,7 @@ class ApiProblemRenderer extends JsonRenderer
      * Set display_exceptions flag.
      *
      * @param bool $flag
-     * @return self
+     * @return static
      */
     public function setDisplayExceptions(bool $flag): static
     {

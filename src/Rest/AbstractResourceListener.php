@@ -246,7 +246,7 @@ abstract class AbstractResourceListener implements ListenerAggregateInterface
     /**
      * Update a resource
      *
-     * @return ApiProblem|mixed
+     * @return array|ApiProblem
      */
     public function update(int $id, Parameters $data): array|ApiProblem
     {

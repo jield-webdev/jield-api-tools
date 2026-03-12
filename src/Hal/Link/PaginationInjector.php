@@ -107,7 +107,7 @@ class PaginationInjector implements PaginationInjectorInterface
 
     /**
      * @param string $relation
-     * @param int|null $page
+     * @param int $page
      */
     private function createPaginationLink(string $relation, Collection $halCollection, int $page = 1): Link
     {

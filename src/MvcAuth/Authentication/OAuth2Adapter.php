@@ -8,6 +8,7 @@ use Jield\ApiTools\MvcAuth\Identity;
 use Jield\ApiTools\MvcAuth\MvcAuthEvent;
 use Laminas\Http\Request;
 use Laminas\Http\Response;
+use Laminas\Http\Header\ContentType as ContentTypeHeader;
 use OAuth2\Request as OAuth2Request;
 use OAuth2\Response as OAuth2Response;
 use OAuth2\Server as OAuth2Server;
@@ -86,10 +87,14 @@ class OAuth2Adapter extends AbstractAdapter
             return 'oauth2';
         }
 
+        $contentTypeHeader = $request->getHeaders()->has(name: 'Content-Type')
+            ? $request->getHeaders()->get(name: 'Content-Type')
+            : null;
+
         if (
             !in_array(needle: $request->getMethod(), haystack: $this->requestsWithoutBodies)
-            && $request->getHeaders()->has(name: 'Content-Type')
-            && $request->getHeaders()->get(name: 'Content-Type')->match('application/x-www-form-urlencoded')
+            && $contentTypeHeader instanceof ContentTypeHeader
+            && $contentTypeHeader->match('application/x-www-form-urlencoded')
             && $request->getPost(name: 'access_token')
         ) {
             return 'oauth2';

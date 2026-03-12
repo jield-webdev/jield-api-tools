@@ -46,8 +46,8 @@ class HalJsonModel extends JsonModel
      */
     public function isResource(): bool
     {
-        trigger_error(message: sprintf('%s is deprecated; please use %s::isEntity', __METHOD__, self::class), error_level: E_USER_DEPRECATED);
-        return self::isEntity();
+        trigger_error(message: sprintf('%s is deprecated; please use %s::isEntity', __METHOD__, static::class), error_level: E_USER_DEPRECATED);
+        return static::isEntity();
     }
 
     /**
@@ -90,7 +90,7 @@ class HalJsonModel extends JsonModel
      * Does nothing; does not allow re-setting "terminate" terminate.
      *
      * @param  bool $terminate
-     * @return self
+     * @return static
      */
     #[Override]
     public function setTerminal($terminate = true): static

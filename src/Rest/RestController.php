@@ -28,6 +28,7 @@ use function array_keys;
 use function is_array;
 use function is_int;
 use function is_object;
+use function method_exists;
 use function sprintf;
 
 /**
@@ -891,7 +892,14 @@ class RestController extends AbstractRestfulController
 
         try {
             $collection->setPageSize(size: $this->getPageSize());
-            $collection->setPage(page: (int)$this->getRequest()->getQuery(name: 'page', default: 1));
+
+            $request = $this->getRequest();
+            $page = 1;
+            if (method_exists(object_or_class: $request, method: 'getQuery')) {
+                $page = (int) $request->getQuery('page', 1);
+            }
+
+            $collection->setPage(page: $page);
         } catch (HalInvalidArgumentException $halInvalidArgumentException) {
             return new ApiProblem(status: 400, detail: $halInvalidArgumentException->getMessage());
         }

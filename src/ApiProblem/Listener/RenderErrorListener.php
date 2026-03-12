@@ -8,6 +8,7 @@ use Exception;
 use Jield\ApiTools\ApiProblem\ApiProblem;
 use Laminas\EventManager\AbstractListenerAggregate;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Http\Response as HttpResponse;
 use Laminas\Mvc\MvcEvent;
 use Laminas\View\Exception\ExceptionInterface as ViewExceptionInterface;
 use Override;
@@ -35,7 +36,7 @@ class RenderErrorListener extends AbstractListenerAggregate
 
     /**
      * @param bool $flag
-     * @return RenderErrorListener
+     * @return static
      */
     public function setDisplayExceptions(bool $flag): static
     {
@@ -56,6 +57,9 @@ class RenderErrorListener extends AbstractListenerAggregate
     public function onRenderError(MvcEvent $e): void
     {
         $response    = $e->getResponse();
+        if (! $response instanceof HttpResponse) {
+            return;
+        }
         $status      = 406;
         $title       = 'Not Acceptable';
         $describedBy = 'https://datatracker.ietf.org/doc/html/rfc7231#section-6';

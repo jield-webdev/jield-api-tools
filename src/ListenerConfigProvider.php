@@ -10,7 +10,10 @@ use Jield\ApiTools\Listener\AbstractRoutedListener;
 use Jield\ApiTools\ValueObject\ListenerValueObject;
 use Laminas\ConfigAggregator\GlobTrait;
 use ReflectionClass;
+use ReflectionIntersectionType;
 use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionUnionType;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -44,7 +47,7 @@ final class ListenerConfigProvider
                 $routeType   = RouteTypeEnum::ENTITY;
                 $routeMethod = RouteMethodEnum::GET;
 
-                /** @var AbstractRoutedListener $staticClass */
+                /** @var class-string<AbstractRoutedListener> $staticClass */
                 $staticClass = $className;
 
                 //Based on the available methods we can determine the routeType and the Method
@@ -123,7 +126,18 @@ final class ListenerConfigProvider
 
         $arguments = [];
         foreach ($constructor->getParameters() as $parameter) {
-            $arguments[] = $parameter->getType()->getName();
+            $type = $parameter->getType();
+            if ($type instanceof ReflectionNamedType) {
+                $arguments[] = $type->getName();
+                continue;
+            }
+
+            if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
+                $arguments[] = (string) $type;
+                continue;
+            }
+
+            $arguments[] = null;
         }
 
         return $arguments;

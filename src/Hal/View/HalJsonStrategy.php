@@ -49,7 +49,7 @@ class HalJsonStrategy extends JsonStrategy
 
         // JsonModel found
         if (method_exists(object_or_class: $this->renderer, method: 'setViewEvent')) {
-            $this->renderer->setViewEvent(event: $e);
+            $this->renderer->setViewEvent($e);
         }
 
         return $this->renderer;

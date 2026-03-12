@@ -46,8 +46,7 @@ interface AdapterInterface
     /**
      * Attempt to authenticate the current request.
      *
-     * @return false|IdentityInterface False on failure, IdentityInterface
-     *     otherwise
+     * @return IdentityInterface|\Laminas\Http\PhpEnvironment\Response
      */
     public function authenticate(Request $request, Response $response, MvcAuthEvent $mvcAuthEvent): IdentityInterface|\Laminas\Http\PhpEnvironment\Response;
 }
