@@ -77,6 +77,10 @@ class PdoAdapter extends OAuth2Pdo
     {
         $userInfo = parent::getUser($username);
 
+        if (!$userInfo) {
+            return false;
+        }
+
         //Save the ID in the user_id field
         $userInfo['user_id'] = $userInfo['id'];
 
