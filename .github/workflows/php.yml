@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - main
+      - allow-php85
   pull_request:
 
 jobs:
@@ -15,17 +16,17 @@ jobs:
           - locked
           - highest
         php:
-          - 8.3
           - 8.4
+          - 8.5
         include:
-          - php-version: 8.4
+          - php-version: 8.5
             composer-options: "--ignore-platform-reqs"
 
     runs-on: ubuntu-latest
 
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "Install PHP"
         uses: shivammathur/setup-php@v2
