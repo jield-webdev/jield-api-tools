@@ -20,9 +20,6 @@ use const E_USER_DEPRECATED;
  */
 class HalJsonModel extends JsonModel
 {
-    /** @var bool */
-    protected $terminate = true;
-
     /**
      * Does the payload represent a HAL collection?
      *

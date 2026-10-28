@@ -29,16 +29,13 @@ class RestParametersListener implements ListenerAggregateInterface
 
     public function attachShared(SharedEventManagerInterface $events): void
     {
-        $listener = $events->attach(
+        $listener = $this->onDispatch(...);
+        $events->attach(
             RestController::class,
             MvcEvent::EVENT_DISPATCH,
-            listener: $this->onDispatch(...),
+            listener: $listener,
             priority: 100
         );
-
-        if (! $listener) {
-            $listener = $this->onDispatch(...);
-        }
 
         $this->sharedListeners[] = $listener;
     }

@@ -9,17 +9,14 @@ use Laminas\View\Model\ViewModel;
 
 class ApiProblemModel extends ViewModel
 {
-    /** @var string */
-    protected $captureTo = 'errors';
-
     /** @var ApiProblem */
     protected ApiProblem $problem;
 
-    /** @var bool */
-    protected $terminate = true;
-
     public function __construct(?ApiProblem $problem = null)
     {
+        $this->captureTo = 'errors';
+        $this->terminate = true;
+
         if ($problem instanceof ApiProblem) {
             $this->setApiProblem(problem: $problem);
         }

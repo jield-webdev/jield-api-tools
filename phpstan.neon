@@ -3,3 +3,19 @@ parameters:
     level: 2
     paths:
         - src
+    # These public classes extend Laminas 2.x classes that were later marked
+    # @final in PHPDoc. Keep their existing inheritance until the view and
+    # paginator integrations can be migrated without breaking consumers.
+    ignoreErrors:
+        -
+            identifier: class.extendsFinalByPhpDoc
+            paths:
+                - src/ApiProblem/View/ApiProblemModel.php
+                - src/ApiProblem/View/ApiProblemRenderer.php
+                - src/ApiProblem/View/ApiProblemStrategy.php
+                - src/ContentNegotiation/JsonModel.php
+                - src/ContentNegotiation/ViewModel.php
+                - src/Hal/View/HalJsonModel.php
+                - src/Hal/View/HalJsonRenderer.php
+                - src/Hal/View/HalJsonStrategy.php
+                - src/Paginator/CustomAdapter.php
