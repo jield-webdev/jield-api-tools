@@ -104,7 +104,12 @@ class DefaultAuthenticationListenerFactory implements FactoryInterface
             // If the service locator already has a pre-configured OAuth2 server, use it.
             $factory = $container->get('Jield\ApiTools\OAuth2\Service\OAuth2Server');
 
-            return new OAuth2Adapter(oauth2Server: $factory());
+            $types = array_values(array_unique(array_merge(
+                ['oauth2'],
+                $config['api-tools-mvc-auth']['authentication']['map'] ?? []
+            )));
+
+            return new OAuth2Adapter(oauth2Server: $factory(), types: $types);
         }
 
         $factory = new LaminasOAuth2ServerFactory();

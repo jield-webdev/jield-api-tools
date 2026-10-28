@@ -11,7 +11,6 @@ use Jield\ApiTools\ValueObject\ListenerValueObject;
 use Laminas\ConfigAggregator\GlobTrait;
 use ReflectionClass;
 use ReflectionIntersectionType;
-use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionUnionType;
 use Symfony\Component\Finder\Finder;
@@ -23,13 +22,21 @@ final class ListenerConfigProvider
 
     private array $listeners = [];
 
-    public function __construct()
+    /** @param array<string, string> $listenerPaths Namespace prefixes mapped to directories. */
+    public function __construct(array $listenerPaths = [])
+    {
+        foreach ($listenerPaths as $namespace => $directory) {
+            $this->discover($directory, $namespace);
+        }
+    }
+
+    private function discover(string $directory, string $namespace): void
     {
         $finder = new Finder();
-        $finder->files()->name(patterns: '*Listener.php')->in(dirs: __DIR__ . '/../../../../module/api/src/V1/Rest');
+        $finder->files()->name(patterns: '*Listener.php')->in(dirs: $directory);
 
         foreach ($finder as $fileInfo) {
-            $className       = $this->getClassNameFromFileInfo(fileInfo: $fileInfo);
+            $className       = $this->getClassNameFromFileInfo(fileInfo: $fileInfo, namespace: $namespace);
             $reflectionClass = $this->getReflectionClassFromClassName(className: $className);
 
             if ($reflectionClass->isInstantiable() && $reflectionClass->isSubclassOf(
@@ -101,9 +108,9 @@ final class ListenerConfigProvider
         }
     }
 
-    private function getClassNameFromFileInfo(SplFileInfo $fileInfo): string
+    private function getClassNameFromFileInfo(SplFileInfo $fileInfo, string $namespace): string
     {
-        return 'Api\\V1\\Rest\\' . str_replace(
+        return trim($namespace, '\\') . '\\' . str_replace(
                 search: ['/', '.php'],
                 replace: ['\\', ''],
                 subject: $fileInfo->getRelativePathname()
@@ -122,7 +129,10 @@ final class ListenerConfigProvider
 
     private function getConstructorArguments(string $className): array
     {
-        $constructor = new ReflectionMethod(objectOrMethod: $className, method: '__construct');
+        $constructor = new ReflectionClass($className)->getConstructor();
+        if ($constructor === null) {
+            return [];
+        }
 
         $arguments = [];
         foreach ($constructor->getParameters() as $parameter) {
@@ -133,7 +143,7 @@ final class ListenerConfigProvider
             }
 
             if ($type instanceof ReflectionUnionType || $type instanceof ReflectionIntersectionType) {
-                $arguments[] = (string) $type;
+                $arguments[] = (string)$type;
                 continue;
             }
 

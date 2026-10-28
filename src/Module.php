@@ -50,11 +50,10 @@ final class Module implements ConfigProviderInterface, BootstrapListenerInterfac
     #[Override]
     public function getConfig(): array
     {
-        return (new ConfigAggregator(providers: [
+        return new ConfigAggregator(providers: [
             ConfigProvider::class,
-            ListenerConfigProvider::class,
             SettingsProvider::class,
-        ]))->getMergedConfig();
+        ])->getMergedConfig();
     }
 
     public function init($moduleManager): void

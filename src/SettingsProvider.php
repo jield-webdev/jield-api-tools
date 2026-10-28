@@ -119,9 +119,7 @@ final class SettingsProvider
             ],
             'api-tools-mvc-auth'            => [
                 'authentication' => [
-                    'map'      => [
-                        'Api\\V1' => 'jield_oauth2_pdo_adapter',
-                    ],
+                    'map'      => [],
                     'adapters' => [
                         'jield_oauth2_pdo_adapter' => [
                             'adapter' => OAuth2Adapter::class,

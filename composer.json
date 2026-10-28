@@ -36,7 +36,13 @@
     "psr/link": "^2.0",
     "zircote/swagger-php": "^5",
     "swagger-api/swagger-ui": "^5.34",
-    "ext-fileinfo": "*"
+    "ext-fileinfo": "*",
+    "firebase/php-jwt": "^7.2",
+    "guzzlehttp/guzzle": "^7",
+    "symfony/cache": "^5.4 || ^6 || ^7",
+    "symfony/finder": "^5.4 || ^6 || ^7",
+    "psr/cache": "^1 || ^2 || ^3",
+    "ext-openssl": "*"
   },
   "require-dev": {
     "iteaoffice/testing": "^5.1"

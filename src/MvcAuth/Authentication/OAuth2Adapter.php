@@ -13,6 +13,7 @@ use OAuth2\Request as OAuth2Request;
 use OAuth2\Response as OAuth2Response;
 use OAuth2\Server as OAuth2Server;
 use Override;
+use Throwable;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -136,7 +137,25 @@ class OAuth2Adapter extends AbstractAdapter
             headers: $request->getHeaders()->toArray()
         );
 
-        $token = $this->oauth2Server->getAccessTokenData(request: $oauth2request);
+        try {
+            $token = $this->oauth2Server->getAccessTokenData(request: $oauth2request);
+        } catch (Throwable $exception) {
+            // The OAuth2 JWT decoder can raise an OpenSSL error for a missing or malformed public key.
+            if (!str_starts_with($exception->getMessage(), 'openssl_verify():')) {
+                throw $exception;
+            }
+
+            $response->setStatusCode(401);
+            $response->getHeaders()->addHeaderLine('Content-Type', 'application/json');
+            $response->getHeaders()->addHeaderLine('Cache-Control', 'no-store');
+            $response->getHeaders()->addHeaderLine('WWW-Authenticate', 'Bearer error="invalid_token"');
+            $response->setContent(json_encode([
+                'error' => 'invalid_token',
+                'error_description' => 'The access token provided is invalid',
+            ], JSON_THROW_ON_ERROR));
+
+            return $response;
+        }
 
         // Failure to validate
         if (!$token) {

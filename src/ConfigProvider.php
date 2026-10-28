@@ -178,6 +178,11 @@ final class ConfigProvider
                 RestParametersListener::class => RestParametersListener::class,
             ],
             'factories'  => [
+                \Jield\ApiTools\OAuth2\EntraJwksProvider::class => \Jield\ApiTools\OAuth2\Factory\EntraJwksProviderFactory::class,
+                \Jield\ApiTools\OAuth2\EntraOnBehalfOfClient::class => \Jield\ApiTools\OAuth2\Factory\EntraOnBehalfOfClientFactory::class,
+                \Jield\ApiTools\OAuth2\EntraTokenValidator::class => \Jield\ApiTools\OAuth2\Factory\EntraTokenValidatorFactory::class,
+                \Jield\ApiTools\OAuth2\TokenExchange::class => \Jield\ApiTools\OAuth2\Factory\TokenExchangeFactory::class,
+
                 \Jield\ApiTools\Rest\Listener\OptionsListener::class => \Jield\ApiTools\Rest\Factory\OptionsListenerFactory::class,
                 OptionsListener::class                               => OptionsListenerFactory::class,
 
