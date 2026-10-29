@@ -92,11 +92,13 @@ release behavior from the tag automatically; no workflow or Composer version cha
 Consumers can opt into a specific beta or accept later compatible beta releases:
 
 ```shell
-composer require 'jield-webdev/jield-api-tools:2.0.0-beta.1'
-composer require 'jield-webdev/jield-api-tools:^2.0@beta'
+composer require 'jield-webdev/jield-api-tools:2.0.0-beta.1' 'solarium/solarium:dev-master'
+composer require 'jield-webdev/jield-api-tools:^2.0@beta' 'solarium/solarium:dev-master'
 ```
 
-These are alternatives; choose one constraint. On PHP 8.5, append `--ignore-platform-req=php+` while upstream
-PHP upper bounds still apply. Applications can keep their project-wide `minimum-stability` unchanged.
+These are alternatives; choose one constraint. The explicit Solarium requirement opts into the package's existing
+`dev-master` dependency, which Composer otherwise rejects under its default stability policy. Applications can keep
+their project-wide `minimum-stability` unchanged. On PHP 8.5, append `--ignore-platform-req=php+` while upstream
+PHP upper bounds still apply.
 
 For development directly from the branch, use `jield-webdev/jield-api-tools:2.x-dev`.

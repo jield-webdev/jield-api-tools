@@ -9,8 +9,11 @@ separate. Version 2 requires PHP 8.4 or 8.5.
 Install the first beta explicitly:
 
 ```shell
-composer require 'jield-webdev/jield-api-tools:2.0.0-beta.1'
+composer require 'jield-webdev/jield-api-tools:2.0.0-beta.1' 'solarium/solarium:dev-master'
 ```
+
+The package currently depends on Solarium's development branch. The explicit Solarium requirement allows that
+dependency without changing the application's project-wide `minimum-stability`.
 
 Some upstream dependencies still restrict PHP to 8.4. On PHP 8.5, append `--ignore-platform-req=php+` to the
 Composer command to ignore only PHP upper bounds while retaining minimum versions and extension requirements.
