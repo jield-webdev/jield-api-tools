@@ -10,12 +10,12 @@
 
 Use these tag formats:
 
-| Release | Tag |
-| --- | --- |
-| First beta | `v2.0.0-beta.1` |
-| Next beta | `v2.0.0-beta.2` |
-| Release candidate | `v2.0.0-rc.1` |
-| First stable version | `v2.0.0` |
+| Release              | Tag                  |
+|----------------------|----------------------|
+| First beta           | `v2.0.0-beta.1`      |
+| Next beta            | `v2.0.0-beta.2`      |
+| Release candidate    | `v2.0.0-rc.1`        |
+| First stable version | `v2.0.0`             |
 | Later minor or patch | `v2.1.0` or `v2.0.1` |
 
 The workflow also accepts numbered alpha tags, for example `v2.1.0-alpha.1`. Prerelease numbers start at 1.
