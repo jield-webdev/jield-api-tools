@@ -1,6 +1,5 @@
 {
   "name": "jield-webdev/jield-api-tools",
-  "version": "1.0.0",
   "description": "Own implementation of API endpoints. This repository is based on the Laminas API tools but includes shared functionality to easily create API endpoints",
   "type": "library",
   "keywords": [
@@ -68,10 +67,6 @@
   "extra": {
     "laminas": {
       "module": "Jield\\ApiTools\\Module"
-    },
-    "branch-alias": {
-      "dev-main": "1.0-dev",
-      "dev-develop": "1.1-dev"
     }
   },
   "scripts": {
