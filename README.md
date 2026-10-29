@@ -57,6 +57,11 @@ validator before creating an identity. The package handles bearer parsing, rejec
 registration and nonpersistent authentication storage. The application attaches its listener to
 `MvcAuthEvent::EVENT_AUTHENTICATION` at its chosen priority.
 
+Use `EntraIdentity::isApplication()` and `EntraIdentity::scopes($claims, $applicationRoles)` only after validation to
+interpret the principal and permissions. Delegated permissions come from `scp`; application permissions are restricted
+to the consuming application's explicit role allow list, which defaults to empty. `EntraIdentity::applicationSubject()`
+formats stable `spn:TENANT_ID:OBJECT_ID` subjects. The consuming application owns its permission catalogue and policy.
+
 Implement `TokenExchangeInterface` for application client/user authorization and persistence, then inject it into
 `OAuth2\Controller\TokenExchangeController`. Use `TokenExchange::validateRequest()` and `issueToken()` for RFC request
 checks, signed access tokens and source expiry limits. Exchanges do not issue refresh tokens. Normal OAuth authorization
@@ -67,3 +72,33 @@ Run package tests with `vendor/bin/phpunit`. When developing against an applicat
 ```shell
 API_TOOLS_TEST_AUTOLOAD=../solodb/vendor/autoload.php ../solodb/vendor/bin/phpunit -c phpunit.xml
 ```
+
+### Declare listener scope policies
+
+`AbstractRoutedListener` exposes scope metadata alongside routing and pagination:
+
+```php
+protected static array $scopes = ['GET' => ['Example.Read'], 'PATCH' => ['Example.Write']];
+protected static array $applicationScopes = []; // Optional scope allow list for application identities.
+protected static bool $requireAccessToken = false; // Set true to reject session-only/guest requests too.
+```
+
+Each method lists accepted alternatives. Matching is exact and case-sensitive, with no implicit write-to-read or
+wildcard grants. HEAD falls back to GET unless explicitly declared. An empty method policy denies bearer access.
+The getters are `getScopes()`, `getScopesForMethod()`, `getApplicationScopes()` and `requiresAccessToken()`.
+
+Extend `OAuth2\AbstractListenerScopeGuard`, implement `validateIdentity(MvcEvent $event, array $identity): ?Response`,
+and attach it to `MvcEvent::EVENT_ROUTE` after authentication and HTTP method overrides, before application
+permissions (for example priority `-52` with the package defaults). Register the application's concrete guard in its
+service manager; the package does not automatically enable it for existing consumers.
+
+The guard rejects expired identities, matches method scopes, restricts application identities and returns JSON OAuth
+errors with `WWW-Authenticate` and `Cache-Control: no-store`. Application identities use `principal_type: application`;
+override `isApplicationIdentity()` when an application uses another claim convention. Application access must match both
+the method policy and `$applicationScopes`. Identity validation handles local users, tenant policy and revocation;
+permission checks must still run afterward. Keep domain permission names and descriptions in the consuming application.
+
+Requests without an `AuthenticatedIdentity` retain existing session/guest authorization unless a listener sets
+`$requireAccessToken`. Authenticated token identities are restricted to declared listener policies and cannot access
+other controller routes. OPTIONS is left to existing routing/CORS behavior. Attaching this guard is an explicit migration:
+assign endpoint permissions to existing clients and acquire new tokens before enforcing it in production.
