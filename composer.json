@@ -33,7 +33,7 @@
     "webmozart/assert": "^1.12",
     "lm-commons/lmc-cors": "^1.6",
     "psr/link": "^2.0",
-    "zircote/swagger-php": "^5",
+    "zircote/swagger-php": "^5 || ^6",
     "swagger-api/swagger-ui": "^5.34",
     "ext-fileinfo": "*",
     "firebase/php-jwt": "^7.2",
