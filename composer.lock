@@ -2689,32 +2689,34 @@
         },
         {
             "name": "laminas/laminas-permissions-rbac",
-            "version": "3.8.0",
+            "version": "3.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laminas/laminas-permissions-rbac.git",
-                "reference": "1a1c80b5d351f46b2391632bfc87606d8c194bed"
+                "reference": "9d51ee6929481a1f53f3bf46c953a9098e68250e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laminas/laminas-permissions-rbac/zipball/1a1c80b5d351f46b2391632bfc87606d8c194bed",
-                "reference": "1a1c80b5d351f46b2391632bfc87606d8c194bed",
+                "url": "https://api.github.com/repos/laminas/laminas-permissions-rbac/zipball/9d51ee6929481a1f53f3bf46c953a9098e68250e",
+                "reference": "9d51ee6929481a1f53f3bf46c953a9098e68250e",
                 "shasum": ""
             },
             "require": {
-                "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0"
+                "php": "~8.3.0 || ~8.4.0 || ~8.5.0 || ~8.6.0"
             },
             "conflict": {
                 "zendframework/zend-permissions-rbac": "*"
             },
             "require-dev": {
-                "amphp/dns": "^2.4.0",
-                "amphp/socket": "^2.3.1",
+                "amphp/dns": "^2.4.2",
+                "amphp/socket": "^2.4.2",
+                "boundwize/structarmed": "^0.21.15",
+                "laminas/internal-tooling": "^1.2",
                 "laminas/laminas-coding-standard": "~3.1.0",
-                "phpunit/phpunit": "^11.5.42",
-                "psalm/plugin-phpunit": "^0.19.0",
+                "phpunit/phpunit": "^11.5.58",
+                "psalm/plugin-phpunit": "^0.22.2",
                 "sebastian/recursion-context": "^6.0.3",
-                "vimeo/psalm": "^6.13.1"
+                "vimeo/psalm": "^6.20.11"
             },
             "type": "library",
             "autoload": {
@@ -2744,11 +2746,11 @@
             },
             "funding": [
                 {
-                    "url": "https://funding.communitybridge.org/projects/laminas-project",
-                    "type": "community_bridge"
+                    "url": "https://crowdfunding.linuxfoundation.org/initiatives/laminas-project",
+                    "type": "custom"
                 }
             ],
-            "time": "2025-11-10T10:14:08+00:00"
+            "time": "2026-11-15T16:10:15+00:00"
         },
         {
             "name": "laminas/laminas-router",
