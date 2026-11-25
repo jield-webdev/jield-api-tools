@@ -37,7 +37,7 @@
     "swagger-api/swagger-ui": "^5.34",
     "ext-fileinfo": "*",
     "firebase/php-jwt": "^7.2",
-    "guzzlehttp/guzzle": "^7",
+    "guzzlehttp/guzzle": "^7 || ^8",
     "symfony/cache": "^5.4 || ^6 || ^7",
     "symfony/finder": "^5.4 || ^6 || ^7",
     "psr/cache": "^1 || ^2 || ^3",
